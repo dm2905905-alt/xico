@@ -24,7 +24,7 @@ function Tablero({ creador }: { creador: Creador }) {
   const pedidos = usePedidosDe(usuario?.uid).pedidos.filter(
     (p) => p.creadores.includes(creador.slug) && p.estado !== "pendiente_pago" && p.estado !== "rechazado",
   );
-  const porEnviar = pedidos.filter((p) => p.estado === "pagado").length;
+  const porEnviar = pedidos.filter((p) => (p.grupos.find((g) => g.creador === creador.slug)?.envioEstado ?? "preparando") === "preparando").length;
   const [borrando, setBorrando] = useState<string | null>(null);
   const [error, setError] = useState("");
 

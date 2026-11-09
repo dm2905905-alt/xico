@@ -5,10 +5,12 @@ import { useEffect, useRef, useState } from "react";
 import { CheckCircle2, Clock, Loader2, MapPin, XCircle } from "lucide-react";
 import { vaciarCarrito } from "@/lib/carrito";
 import { precio } from "@/lib/formato";
+import { nombreEnvio } from "@/lib/envios";
 import { nombreEstado } from "@/lib/pedidos";
 import { useMiCreador } from "@/lib/panel";
 import { usePedido } from "@/lib/usar-pedidos";
 import { FormularioEntrar } from "./FormularioEntrar";
+import { EnvioPaquete } from "./EnvioPaquete";
 import { FotoProducto } from "./FotoProducto";
 import { useSesion } from "./Sesion";
 
@@ -88,8 +90,8 @@ export function VistaPedido({ id, pagoId }: { id: string; pagoId?: string }) {
     pagado: { Icono: CheckCircle2, color: "text-jade bg-jade/10", titulo: "¡Gracias por tu compra!", texto: "Tu pago se confirmó. Los creadores ya están preparando tu pedido." },
     pendiente_pago: { Icono: Clock, color: "text-terracota bg-maiz/20", titulo: "Esperando tu pago", texto: "Si pagaste en OXXO o con transferencia, se confirmará cuando Mercado Pago lo reciba." },
     rechazado: { Icono: XCircle, color: "text-rosa bg-rosa/10", titulo: "El pago no se completó", texto: "No se hizo ningún cargo. Puedes intentarlo de nuevo desde tu carrito." },
-    enviado: { Icono: CheckCircle2, color: "text-jade bg-jade/10", titulo: "Tu pedido va en camino", texto: "" },
-    entregado: { Icono: CheckCircle2, color: "text-jade bg-jade/10", titulo: "Pedido entregado", texto: "" },
+    enviado: { Icono: CheckCircle2, color: "text-jade bg-jade/10", titulo: "Tu pedido va en camino", texto: "Abajo puedes ver la paquetería y rastrear cada paquete." },
+    entregado: { Icono: CheckCircle2, color: "text-jade bg-jade/10", titulo: "Pedido entregado", texto: "¡Esperamos que te encante! Gracias por apoyar a creadores mexicanos." },
     cancelado: { Icono: XCircle, color: "text-rosa bg-rosa/10", titulo: "Pedido cancelado", texto: "" },
   }[pedido.estado];
 
@@ -98,7 +100,7 @@ export function VistaPedido({ id, pagoId }: { id: string; pagoId?: string }) {
       <div className={`flex items-start gap-4 rounded-3xl p-6 ${encabezado.color}`}>
         <encabezado.Icono className="size-8 shrink-0" />
         <div>
-          <h2 className="font-display text-2xl font-semibold">{comprador ? encabezado.titulo : nombreEstado[pedido.estado]}</h2>
+          <h2 className="font-display text-2xl font-semibold">{comprador ? encabezado.titulo : miParte ? `Tu paquete: ${nombreEnvio[miParte.envioEstado ?? "preparando"]}` : nombreEstado[pedido.estado]}</h2>
           {comprador && encabezado.texto && <p className="mt-1 text-sm text-tinta/80">{encabezado.texto}</p>}
           <p className="mt-2 text-xs text-tinta/60">
             Pedido #{pedido.id.slice(0, 8).toUpperCase()} · {new Date(pedido.creado).toLocaleString("es-MX", { dateStyle: "medium", timeStyle: "short" })}
@@ -142,6 +144,7 @@ export function VistaPedido({ id, pagoId }: { id: string; pagoId?: string }) {
                   </li>
                 ))}
               </ul>
+              <EnvioPaquete pedido={pedido} grupo={g} rol={comprador ? "comprador" : "tienda"} />
             </section>
           ))}
         </div>

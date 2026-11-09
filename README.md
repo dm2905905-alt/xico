@@ -42,7 +42,7 @@ Hecho con **Next.js** + **Firebase** (Authentication y Firestore).
 - [x] Fase 4: base de datos en Firestore con reglas de seguridad
 - [x] Fase 5: panel del creador (fotos pendientes: requieren Firebase Storage)
 - [x] Fase 6: pagos con Mercado Pago (modo prueba; falta reparto automático a creadores)
-- [ ] Fase 7: envíos
+- [x] Fase 7: envíos (guía manual y rastreo; falta cotizar/comprar guías automáticamente)
 - [ ] Fase 8: videos, asistente de regalos e IA
 - [ ] Fase 9: panel de administración
 - [ ] Fase 10: lanzamiento

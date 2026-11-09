@@ -1,5 +1,6 @@
 // Tipos de pedido (compartidos por el servidor y el navegador)
 import type { CategoriaSlug } from "./datos";
+import type { EstadoEnvio } from "./envios";
 
 export const COMISION_XICO = 0.15; // 15% por venta
 
@@ -34,6 +35,12 @@ export type GrupoPedido = {
   envio: number;
   comision: number; // lo que se queda XICO
   paraCreador: number; // lo que recibe el creador (subtotal - comisión + envío)
+  // Envío de este paquete (cada creador manda el suyo)
+  envioEstado?: EstadoEnvio;
+  paqueteria?: string; // id de paqueteria (ver envios.ts)
+  guia?: string;
+  enviadoEn?: number;
+  entregadoEn?: number;
 };
 
 export type EstadoPedido = "pendiente_pago" | "pagado" | "rechazado" | "enviado" | "entregado" | "cancelado";

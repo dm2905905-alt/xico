@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
+import { nombreEnvio, type EstadoEnvio } from "@/lib/envios";
 import { precio } from "@/lib/formato";
 import { nombreEstado, type EstadoPedido, type Pedido } from "@/lib/pedidos";
 
@@ -12,6 +13,12 @@ const colorEstado: Record<EstadoPedido, string> = {
   enviado: "bg-jade/10 text-jade",
   entregado: "bg-arena text-cafe",
   cancelado: "bg-rosa/10 text-rosa",
+};
+
+const colorEnvio: Record<EstadoEnvio, string> = {
+  preparando: "bg-rosa/10 text-rosa",
+  enviado: "bg-jade/10 text-jade",
+  entregado: "bg-arena text-cafe",
 };
 
 const fecha = (ms: number) => new Date(ms).toLocaleDateString("es-MX", { day: "numeric", month: "short", year: "numeric" });
@@ -30,7 +37,13 @@ export function ListaPedidos({ pedidos, creador }: { pedidos: Pedido[]; creador?
               <div className="min-w-0 flex-1">
                 <p className="flex flex-wrap items-center gap-2 text-sm font-semibold">
                   #{p.id.slice(0, 8).toUpperCase()}
-                  <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${colorEstado[p.estado]}`}>{nombreEstado[p.estado]}</span>
+                  {mio ? (
+                    <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${colorEnvio[mio.envioEstado ?? "preparando"]}`}>
+                      {nombreEnvio[mio.envioEstado ?? "preparando"]}
+                    </span>
+                  ) : (
+                    <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${colorEstado[p.estado]}`}>{nombreEstado[p.estado]}</span>
+                  )}
                 </p>
                 <p className="truncate text-xs text-cafe">
                   {fecha(p.creado)} · {piezas} {piezas === 1 ? "pieza" : "piezas"}
