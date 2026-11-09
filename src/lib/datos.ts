@@ -58,7 +58,11 @@ export type Producto = {
   materiales: string;
   diasElaboracion: string;
   personalizacion?: OpcionPersonalizacion[];
+  paquete?: Paquete; // para cotizar el envío con la paquetería
 };
+
+// Tamaño del paquete ya empacado (las paqueterías cobran por peso real o por volumen, lo que sea mayor)
+export type Paquete = { pesoKg: number; largoCm: number; anchoCm: number; altoCm: number };
 
 // Lo mínimo para dibujar una tarjeta (se guarda también en favoritos)
 export type ProductoTarjeta = Pick<

@@ -15,6 +15,7 @@ import {
   writeBatch,
 } from "firebase/firestore";
 import type { Creador, Producto } from "./datos";
+import type { Direccion } from "./pedidos";
 import { obtenerDb } from "./firebase";
 
 // "Taller Xóchitl" → "taller-xochitl"
@@ -105,6 +106,7 @@ export type DatosProducto = Pick<
   | "colores"
   | "forma"
   | "personalizacion"
+  | "paquete"
 >;
 
 // Crea o actualiza un producto de la tienda
@@ -158,4 +160,28 @@ export async function leerProducto(slug: string): Promise<Producto | null> {
   if (!db) return null;
   const snap = await getDoc(doc(db, "productos", slug));
   return snap.exists() ? (snap.data() as Producto) : null;
+}
+
+// ---- Dirección de recolección (privada: solo la ve el dueño de la tienda y el servidor) ----
+
+export function useDireccionRecoleccion(slugCreador: string | undefined) {
+  const [estado, setEstado] = useState<{ slug?: string; direccion: Partial<Direccion> | null }>({ direccion: null });
+
+  useEffect(() => {
+    const db = obtenerDb();
+    if (!db || !slugCreador) return;
+    return onSnapshot(
+      doc(db, "tiendasPrivado", slugCreador),
+      (s) => setEstado({ slug: slugCreador, direccion: (s.data()?.direccion as Partial<Direccion>) ?? {} }),
+      () => setEstado({ slug: slugCreador, direccion: {} }),
+    );
+  }, [slugCreador]);
+
+  return estado.slug === slugCreador ? { direccion: estado.direccion ?? {}, cargando: false } : { direccion: {}, cargando: true };
+}
+
+export async function guardarDireccionRecoleccion(slugCreador: string, direccion: Direccion) {
+  const db = obtenerDb();
+  if (!db) throw new Error("Firebase no configurado");
+  await setDoc(doc(db, "tiendasPrivado", slugCreador), { direccion }, { merge: true });
 }

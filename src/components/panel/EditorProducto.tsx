@@ -70,6 +70,7 @@ function Formulario({ creador, existente }: { creador: Creador; existente?: Prod
     colores: existente?.colores ?? ["#c4511f", "#e9a824"],
     forma: existente?.forma ?? "cuadrada",
     personalizacion: existente?.personalizacion ?? [],
+    paquete: existente?.paquete,
   });
   const [errores, setErrores] = useState<string[]>([]);
   const [ocupado, setOcupado] = useState(false);
@@ -85,6 +86,11 @@ function Formulario({ creador, existente }: { creador: Creador; existente?: Prod
     if (!(d.precio > 0)) e.push("Pon un precio mayor a $0.");
     if (d.precioAntes && d.precioAntes <= d.precio) e.push("El precio anterior debe ser mayor al precio actual (si no hay oferta, déjalo vacío).");
     if (d.descripcion.trim().length < 10) e.push("Escribe una descripción de al menos 10 letras.");
+    const pq = d.paquete;
+    if (pq && (pq.pesoKg || pq.largoCm || pq.anchoCm || pq.altoCm)) {
+      if (!(pq.pesoKg > 0 && pq.pesoKg <= 70)) e.push("El peso del paquete debe estar entre 0.1 y 70 kg.");
+      if (![pq.largoCm, pq.anchoCm, pq.altoCm].every((m) => m >= 1 && m <= 200)) e.push("Las medidas del paquete deben estar entre 1 y 200 cm.");
+    }
     opciones.forEach((o, i) => {
       if (!o.etiqueta.trim()) e.push(`La opción ${i + 1} de personalización necesita un título.`);
       if (o.tipo === "extra" && !(o.precio > 0)) e.push(`La opción "${o.etiqueta || i + 1}" necesita un costo mayor a $0.`);
@@ -103,7 +109,14 @@ function Formulario({ creador, existente }: { creador: Creador; existente?: Prod
     try {
       await guardarProducto(
         creador,
-        { ...d, nombre: d.nombre.trim(), descripcion: d.descripcion.trim(), precioAntes: d.precioAntes || undefined },
+        {
+          ...d,
+          nombre: d.nombre.trim(),
+          descripcion: d.descripcion.trim(),
+          precioAntes: d.precioAntes || undefined,
+          // Solo se guarda si está completo
+          paquete: d.paquete && d.paquete.pesoKg > 0 && d.paquete.largoCm > 0 && d.paquete.anchoCm > 0 && d.paquete.altoCm > 0 ? d.paquete : undefined,
+        },
         existente,
       );
       router.push("/panel");
@@ -193,6 +206,41 @@ function Formulario({ creador, existente }: { creador: Creador; existente?: Prod
             </label>
           </div>
           <p className="mt-3 text-xs text-cafe">XICO cobra una comisión por venta; la verás al conectar los pagos (Fase 6).</p>
+        </section>
+
+        {/* Paquete para el envío */}
+        <section className={tarjeta}>
+          <h2 className="font-display text-xl font-semibold">📦 Paquete para el envío</h2>
+          <p className="mt-1 mb-4 text-sm text-cafe">
+            Peso y medidas <strong>ya empacado</strong>. Con esto se calculará el costo real del envío a cada parte de México.
+          </p>
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            {(
+              [
+                ["pesoKg", "Peso (kg)", 0.1, 70],
+                ["largoCm", "Largo (cm)", 1, 200],
+                ["anchoCm", "Ancho (cm)", 1, 200],
+                ["altoCm", "Alto (cm)", 1, 200],
+              ] as const
+            ).map(([clave, texto, min, max]) => (
+              <label key={clave} className={etiqueta}>
+                {texto}
+                <input
+                  className={campo}
+                  type="number"
+                  inputMode="decimal"
+                  step={clave === "pesoKg" ? 0.1 : 1}
+                  min={min}
+                  max={max}
+                  value={d.paquete?.[clave] || ""}
+                  onChange={(e) =>
+                    poner("paquete", { pesoKg: 0, largoCm: 0, anchoCm: 0, altoCm: 0, ...d.paquete, [clave]: Number(e.target.value) })
+                  }
+                />
+              </label>
+            ))}
+          </div>
+          <p className="mt-3 text-xs text-cafe">Tip: pesa la pieza dentro de su caja con una báscula de cocina y mide la caja por fuera.</p>
         </section>
 
         {/* Personalización */}

@@ -6,6 +6,7 @@
 // - Cada creador solo puede crear, editar o borrar SUS productos, y no puede tocar
 //   las ventas, reseñas ni calificaciones (esas las pone el sistema).
 // - Cada usuario solo puede leer y escribir su propio documento (carrito y favoritos).
+// - La dirección de recolección de cada tienda es privada: solo la ve y cambia su dueño.
 // - Los pedidos solo los ven el comprador y los creadores que participan; nadie los cambia
 //   desde el navegador (solo el servidor de XICO, después de verificar el pago).
 // - Todo lo demás está cerrado.
@@ -75,6 +76,11 @@ service cloud.firestore {
         && request.resource.data.resenas == resource.data.resenas
         && request.resource.data.calificacion == resource.data.calificacion);
       allow delete: if esAdmin() || (conSesion() && esDuenoDe(resource.data.creador));
+    }
+
+    match /tiendasPrivado/{creador} {
+      allow read, write: if esAdmin() || (conSesion() && esDuenoDe(creador)
+        && (request.method == get || request.method == list || request.resource.data.keys().hasOnly([direccion])));
     }
 
     match /pedidos/{pedido} {
