@@ -74,11 +74,15 @@ export default async function PaginaProducto({ params }: PageProps<"/producto/[s
           <h1 className="mt-3 font-display text-3xl leading-tight font-semibold tracking-tight sm:text-4xl">{producto.nombre}</h1>
 
           <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-cafe">
-            <span className="flex items-center gap-1">
-              <Star className="size-4 fill-maiz text-maiz" />
-              <strong className="text-tinta">{producto.calificacion.toFixed(1)}</strong> ({producto.resenas} reseñas)
-            </span>
-            <span>{producto.vendidos.toLocaleString("es-MX")} vendidos</span>
+            {producto.resenas > 0 ? (
+              <span className="flex items-center gap-1">
+                <Star className="size-4 fill-maiz text-maiz" />
+                <strong className="text-tinta">{producto.calificacion.toFixed(1)}</strong> ({producto.resenas} reseñas)
+              </span>
+            ) : (
+              <span>✨ Recién llegado: aún sin reseñas</span>
+            )}
+            {producto.vendidos > 0 && <span>{producto.vendidos.toLocaleString("es-MX")} vendidos</span>}
           </div>
 
           <p className="mt-5 flex items-baseline gap-3">

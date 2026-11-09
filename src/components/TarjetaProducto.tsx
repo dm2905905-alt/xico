@@ -38,10 +38,13 @@ export function TarjetaProducto({ producto, mosaico = false }: { producto: Produ
                 <span className="text-xs text-cafe/70 line-through">{precio(producto.precioAntes)}</span>
               )}
             </p>
-            <span className="flex items-center gap-0.5 text-xs text-cafe">
-              <Star className="size-3.5 fill-maiz text-maiz" />
-              {producto.calificacion.toFixed(1)}
-            </span>
+            {/* Sin reseñas todavía no se muestra "0.0" */}
+            {producto.calificacion > 0 && (
+              <span className="flex items-center gap-0.5 text-xs text-cafe">
+                <Star className="size-3.5 fill-maiz text-maiz" />
+                {producto.calificacion.toFixed(1)}
+              </span>
+            )}
           </div>
         </div>
       </Link>
