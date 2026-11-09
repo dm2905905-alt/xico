@@ -79,8 +79,10 @@ service cloud.firestore {
     }
 
     match /tiendasPrivado/{creador} {
-      allow read, write: if esAdmin() || (conSesion() && esDuenoDe(creador)
-        && (request.method == get || request.method == list || request.resource.data.keys().hasOnly([direccion])));
+      allow read: if esAdmin() || (conSesion() && esDuenoDe(creador));
+      allow create, update: if esAdmin() || (conSesion() && esDuenoDe(creador)
+        && request.resource.data.keys().hasOnly(['direccion']));
+      allow delete: if esAdmin();
     }
 
     match /pedidos/{pedido} {
