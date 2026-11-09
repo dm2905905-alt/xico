@@ -1,0 +1,43 @@
+@import "tailwindcss";
+
+/* Paleta XICO: cálida, artesanal, mexicana */
+@theme {
+  --color-crema: #fbf6ef;
+  --color-arena: #f1e7d9;
+  --color-arena-oscura: #e2d3bf;
+  --color-tinta: #2b1d14;
+  --color-cafe: #6f5442;
+  --color-terracota: #c4511f;
+  --color-terracota-oscura: #9e3d14;
+  --color-rosa: #d6246e;
+  --color-maiz: #e9a824;
+  --color-jade: #2f7d6b;
+
+  --font-sans: var(--font-geist-sans);
+  --font-display: var(--font-fraunces);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--color-crema);
+  color: var(--color-tinta);
+}
+
+/* Patrón sutil tipo papel picado para fondos de imagen pendiente */
+.patron-picado {
+  background-image:
+    radial-gradient(circle at 25% 25%, rgb(255 255 255 / 0.18) 2px, transparent 2.5px),
+    radial-gradient(circle at 75% 75%, rgb(255 255 255 / 0.12) 2px, transparent 2.5px);
+  background-size: 22px 22px;
+}
+
+/* Barra de desplazamiento horizontal oculta en carruseles */
+.sin-barra {
+  scrollbar-width: none;
+}
+.sin-barra::-webkit-scrollbar {
+  display: none;
+}
