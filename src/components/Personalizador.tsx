@@ -76,6 +76,7 @@ export function Personalizador({ producto }: { producto: Producto }) {
       producto: { ...aTarjeta(producto), creador: producto.creador },
       cantidad,
       extras,
+      extrasIds: opciones.filter((o) => o.tipo === "extra" && valores[o.id]).map((o) => o.id),
       opciones: elegidas,
       foto: Object.values(fotos)[0],
     });

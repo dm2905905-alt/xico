@@ -31,6 +31,10 @@ yarn-error.log*
 .pnpm-debug.log*
 
 # env files (can opt-in for committing if needed)
+# cuentas de servicio de Firebase (secretas)
+*firebase-admin*.json
+*-firebase-adminsdk-*.json
+
 .env*
 !.env.local.example
 

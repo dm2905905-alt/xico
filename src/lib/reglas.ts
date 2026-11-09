@@ -6,6 +6,8 @@
 // - Cada creador solo puede crear, editar o borrar SUS productos, y no puede tocar
 //   las ventas, reseñas ni calificaciones (esas las pone el sistema).
 // - Cada usuario solo puede leer y escribir su propio documento (carrito y favoritos).
+// - Los pedidos solo los ven el comprador y los creadores que participan; nadie los cambia
+//   desde el navegador (solo el servidor de XICO, después de verificar el pago).
 // - Todo lo demás está cerrado.
 export const reglasFirestore = (correoAdmin: string) => `rules_version = '2';
 service cloud.firestore {
@@ -73,6 +75,11 @@ service cloud.firestore {
         && request.resource.data.resenas == resource.data.resenas
         && request.resource.data.calificacion == resource.data.calificacion);
       allow delete: if esAdmin() || (conSesion() && esDuenoDe(resource.data.creador));
+    }
+
+    match /pedidos/{pedido} {
+      allow read: if esAdmin() || (conSesion() && request.auth.uid in resource.data.participantes);
+      allow write: if false;
     }
 
     match /usuarios/{uid} {

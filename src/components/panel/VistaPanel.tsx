@@ -7,6 +7,9 @@ import type { Creador } from "@/lib/datos";
 import { mensajeError } from "@/lib/firebase";
 import { precio } from "@/lib/formato";
 import { borrarProducto, useProductosDe } from "@/lib/panel";
+import { usePedidosDe } from "@/lib/usar-pedidos";
+import { ListaPedidos } from "../ListaPedidos";
+import { useSesion } from "../Sesion";
 import { FotoProducto } from "../FotoProducto";
 import { ConTienda } from "./ConTienda";
 
@@ -16,6 +19,12 @@ export function VistaPanel() {
 
 function Tablero({ creador }: { creador: Creador }) {
   const { productos, cargando } = useProductosDe(creador.slug);
+  const { usuario } = useSesion();
+  // Solo pedidos ya pagados que incluyen productos de esta tienda
+  const pedidos = usePedidosDe(usuario?.uid).pedidos.filter(
+    (p) => p.creadores.includes(creador.slug) && p.estado !== "pendiente_pago" && p.estado !== "rechazado",
+  );
+  const porEnviar = pedidos.filter((p) => p.estado === "pagado").length;
   const [borrando, setBorrando] = useState<string | null>(null);
   const [error, setError] = useState("");
 
@@ -69,7 +78,7 @@ function Tablero({ creador }: { creador: Creador }) {
           { icono: Package, valor: productos.length, texto: "Productos" },
           { icono: ShoppingBag, valor: vendidos, texto: "Piezas vendidas" },
           { icono: Star, valor: creador.resenas ? creador.calificacion.toFixed(1) : "—", texto: "Calificación" },
-          { icono: Package, valor: 0, texto: "Pedidos por enviar" },
+          { icono: Package, valor: porEnviar, texto: "Pedidos por enviar" },
         ].map((n) => (
           <div key={n.texto} className="rounded-3xl bg-white p-5 ring-1 ring-arena-oscura/60">
             <n.icono className="size-5 text-terracota" />
@@ -130,7 +139,12 @@ function Tablero({ creador }: { creador: Creador }) {
 
       <section className="rounded-3xl bg-white p-5 ring-1 ring-arena-oscura/60 sm:p-6">
         <h2 className="font-display text-xl font-semibold">Pedidos</h2>
-        <p className="mt-2 text-sm text-cafe">Aquí verás tus pedidos para preparar y enviar cuando se activen los pagos (Fase 6).</p>
+        {pedidos.length ? (
+          <ListaPedidos pedidos={pedidos} creador={creador.slug} />
+        ) : (
+          <p className="mt-2 text-sm text-cafe">Aún no tienes pedidos. Cuando alguien compre y pague, aparecerá aquí con la dirección de envío.</p>
+        )}
+        <p className="mt-3 text-xs text-cafe">XICO cobra por ti; recibes el total de tus productos menos 15% de comisión, más el envío.</p>
       </section>
     </div>
   );

@@ -12,6 +12,7 @@ export type ArticuloCarrito = {
   producto: ProductoEnCarrito;
   cantidad: number;
   extras: number; // costo de extras por pieza
+  extrasIds?: string[]; // qué extras eligió (el servidor recalcula el precio con esto)
   opciones: { etiqueta: string; valor: string }[];
   foto?: string; // imagen de referencia comprimida (data URL)
   conFoto?: boolean; // la foto se quedó en otro dispositivo
