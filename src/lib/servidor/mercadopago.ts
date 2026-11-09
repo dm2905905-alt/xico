@@ -23,7 +23,7 @@ async function llamar<T>(ruta: string, opciones: RequestInit = {}): Promise<T> {
   return cuerpo as T;
 }
 
-export type Preferencia = { id: string; init_point: string; sandbox_init_point?: string };
+export type Preferencia = { id: string; init_point: string };
 
 export type PagoMP = {
   id: number;
@@ -47,5 +47,10 @@ export function obtenerPago(id: string) {
   return llamar<PagoMP>(`/v1/payments/${id}`);
 }
 
-// Si el token es de prueba, se usa el checkout de pruebas
-export const esPrueba = () => token().startsWith("TEST-");
+// Pagos asociados a un pedido (por si el comprador cerró la ventana antes de regresar a XICO)
+export async function buscarPagosDePedido(pedidoId: string) {
+  const r = await llamar<{ results: PagoMP[] }>(
+    `/v1/payments/search?external_reference=${encodeURIComponent(pedidoId)}&sort=date_created&criteria=desc`,
+  );
+  return r.results ?? [];
+}

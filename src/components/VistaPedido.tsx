@@ -21,9 +21,14 @@ export function VistaPedido({ id, pagoId }: { id: string; pagoId?: string }) {
   const yaPedido = useRef(false);
   const yaVaciado = useRef(false);
 
-  // Al regresar de Mercado Pago, se pide al servidor que verifique el pago
+  // El comprador pide al servidor que verifique su pago con Mercado Pago:
+  // al regresar de pagar (trae el número de pago) o al abrir un pedido que sigue pendiente
+  // (por ejemplo, si cerró la ventana antes de volver a XICO).
+  const esComprador = !!usuario && pedido?.uid === usuario.uid;
+  const pendiente = pedido?.estado === "pendiente_pago";
   useEffect(() => {
-    if (!usuario || !pagoId || yaPedido.current) return;
+    if (!usuario || yaPedido.current) return;
+    if (!pagoId && !(esComprador && pendiente)) return;
     yaPedido.current = true;
     (async () => {
       try {
@@ -39,7 +44,7 @@ export function VistaPedido({ id, pagoId }: { id: string; pagoId?: string }) {
         setRevisando(false);
       }
     })();
-  }, [usuario, pagoId, id]);
+  }, [usuario, pagoId, id, esComprador, pendiente]);
 
   // Pagado: se vacía el carrito (una sola vez)
   useEffect(() => {

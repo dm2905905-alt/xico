@@ -12,7 +12,7 @@ import {
   type Pedido,
 } from "../pedidos";
 import { adminDb, ErrorXico } from "./admin";
-import { crearPreferencia, esPrueba, obtenerPago } from "./mercadopago";
+import { buscarPagosDePedido, crearPreferencia, obtenerPago } from "./mercadopago";
 
 // Mismas reglas de envío que muestra el carrito (en la Fase 7 se cotiza con la paquetería)
 const ENVIO_POR_CREADOR = 99;
@@ -139,7 +139,8 @@ export async function crearPedido(usuario: DecodedIdToken, solicitados: Articulo
   const preferencia = await crearPreferencia(
     {
       items,
-      payer: usuario.email ? { email: usuario.email } : undefined,
+      // No se manda el correo del comprador: Mercado Pago lo pide en su pantalla. Mandarlo causa
+      // el error "una de las partes es de prueba" al mezclar correos reales con cuentas de prueba.
       external_reference: ref.id,
       back_urls: { success: url, failure: url, pending: url },
       ...(publico ? { auto_return: "approved", notification_url: `${sitio()}/api/pagos/aviso` } : {}),
@@ -150,7 +151,8 @@ export async function crearPedido(usuario: DecodedIdToken, solicitados: Articulo
   );
   await ref.update({ "mp.preferencia": preferencia.id });
 
-  return { pedidoId: ref.id, url: esPrueba() && preferencia.sandbox_init_point ? preferencia.sandbox_init_point : preferencia.init_point };
+  // Con credenciales de prueba (cuenta vendedora de prueba) la misma liga funciona en modo de pruebas
+  return { pedidoId: ref.id, url: preferencia.init_point };
 }
 
 // Consulta el pago en Mercado Pago (la única fuente confiable) y actualiza el pedido
@@ -195,4 +197,13 @@ export async function confirmarPago(pagoId: string, pedidoEsperado?: string) {
     tx.update(ref, base); // pendiente (por ejemplo, pago en OXXO aún no realizado)
     return pedido.estado;
   });
+}
+
+// Sin número de pago: busca en Mercado Pago los pagos de este pedido y usa el mejor
+// (uno aprobado si existe; si no, el más reciente)
+export async function verificarPedido(pedidoId: string) {
+  const pagos = await buscarPagosDePedido(pedidoId);
+  const elegido = pagos.find((p) => p.status === "approved") ?? pagos[0];
+  if (!elegido) return null; // todavía no hay ningún intento de pago
+  return confirmarPago(String(elegido.id), pedidoId);
 }

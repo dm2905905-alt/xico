@@ -26,7 +26,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="es-MX" className={`${geistSans.variable} ${fraunces.variable} h-full antialiased`}>
+    <html lang="es-MX" data-scroll-behavior="smooth" className={`${geistSans.variable} ${fraunces.variable} h-full antialiased`}>
       <body className="flex min-h-full flex-col font-sans">
         <ProveedorSesion>
           <Encabezado />
