@@ -41,6 +41,8 @@ export type GrupoPedido = {
   guia?: string;
   enviadoEn?: number;
   entregadoEn?: number;
+  // Cuándo XICO le transfirió su parte al creador (mientras no haya reparto automático)
+  liquidado?: number;
 };
 
 export type EstadoPedido = "pendiente_pago" | "pagado" | "rechazado" | "enviado" | "entregado" | "cancelado";

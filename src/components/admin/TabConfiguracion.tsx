@@ -1,19 +1,19 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import type { User } from "firebase/auth";
 import { collection, doc, getDocs, writeBatch } from "firebase/firestore";
-import { Check, Copy, Database, ExternalLink, Loader2, ShieldCheck } from "lucide-react";
+import { Check, Copy, Database, ExternalLink, Loader2, ShieldCheck, Trash2 } from "lucide-react";
 import { catalogoEjemplo } from "@/lib/ejemplo";
 import { mensajeError, obtenerDb } from "@/lib/firebase";
 import { firebaseConfig } from "@/lib/firebase-config";
 import { reglasFirestore } from "@/lib/reglas";
-import { FormularioEntrar } from "./FormularioEntrar";
-import { useSesion } from "./Sesion";
+import { llamar } from "./datos";
 
 type Conteo = { productos: number; creadores: number } | "error" | null;
 
-export function VistaAdmin() {
-  const { usuario, cargando, configurado } = useSesion();
+// Configuración: reglas de seguridad, importar datos de ejemplo y limpiar datos de prueba
+export function TabConfiguracion({ usuario }: { usuario: User }) {
   const [copiado, setCopiado] = useState(false);
   const [conteo, setConteo] = useState<Conteo>(null);
   const [importando, setImportando] = useState(false);
@@ -32,17 +32,6 @@ export function VistaAdmin() {
       activo = false;
     };
   }, [usuario, version]);
-
-  if (!configurado) return <p className="text-cafe">Firebase no está configurado (.env.local).</p>;
-  if (cargando) return <div className="h-48 animate-pulse rounded-3xl bg-arena" />;
-  if (!usuario) {
-    return (
-      <div className="max-w-md rounded-3xl bg-white p-6 ring-1 ring-arena-oscura/60">
-        <p className="mb-4 text-sm text-cafe">Entra con la cuenta de Google que administrará XICO.</p>
-        <FormularioEntrar volver="/admin" />
-      </div>
-    );
-  }
 
   const correo = usuario.email ?? "";
   const reglas = reglasFirestore(correo);
@@ -141,6 +130,69 @@ export function VistaAdmin() {
           </p>
         )}
       </section>
+
+      <Limpieza usuario={usuario} />
     </div>
+  );
+}
+
+// Limpieza de datos de prueba: primero muestra qué se borraría y pide confirmación
+function Limpieza({ usuario }: { usuario: User }) {
+  const [ocupado, setOcupado] = useState<string | null>(null);
+  const [mensaje, setMensaje] = useState<{ ok: boolean; texto: string } | null>(null);
+
+  const opciones = [
+    { que: "pedidos-sin-pagar", titulo: "Pedidos sin pagar", texto: "Intentos de compra que nunca se pagaron (con más de 1 hora)." },
+    { que: "ejemplo", titulo: "Productos y tiendas de ejemplo", texto: "Los 16 productos y 6 tiendas de prueba (las que no tienen dueño). No toca las tiendas reales." },
+  ];
+
+  async function limpiar(que: string) {
+    setOcupado(que);
+    setMensaje(null);
+    try {
+      const vista = await llamar<{ detalle: string; total: number }>(usuario, "/api/admin/limpiar", { que, simular: true });
+      if (!vista.total) {
+        setMensaje({ ok: true, texto: "No hay nada que limpiar." });
+        return;
+      }
+      if (!window.confirm(`Se borrarán ${vista.detalle}. Esto NO se puede deshacer. ¿Continuar?`)) return;
+      const r = await llamar<{ detalle: string }>(usuario, "/api/admin/limpiar", { que });
+      setMensaje({ ok: true, texto: `Listo: se borraron ${r.detalle}.` });
+    } catch (e) {
+      setMensaje({ ok: false, texto: (e as Error).message });
+    } finally {
+      setOcupado(null);
+    }
+  }
+
+  return (
+    <section className="rounded-3xl bg-white p-6 ring-1 ring-rosa/30">
+      <h2 className="flex items-center gap-2 font-display text-xl font-semibold">
+        <Trash2 className="size-5 text-rosa" /> 3. Limpiar datos de prueba
+      </h2>
+      <p className="mt-2 text-sm text-cafe">Úsalo antes de lanzar. Siempre te dice qué se va a borrar y te pide confirmar.</p>
+      <ul className="mt-4 grid gap-3">
+        {opciones.map((o) => (
+          <li key={o.que} className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-arena-oscura p-4">
+            <span>
+              <span className="block font-semibold">{o.titulo}</span>
+              <span className="text-sm text-cafe">{o.texto}</span>
+            </span>
+            <button
+              onClick={() => limpiar(o.que)}
+              disabled={!!ocupado}
+              className="flex items-center gap-1.5 rounded-full border border-rosa px-4 py-2 text-sm font-semibold text-rosa hover:bg-rosa/10 disabled:opacity-50"
+            >
+              {ocupado === o.que ? <Loader2 className="size-4 animate-spin" /> : <Trash2 className="size-4" />} Limpiar
+            </button>
+          </li>
+        ))}
+      </ul>
+      {mensaje && (
+        <p role={mensaje.ok ? "status" : "alert"} className={`mt-4 rounded-xl px-4 py-3 text-sm ${mensaje.ok ? "bg-jade/10 text-jade" : "bg-rosa/10 text-rosa"}`}>
+          {mensaje.texto}
+        </p>
+      )}
+    </section>
   );
 }

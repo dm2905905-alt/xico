@@ -24,7 +24,8 @@ export async function obtenerCatalogo(): Promise<Catalogo> {
   try {
     const [p, c] = await Promise.all([getDocs(collection(db, "productos")), getDocs(collection(db, "creadores"))]);
     return {
-      productos: p.docs.map((d) => d.data() as Producto),
+      // Los productos ocultos por moderación no aparecen en la tienda
+      productos: p.docs.map((d) => d.data() as Producto).filter((x) => !x.oculto),
       creadores: c.docs.map((d) => d.data() as Creador),
       origen: "firebase",
     };

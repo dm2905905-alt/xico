@@ -46,3 +46,18 @@ export function respuestaError(e: unknown) {
   console.error("[XICO] Error inesperado:", e);
   return Response.json({ error: "Algo salió mal en el servidor. Inténtalo de nuevo." }, { status: 500 });
 }
+
+// ¿La persona es administradora de XICO? (lista en ADMIN_EMAILS, correo verificado por Google)
+export function esAdmin(usuario: { email?: string; email_verified?: boolean }) {
+  const lista = (process.env.ADMIN_EMAILS ?? "")
+    .split(",")
+    .map((c) => c.trim().toLowerCase())
+    .filter(Boolean);
+  return !!usuario.email && usuario.email_verified === true && lista.includes(usuario.email.toLowerCase());
+}
+
+export async function exigirAdmin(peticion: Request) {
+  const usuario = await usuarioDePeticion(peticion);
+  if (!esAdmin(usuario)) throw new ErrorXico("Solo la administración de XICO puede hacer esto.", 403);
+  return usuario;
+}

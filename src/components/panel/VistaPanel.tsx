@@ -118,6 +118,11 @@ function Tablero({ creador }: { creador: Creador }) {
                   <p className="text-sm text-cafe">
                     {precio(p.precio)} · {p.vendidos} vendidos{p.personalizable && " · ✍️ personalizable"}
                   </p>
+                  {p.oculto && (
+                    <p className="mt-1 rounded-lg bg-rosa/10 px-2 py-1 text-xs text-rosa">
+                      🚫 Oculto por XICO{p.motivoOculto ? `: ${p.motivoOculto}` : ""}. Escríbenos si crees que es un error.
+                    </p>
+                  )}
                 </div>
                 <Link href={`/panel/producto/${p.slug}`} className="grid size-10 place-items-center rounded-full hover:bg-arena" aria-label={`Editar ${p.nombre}`}>
                   <Pencil className="size-4" />

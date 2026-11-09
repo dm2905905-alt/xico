@@ -59,6 +59,9 @@ export type Producto = {
   diasElaboracion: string;
   personalizacion?: OpcionPersonalizacion[];
   paquete?: Paquete; // para cotizar el envío con la paquetería
+  // Moderación: la administración puede ocultar un producto (por ejemplo, si es reventa)
+  oculto?: boolean;
+  motivoOculto?: string;
 };
 
 // Tamaño del paquete ya empacado (las paqueterías cobran por peso real o por volumen, lo que sea mayor)

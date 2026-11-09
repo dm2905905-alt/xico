@@ -4,7 +4,8 @@
 // - Cualquier persona con sesión puede abrir SU tienda (un documento en "creadores" con su uid),
 //   pero no puede darse a sí misma la insignia de verificado, top vendedor ni calificaciones.
 // - Cada creador solo puede crear, editar o borrar SUS productos, y no puede tocar
-//   las ventas, reseñas ni calificaciones (esas las pone el sistema).
+//   las ventas, reseñas ni calificaciones (esas las pone el sistema), ni volver a mostrar
+//   un producto que la administración ocultó.
 // - Cada usuario solo puede leer y escribir su propio documento (carrito y favoritos).
 // - La dirección de recolección de cada tienda es privada: solo la ve y cambia su dueño.
 // - Los pedidos solo los ven el comprador y los creadores que participan; nadie los cambia
@@ -66,7 +67,8 @@ service cloud.firestore {
         && productoValido(request.resource.data)
         && request.resource.data.vendidos == 0
         && request.resource.data.resenas == 0
-        && request.resource.data.calificacion == 0);
+        && request.resource.data.calificacion == 0
+        && !('oculto' in request.resource.data));
       allow update: if esAdmin() || (conSesion()
         && esDuenoDe(resource.data.creador)
         && productoValido(request.resource.data)
@@ -74,7 +76,9 @@ service cloud.firestore {
         && request.resource.data.slug == resource.data.slug
         && request.resource.data.vendidos == resource.data.vendidos
         && request.resource.data.resenas == resource.data.resenas
-        && request.resource.data.calificacion == resource.data.calificacion);
+        && request.resource.data.calificacion == resource.data.calificacion
+        && request.resource.data.get('oculto', false) == resource.data.get('oculto', false)
+        && request.resource.data.get('motivoOculto', '') == resource.data.get('motivoOculto', ''));
       allow delete: if esAdmin() || (conSesion() && esDuenoDe(resource.data.creador));
     }
 
