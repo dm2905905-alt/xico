@@ -15,6 +15,7 @@ import {
 import { mensajeError } from "@/lib/firebase";
 import { guardarProducto, leerProducto, type DatosProducto } from "@/lib/panel";
 import { TarjetaProducto } from "../TarjetaProducto";
+import { AsistenteIA } from "./AsistenteIA";
 import { ConTienda } from "./ConTienda";
 
 const tiempos = ["Listo para enviar", "1 a 3 días", "3 a 5 días", "5 a 7 días", "7 a 10 días", "10 a 15 días", "15 a 30 días"];
@@ -150,6 +151,8 @@ function Formulario({ creador, existente }: { creador: Creador; existente?: Prod
     <form onSubmit={guardar} className="grid gap-6 lg:grid-cols-[1fr_280px]">
       <div className="grid content-start gap-6">
         <Link href="/panel" className="text-sm text-cafe hover:underline">← Volver a mi tienda</Link>
+
+        <AsistenteIA aplicar={(cambios) => setD((x) => ({ ...x, ...cambios }))} />
 
         {/* Básico */}
         <section className={tarjeta}>
