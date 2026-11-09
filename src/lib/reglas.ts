@@ -1,7 +1,10 @@
 // Reglas de seguridad de Firestore.
 // - Cualquiera puede VER productos y creadores (es una tienda pública).
-// - Solo la cuenta administradora puede crearlos o cambiarlos (por ahora; en la Fase 5
-//   cada creador podrá editar sus propios productos).
+// - La cuenta administradora puede cambiar todo.
+// - Cualquier persona con sesión puede abrir SU tienda (un documento en "creadores" con su uid),
+//   pero no puede darse a sí misma la insignia de verificado, top vendedor ni calificaciones.
+// - Cada creador solo puede crear, editar o borrar SUS productos, y no puede tocar
+//   las ventas, reseñas ni calificaciones (esas las pone el sistema).
 // - Cada usuario solo puede leer y escribir su propio documento (carrito y favoritos).
 // - Todo lo demás está cerrado.
 export const reglasFirestore = (correoAdmin: string) => `rules_version = '2';
@@ -14,14 +17,62 @@ service cloud.firestore {
         && request.auth.token.email_verified == true;
     }
 
-    match /productos/{producto} {
-      allow read: if true;
-      allow write: if esAdmin();
+    function conSesion() {
+      return request.auth != null;
+    }
+
+    // ¿La tienda (creador) pertenece a quien hace la petición?
+    function esDuenoDe(slugCreador) {
+      return get(/databases/$(database)/documents/creadores/$(slugCreador)).data.uid == request.auth.uid;
+    }
+
+    function textoValido(t, min, max) {
+      return t is string && t.size() >= min && t.size() <= max;
+    }
+
+    function productoValido(p) {
+      return textoValido(p.nombre, 3, 120)
+        && textoValido(p.descripcion, 10, 2000)
+        && p.precio is number && p.precio > 0 && p.precio <= 200000
+        && (!('precioAntes' in p) || (p.precioAntes is number && p.precioAntes > p.precio));
     }
 
     match /creadores/{creador} {
       allow read: if true;
-      allow write: if esAdmin();
+      allow create: if esAdmin() || (conSesion()
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.slug == creador
+        && textoValido(request.resource.data.taller, 2, 60)
+        && request.resource.data.verificado == false
+        && request.resource.data.top == false
+        && request.resource.data.calificacion == 0
+        && request.resource.data.resenas == 0);
+      allow update: if esAdmin() || (conSesion()
+        && resource.data.uid == request.auth.uid
+        && textoValido(request.resource.data.taller, 2, 60)
+        && request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly(['nombre', 'taller', 'estado', 'ciudad', 'especialidad', 'historia', 'colores']));
+      allow delete: if esAdmin();
+    }
+
+    match /productos/{producto} {
+      allow read: if true;
+      allow create: if esAdmin() || (conSesion()
+        && request.resource.data.slug == producto
+        && esDuenoDe(request.resource.data.creador)
+        && productoValido(request.resource.data)
+        && request.resource.data.vendidos == 0
+        && request.resource.data.resenas == 0
+        && request.resource.data.calificacion == 0);
+      allow update: if esAdmin() || (conSesion()
+        && esDuenoDe(resource.data.creador)
+        && productoValido(request.resource.data)
+        && request.resource.data.creador == resource.data.creador
+        && request.resource.data.slug == resource.data.slug
+        && request.resource.data.vendidos == resource.data.vendidos
+        && request.resource.data.resenas == resource.data.resenas
+        && request.resource.data.calificacion == resource.data.calificacion);
+      allow delete: if esAdmin() || (conSesion() && esDuenoDe(resource.data.creador));
     }
 
     match /usuarios/{uid} {

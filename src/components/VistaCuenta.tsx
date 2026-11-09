@@ -41,6 +41,14 @@ export function VistaCuenta() {
         </button>
       </div>
 
+      <Link href="/panel" className="flex items-center justify-between gap-4 rounded-3xl bg-terracota p-6 text-crema transition hover:bg-terracota-oscura">
+        <span>
+          <span className="block font-display text-xl font-semibold">Mi tienda</span>
+          <span className="text-sm text-crema/85">Vende tus productos hechos a mano en XICO</span>
+        </span>
+        <span aria-hidden className="text-2xl">→</span>
+      </Link>
+
       <div className="grid gap-4 sm:grid-cols-3">
         <div className="rounded-3xl bg-white p-6 ring-1 ring-arena-oscura/60">
           <Package className="size-6 text-terracota" />

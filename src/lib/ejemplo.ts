@@ -1,6 +1,6 @@
 // Datos de ejemplo para arrancar la tienda.
 // Se importan a Firestore una sola vez desde /admin; después la tienda lee de Firebase.
-import type { Creador, OpcionPersonalizacion, Producto } from "./datos";
+import { paletaMexicana, type Creador, type OpcionPersonalizacion, type Producto } from "./datos";
 
 type ProductoBase = Omit<Producto, "taller" | "estado" | "descripcion" | "materiales" | "diasElaboracion" | "personalizacion">;
 type DetalleProducto = Pick<Producto, "descripcion" | "materiales" | "diasElaboracion"> & {
@@ -113,14 +113,6 @@ const productosBase: ProductoBase[] = [
   { slug: "camino-mesa-bordado", nombre: "Camino de mesa bordado", creador: "taller-xochitl", categoria: "decoracion", precio: 690, calificacion: 4.9, resenas: 41, vendidos: 132, personalizable: false, colores: ["#c4511f", "#2f7d6b"], forma: "alta" },
 ];
 
-const paletaMexicana = [
-  { nombre: "Rosa mexicano", hex: "#d6246e" },
-  { nombre: "Terracota", hex: "#c4511f" },
-  { nombre: "Amarillo maíz", hex: "#e9a824" },
-  { nombre: "Verde jade", hex: "#2f7d6b" },
-  { nombre: "Azul talavera", hex: "#1e3a8a" },
-  { nombre: "Negro", hex: "#2b1d14" },
-];
 
 const detalles: Record<string, DetalleProducto> = {
   "funda-frida-pintada": {

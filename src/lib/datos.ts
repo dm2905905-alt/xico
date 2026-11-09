@@ -28,6 +28,7 @@ export type Creador = {
   verificado: boolean;
   top: boolean;
   colores: [string, string];
+  uid?: string; // cuenta dueña de la tienda (los creadores de ejemplo no tienen)
 };
 
 // Opciones del formulario de personalización de un producto
@@ -112,6 +113,16 @@ export const estados: Estado[] = [
   { slug: "yucatan", nombre: "Yucatán", especialidad: "Hamacas y henequén", colores: ["#2f7d6b", "#6bb39a"] },
   { slug: "guanajuato", nombre: "Guanajuato", especialidad: "Cerámica mayólica", colores: ["#a33a3a", "#d9705b"] },
   { slug: "cdmx", nombre: "Ciudad de México", especialidad: "Arte urbano y diseño", colores: ["#4a2c6b", "#8b5cc6"] },
+];
+
+// Colores que el comprador puede elegir en la personalización
+export const paletaMexicana = [
+  { nombre: "Rosa mexicano", hex: "#d6246e" },
+  { nombre: "Terracota", hex: "#c4511f" },
+  { nombre: "Amarillo maíz", hex: "#e9a824" },
+  { nombre: "Verde jade", hex: "#2f7d6b" },
+  { nombre: "Azul talavera", hex: "#1e3a8a" },
+  { nombre: "Negro", hex: "#2b1d14" },
 ];
 
 export const estadoPorSlug = (slug: string) => estados.find((e) => e.slug === slug);
