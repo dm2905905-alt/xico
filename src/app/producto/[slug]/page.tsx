@@ -19,9 +19,11 @@ export async function generateStaticParams() {
 export async function generateMetadata({ params }: PageProps<"/producto/[slug]">): Promise<Metadata> {
   const p = consultas(await obtenerCatalogo()).productoPorSlug((await params).slug);
   if (!p) return {};
+  const descripcion = `${p.descripcion} Hecho a mano por ${p.taller}.`;
   return {
     title: p.nombre,
-    description: `${p.descripcion} Hecho a mano por ${p.taller}.`,
+    description: descripcion,
+    openGraph: { title: `${p.nombre} · XICO`, description: descripcion, type: "website", locale: "es_MX", siteName: "XICO" },
   };
 }
 
