@@ -1,7 +1,7 @@
 // Crear pedidos y confirmar pagos. Solo en el servidor.
 // Regla de oro: nunca se confía en precios que manda el navegador; todo se recalcula aquí.
 import { FieldValue } from "firebase-admin/firestore";
-import type { DecodedIdToken } from "firebase-admin/auth";
+import type { UsuarioVerificado } from "./admin";
 import type { Creador, Producto } from "../datos";
 import {
   COMISION_XICO,
@@ -21,7 +21,7 @@ const ENVIO_GRATIS_DESDE = 999;
 const sitio = () => (process.env.SITE_URL ?? "http://localhost:3000").replace(/\/$/, "");
 const recorta = (t: unknown, max: number) => String(t ?? "").trim().slice(0, max);
 
-export async function crearPedido(usuario: DecodedIdToken, solicitados: ArticuloSolicitado[], direccionCruda: Direccion) {
+export async function crearPedido(usuario: UsuarioVerificado, solicitados: ArticuloSolicitado[], direccionCruda: Direccion) {
   if (!Array.isArray(solicitados) || solicitados.length === 0) throw new ErrorXico("Tu carrito está vacío.");
   if (solicitados.length > 50) throw new ErrorXico("Demasiados artículos en un solo pedido.");
 

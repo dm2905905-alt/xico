@@ -1,7 +1,7 @@
 // Cambios de envío de un pedido. Solo en el servidor.
 // - "enviar": solo el dueño de la tienda de ese paquete (puede corregir la guía después).
 // - "entregar": el comprador o el dueño de la tienda.
-import type { DecodedIdToken } from "firebase-admin/auth";
+import type { UsuarioVerificado } from "./admin";
 import type { Creador } from "../datos";
 import { paqueteriaPorId } from "../envios";
 import type { EstadoPedido, GrupoPedido, Pedido } from "../pedidos";
@@ -17,7 +17,7 @@ function estadoGeneral(grupos: GrupoPedido[], actual: EstadoPedido): EstadoPedid
   return actual === "enviado" || actual === "entregado" ? "pagado" : actual;
 }
 
-export async function actualizarEnvio(usuario: DecodedIdToken, pedidoId: string, creadorSlug: string, cambio: AccionEnvio) {
+export async function actualizarEnvio(usuario: UsuarioVerificado, pedidoId: string, creadorSlug: string, cambio: AccionEnvio) {
   const db = adminDb();
   const ref = db.collection("pedidos").doc(String(pedidoId));
 

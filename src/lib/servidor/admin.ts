@@ -1,8 +1,8 @@
 // Firebase con permisos de administrador. SOLO se usa en el servidor:
 // la "cuenta de servicio" es secreta y nunca llega al navegador.
 import { cert, getApps, initializeApp, type App } from "firebase-admin/app";
-import { getAuth } from "firebase-admin/auth";
 import { getFirestore } from "firebase-admin/firestore";
+import { createRemoteJWKSet, jwtVerify } from "jose";
 
 const NOMBRE = "xico-admin";
 
@@ -26,15 +26,36 @@ function app(): App {
   return initializeApp({ credential: cert(cuenta) }, NOMBRE);
 }
 
-export const adminAuth = () => getAuth(app());
 export const adminDb = () => getFirestore(app());
 
-// Lee el token de sesión que manda el navegador y devuelve al usuario verificado
-export async function usuarioDePeticion(peticion: Request) {
+// Persona con sesión, ya verificada por el servidor
+export type UsuarioVerificado = { uid: string; email?: string; email_verified?: boolean };
+
+// Claves públicas con las que Google firma los tokens de sesión de Firebase
+// (se descargan una vez y se guardan en memoria)
+const clavesGoogle = createRemoteJWKSet(
+  new URL("https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com"),
+);
+
+// Lee el token de sesión que manda el navegador y comprueba que sea auténtico y vigente.
+// Es la verificación que documenta Firebase: firma de Google, emisor y audiencia = nuestro proyecto.
+export async function usuarioDePeticion(peticion: Request): Promise<UsuarioVerificado> {
   const token = peticion.headers.get("authorization")?.replace(/^Bearer /, "");
   if (!token) throw new ErrorXico("Necesitas iniciar sesión.", 401);
+  const proyecto = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
+  if (!proyecto) throw new ErrorXico("El servidor no tiene configurado Firebase.", 500);
   try {
-    return await adminAuth().verifyIdToken(token);
+    const { payload } = await jwtVerify(token, clavesGoogle, {
+      issuer: `https://securetoken.google.com/${proyecto}`,
+      audience: proyecto,
+      algorithms: ["RS256"],
+    });
+    if (!payload.sub) throw new Error("token sin usuario");
+    return {
+      uid: payload.sub,
+      email: typeof payload.email === "string" ? payload.email : undefined,
+      email_verified: payload.email_verified === true,
+    };
   } catch {
     throw new ErrorXico("Tu sesión expiró. Vuelve a entrar.", 401);
   }
