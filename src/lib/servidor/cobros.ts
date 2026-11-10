@@ -11,6 +11,7 @@ import {
   type GrupoPedido,
   type Pedido,
 } from "../pedidos";
+import { urlSitio } from "../sitio";
 import { adminDb, ErrorXico } from "./admin";
 import { buscarPagosDePedido, crearPreferencia, obtenerPago } from "./mercadopago";
 
@@ -18,7 +19,7 @@ import { buscarPagosDePedido, crearPreferencia, obtenerPago } from "./mercadopag
 const ENVIO_POR_CREADOR = 99;
 const ENVIO_GRATIS_DESDE = 999;
 
-const sitio = () => (process.env.SITE_URL ?? "http://localhost:3000").replace(/\/$/, "");
+const sitio = urlSitio;
 const recorta = (t: unknown, max: number) => String(t ?? "").trim().slice(0, max);
 
 export async function crearPedido(usuario: UsuarioVerificado, solicitados: ArticuloSolicitado[], direccionCruda: Direccion) {
