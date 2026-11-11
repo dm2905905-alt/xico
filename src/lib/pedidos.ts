@@ -63,6 +63,7 @@ export type Pedido = {
   creado: number; // milisegundos
   pagado?: number;
   mp?: { preferencia?: string; pago?: string; estadoPago?: string };
+  propuestaId?: string; // si viene de una propuesta personalizada del chat
 };
 
 // Lo que el navegador manda al servidor para pagar (sin precios: el servidor los calcula)

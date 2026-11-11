@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { BadgeCheck, MapPin, Package, Star } from "lucide-react";
+import { BotonEscribir } from "@/components/chat/BotonEscribir";
 import { TarjetaProducto } from "@/components/TarjetaProducto";
 import { RELLENO, conRelleno, consultas, obtenerCatalogo } from "@/lib/catalogo";
 import { estadoPorSlug } from "@/lib/datos";
@@ -53,6 +54,11 @@ export default async function PaginaCreador({ params }: PageProps<"/creador/[slu
             </p>
           </div>
         </div>
+
+        {/* Pedir algo personalizado (dentro de XICO) */}
+        {creador.uid && (
+          <BotonEscribir creador={creador} texto={`💬 Pedir algo personalizado a ${creador.taller}`} className="mt-5 max-w-md" />
+        )}
 
         {/* Insignias */}
         <div className="mt-5 flex flex-wrap gap-2 text-sm">

@@ -2,6 +2,7 @@
 // Regla de oro: nunca se confía en precios que manda el navegador; todo se recalcula aquí.
 import { FieldValue } from "firebase-admin/firestore";
 import type { UsuarioVerificado } from "./admin";
+import type { Propuesta } from "../chat";
 import type { Creador, Producto } from "../datos";
 import {
   COMISION_XICO,
@@ -120,8 +121,11 @@ export async function crearPedido(usuario: UsuarioVerificado, solicitados: Artic
     creado: Date.now(),
   };
   await ref.set(pedido);
+  return cobrar(ref, listaGrupos, totalEnvio);
+}
 
-  // Cobro en Mercado Pago
+// Crea el cobro en Mercado Pago para un pedido ya guardado
+async function cobrar(ref: FirebaseFirestore.DocumentReference, listaGrupos: GrupoPedido[], totalEnvio: number) {
   const url = `${sitio()}/pedido/${ref.id}`;
   const publico = url.startsWith("https://"); // Mercado Pago solo regresa solo / avisa a direcciones públicas
   const items = listaGrupos.flatMap((g) =>
@@ -186,7 +190,13 @@ export async function confirmarPago(pagoId: string, pedidoEsperado?: string) {
       const articulos = pedido.grupos.flatMap((g) => g.articulos);
       const refs = articulos.map((a) => db.collection("productos").doc(a.slug));
       const existentes = await tx.getAll(...refs);
+      const refPropuesta = pedido.propuestaId ? db.collection("propuestas").doc(pedido.propuestaId) : null;
+      const propuesta = refPropuesta ? await tx.get(refPropuesta) : null;
       tx.update(ref, { ...base, estado: "pagado", pagado: Date.now() });
+      // Si venía de una propuesta del chat, la propuesta queda como pagada
+      if (refPropuesta && propuesta?.exists && propuesta.data()?.estado === "pendiente") {
+        tx.update(refPropuesta, { estado: "pagada", pedidoId: pedidoId });
+      }
       existentes.forEach((d, i) => {
         if (d.exists) tx.update(refs[i], { vendidos: FieldValue.increment(articulos[i].cantidad) });
       });
@@ -208,4 +218,76 @@ export async function verificarPedido(pedidoId: string) {
   const elegido = pagos.find((p) => p.status === "approved") ?? pagos[0];
   if (!elegido) return null; // todavía no hay ningún intento de pago
   return confirmarPago(String(elegido.id), pedidoId);
+}
+
+// Pedido a partir de una propuesta personalizada del chat.
+// El precio sale de la propuesta guardada (la escribió el vendedor y nadie la puede cambiar).
+export async function crearPedidoPropuesta(usuario: UsuarioVerificado, propuestaId: string, direccionCruda: Direccion) {
+  const problema = problemaDireccion(direccionCruda ?? {});
+  if (problema) throw new ErrorXico(problema);
+  const direccion: Direccion = {
+    nombre: recorta(direccionCruda.nombre, 80),
+    telefono: recorta(direccionCruda.telefono, 14),
+    calle: recorta(direccionCruda.calle, 100),
+    numero: recorta(direccionCruda.numero, 20),
+    colonia: recorta(direccionCruda.colonia, 80),
+    cp: recorta(direccionCruda.cp, 5),
+    ciudad: recorta(direccionCruda.ciudad, 80),
+    estado: recorta(direccionCruda.estado, 40),
+    ...(direccionCruda.referencias ? { referencias: recorta(direccionCruda.referencias, 200) } : {}),
+  };
+
+  const db = adminDb();
+  const snap = await db.collection("propuestas").doc(String(propuestaId)).get();
+  if (!snap.exists) throw new ErrorXico("Propuesta no encontrada.", 404);
+  const p = snap.data() as Propuesta;
+  if (p.compradorUid !== usuario.uid) throw new ErrorXico("Esta propuesta no es para ti.", 403);
+  if (p.estado !== "pendiente") throw new ErrorXico("Esta propuesta ya no está disponible.");
+  if (!(p.precio > 0 && p.precio <= 200000)) throw new ErrorXico("Precio no válido.");
+
+  const tienda = (await db.collection("creadores").doc(p.creador).get()).data() as Creador | undefined;
+  if (!tienda?.uid) throw new ErrorXico("La tienda ya no está disponible.");
+
+  const envio = p.precio >= ENVIO_GRATIS_DESDE ? 0 : ENVIO_POR_CREADOR;
+  const comision = Math.round(p.precio * COMISION_XICO);
+  const grupo: GrupoPedido = {
+    creador: p.creador,
+    taller: p.taller,
+    articulos: [
+      {
+        slug: `propuesta-${p.id}`,
+        nombre: p.titulo,
+        cantidad: 1,
+        precioUnitario: p.precio,
+        opciones: [...p.detalles, { etiqueta: "Elaboración", valor: p.diasElaboracion }],
+        colores: tienda.colores,
+        forma: "cuadrada",
+        categoria: "regalos",
+        ...(p.foto ? { foto: p.foto.mini } : {}),
+      },
+    ],
+    subtotal: p.precio,
+    envio,
+    comision,
+    paraCreador: p.precio - comision + envio,
+  };
+
+  const ref = db.collection("pedidos").doc();
+  const pedido: Pedido = {
+    id: ref.id,
+    uid: usuario.uid,
+    email: usuario.email ?? "",
+    participantes: [...new Set([usuario.uid, tienda.uid])],
+    creadores: [p.creador],
+    grupos: [grupo],
+    productos: p.precio,
+    envio,
+    total: p.precio + envio,
+    direccion,
+    estado: "pendiente_pago",
+    creado: Date.now(),
+    propuestaId: p.id,
+  };
+  await ref.set(pedido);
+  return cobrar(ref, [grupo], envio);
 }

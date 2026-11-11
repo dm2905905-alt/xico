@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { BadgeCheck, ExternalLink, Package, Pencil, Plus, Settings, ShoppingBag, Star, Trash2 } from "lucide-react";
+import { BadgeCheck, ExternalLink, MessageCircle, Package, Pencil, Plus, Settings, ShoppingBag, Star, Trash2 } from "lucide-react";
 import type { Creador } from "@/lib/datos";
 import { mensajeError } from "@/lib/firebase";
 import { precio } from "@/lib/formato";
@@ -67,6 +67,9 @@ function Tablero({ creador }: { creador: Creador }) {
             </Link>
             <Link href="/panel/perfil" className="flex items-center gap-1.5 rounded-full border border-arena-oscura px-4 py-2 text-sm hover:bg-arena">
               <Settings className="size-4" /> Editar perfil
+            </Link>
+            <Link href="/mensajes" className="degradado-xico flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-semibold text-white">
+              <MessageCircle className="size-4" /> Mensajes
             </Link>
           </div>
         </div>

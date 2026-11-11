@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { Heart, ShoppingBag, User } from "lucide-react";
+import { Heart, MessageCircle, ShoppingBag, User } from "lucide-react";
+import { sinLeer, useConversaciones } from "@/lib/chat";
 import { useCarrito } from "@/lib/carrito";
 import { useFavoritos } from "@/lib/favoritos";
 import { useSesion } from "./Sesion";
@@ -19,6 +20,8 @@ export function IconosCuenta() {
   const piezas = useCarrito().reduce((s, a) => s + a.cantidad, 0);
   const favoritos = useFavoritos().length;
   const { usuario } = useSesion();
+  const { conversaciones } = useConversaciones(usuario?.uid);
+  const hayNuevos = !!usuario && conversaciones.some((c) => sinLeer(c, usuario.uid));
   const inicial = usuario?.displayName?.[0] ?? usuario?.phoneNumber?.slice(-2);
 
   return (
@@ -31,6 +34,12 @@ export function IconosCuenta() {
         <Heart className="size-5" />
         <Globo n={favoritos} />
       </Link>
+      {usuario && (
+        <Link href="/mensajes" aria-label={`Mensajes${hayNuevos ? " (nuevos)" : ""}`} className="relative grid size-10 place-items-center rounded-full hover:bg-arena">
+          <MessageCircle className="size-5" />
+          {hayNuevos && <span className="absolute top-1.5 right-1.5 size-2.5 rounded-full bg-rosa ring-2 ring-white" />}
+        </Link>
+      )}
       <Link href="/cuenta" aria-label="Mi cuenta" className="grid size-10 place-items-center rounded-full hover:bg-arena">
         {usuario ? (
           <span className="grid size-7 place-items-center rounded-full bg-jade text-xs font-bold text-white">{inicial ?? "✓"}</span>

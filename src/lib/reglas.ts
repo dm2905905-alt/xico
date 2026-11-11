@@ -94,6 +94,64 @@ service cloud.firestore {
       allow write: if false;
     }
 
+    // Mensajes sin datos de contacto: 7+ dígitos seguidos (aunque tengan espacios o guiones),
+    // correos o redes de mensajería. La página ya los oculta; esto evita saltársela.
+    function sinContacto(t) {
+      return !t.matches('(?s).*[0-9]([ ()._/-]{0,3}[0-9]){6}.*')
+        && !t.matches('(?is).*[a-z0-9._%+-]+@[a-z0-9-]+[.][a-z]{2,}.*')
+        && !t.matches('(?is).*(whats ?app|wa[.]me|instagram|telegram|facebook|tik ?tok).*');
+    }
+
+    function conversacion(id) {
+      return get(/databases/$(database)/documents/conversaciones/$(id)).data;
+    }
+
+    // Chat comprador ↔ vendedor: solo lo ven y escriben sus dos participantes
+    match /conversaciones/{c} {
+      allow get: if esAdmin() || (conSesion() && (resource == null || request.auth.uid in resource.data.participantes));
+      allow list: if esAdmin() || (conSesion() && request.auth.uid in resource.data.participantes);
+      allow create: if conSesion()
+        && request.resource.data.compradorUid == request.auth.uid
+        && request.resource.data.creadorUid != request.auth.uid
+        && c == request.auth.uid + '__' + request.resource.data.creador
+        && request.resource.data.participantes == [request.auth.uid, request.resource.data.creadorUid]
+        && get(/databases/$(database)/documents/creadores/$(request.resource.data.creador)).data.uid == request.resource.data.creadorUid;
+      allow update: if conSesion() && request.auth.uid in resource.data.participantes
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['ultimo', 'actualizado', 'leido']);
+
+      match /mensajes/{m} {
+        allow read: if esAdmin() || (conSesion() && request.auth.uid in conversacion(c).participantes);
+        allow create: if conSesion()
+          && request.auth.uid in conversacion(c).participantes
+          && request.resource.data.de == request.auth.uid
+          && request.resource.data.tipo in ['texto', 'imagen', 'propuesta']
+          && (!('texto' in request.resource.data)
+              || (textoValido(request.resource.data.texto, 1, 1000) && sinContacto(request.resource.data.texto)))
+          && (request.resource.data.tipo != 'propuesta' || conversacion(c).creadorUid == request.auth.uid);
+      }
+    }
+
+    // Propuestas personalizadas: las crea el vendedor; el comprador solo puede rechazarlas.
+    // El precio no se puede cambiar y "pagada" solo la marca el servidor al confirmar el pago.
+    match /propuestas/{p} {
+      allow read: if esAdmin() || (conSesion()
+        && (request.auth.uid == resource.data.compradorUid || request.auth.uid == resource.data.creadorUid));
+      allow create: if conSesion()
+        && request.resource.data.id == p
+        && request.resource.data.creadorUid == request.auth.uid
+        && esDuenoDe(request.resource.data.creador)
+        && conversacion(request.resource.data.conversacion).creadorUid == request.auth.uid
+        && conversacion(request.resource.data.conversacion).compradorUid == request.resource.data.compradorUid
+        && request.resource.data.estado == 'pendiente'
+        && textoValido(request.resource.data.titulo, 3, 120)
+        && sinContacto(request.resource.data.titulo)
+        && request.resource.data.precio is number && request.resource.data.precio > 0 && request.resource.data.precio <= 200000;
+      allow update: if conSesion() && resource.data.estado == 'pendiente'
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['estado'])
+        && ((request.auth.uid == resource.data.compradorUid && request.resource.data.estado == 'rechazada')
+            || (request.auth.uid == resource.data.creadorUid && request.resource.data.estado == 'cancelada'));
+    }
+
     match /usuarios/{uid} {
       allow read, delete: if request.auth != null && request.auth.uid == uid;
       allow create, update: if request.auth != null && request.auth.uid == uid
@@ -138,6 +196,15 @@ service firebase.storage {
       allow read: if true;
       allow create, update: if (esAdmin() || esDueno(creador)) && imagenValida();
       allow delete: if esAdmin() || esDueno(creador);
+    }
+
+    // Fotos del chat (referencias del cliente y diseños de propuestas): solo los dos participantes
+    match /chats/{conversacion}/{archivo} {
+      allow read: if esAdmin() || (request.auth != null
+        && request.auth.uid in firestore.get(/databases/(default)/documents/conversaciones/$(conversacion)).data.participantes);
+      allow create: if request.auth != null
+        && request.auth.uid in firestore.get(/databases/(default)/documents/conversaciones/$(conversacion)).data.participantes
+        && imagenValida();
     }
 
     match /{todo=**} {

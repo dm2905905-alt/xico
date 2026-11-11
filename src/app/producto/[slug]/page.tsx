@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { BadgeCheck, ChevronRight, Clock, MapPin, Package, ShieldCheck, Star, Truck } from "lucide-react";
 import { BotonFavorito } from "@/components/BotonFavorito";
+import { BotonEscribir } from "@/components/chat/BotonEscribir";
 import { GaleriaProducto } from "@/components/GaleriaProducto";
 import { Personalizador } from "@/components/Personalizador";
 import { Carrusel, Seccion } from "@/components/Seccion";
@@ -116,6 +117,11 @@ export default async function PaginaProducto({ params }: PageProps<"/producto/[s
               <span><strong>Compra protegida:</strong> si tu pedido no llega o no es lo que pediste, te devolvemos tu dinero.</span>
             </li>
           </ul>
+
+          {/* ¿Lo quiere diferente? Chat con el creador */}
+          {creador?.uid && (
+            <BotonEscribir creador={creador} texto="💬 ¿Lo quieres diferente? Escribe al creador" className="mt-4" />
+          )}
 
           {/* Creador */}
           {creador && (
