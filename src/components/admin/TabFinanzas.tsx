@@ -89,7 +89,9 @@ export function TabFinanzas({ datos }: { datos: DatosAdmin }) {
               const e = estadoSuscripcion(c, ahora);
               const fecha = (ms: number) => new Date(ms).toLocaleDateString("es-MX", { day: "numeric", month: "short", year: "numeric" });
               const texto =
-                e.fase === "prueba"
+                e.fase === "exenta"
+                  ? "Sin mensualidad"
+                  : e.fase === "prueba"
                   ? `Gratis hasta ${fecha(e.finGratis)}`
                   : e.fase === "activa"
                     ? `Pagada hasta ${fecha(e.vence)}`

@@ -80,6 +80,7 @@ export async function confirmarPagoSuscripcion(pago: PagoMP) {
       if (tienda) {
         tx.update(refTienda, {
           suscripcion: {
+            ...tienda.suscripcion,
             inicio: tienda.suscripcion?.inicio ?? tienda.solicitada ?? ahora,
             pagadoHasta: nuevoPagadoHasta(tienda, p.meses, ahora),
           },

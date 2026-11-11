@@ -58,7 +58,7 @@ export type Creador = {
   foto?: Foto; // foto de perfil
   // Solicitud de vendedor: las tiendas nuevas esperan aprobación (sin este dato = aprobada)
   estadoTienda?: "revision" | "aprobada" | "suspendida";
-  suscripcion?: { inicio?: number; pagadoHasta?: number }; // mensualidad (solo servidor/administración)
+  suscripcion?: { inicio?: number; pagadoHasta?: number; exenta?: boolean }; // mensualidad (solo servidor/administración)
   solicitada?: number;
 };
 

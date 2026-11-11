@@ -56,12 +56,31 @@ export function TabCreadores({ datos }: { datos: DatosAdmin }) {
       const lote = writeBatch(db);
       lote.set(ref, pago);
       lote.update(doc(db, "creadores", c.slug), {
-        suscripcion: { inicio: c.suscripcion?.inicio ?? c.solicitada ?? ahora, pagadoHasta: nuevoPagadoHasta(c, 1, ahora) },
+        suscripcion: { ...c.suscripcion, inicio: c.suscripcion?.inicio ?? c.solicitada ?? ahora, pagadoHasta: nuevoPagadoHasta(c, 1, ahora) },
       });
       await lote.commit();
     } catch (e) {
       setError(mensajeError(e));
     }
+  }
+
+  // Tienda sin mensualidad (la tuya o las que tú decidas): nunca se cobra ni se pausa
+  function exentar(c: Creador, exenta: boolean) {
+    cambiar(
+      c,
+      { suscripcion: { ...c.suscripcion, exenta } },
+      exenta ? `¿Quitarle la mensualidad a ${c.taller}? No pagará nunca, hasta que tú lo cambies.` : `¿Volver a cobrarle mensualidad a ${c.taller}?`,
+    );
+  }
+
+  // Un mes de cortesía (sin registrar un pago)
+  function regalarMes(c: Creador) {
+    const ahora = Date.now();
+    cambiar(
+      c,
+      { suscripcion: { ...c.suscripcion, inicio: c.suscripcion?.inicio ?? c.solicitada ?? ahora, pagadoHasta: nuevoPagadoHasta(c, 1, ahora) } },
+      `¿Regalarle 1 mes sin costo a ${c.taller}?`,
+    );
   }
 
   const lista = datos.creadores
@@ -115,6 +134,8 @@ export function TabCreadores({ datos }: { datos: DatosAdmin }) {
             vendido={ventasDe(c.slug)}
             cambiar={cambiar}
             pagoManual={pagoManual}
+            exentar={exentar}
+            regalarMes={regalarMes}
           />
         ))}
         {!lista.length && <li className="text-sm text-cafe">{filtro === "solicitudes" ? "No hay solicitudes nuevas. 🎉" : "No hay tiendas en esta lista."}</li>}
@@ -130,6 +151,8 @@ function Tienda({
   vendido,
   cambiar,
   pagoManual,
+  exentar,
+  regalarMes,
 }: {
   c: Creador;
   privado?: DatosPrivados;
@@ -137,6 +160,8 @@ function Tienda({
   vendido: number;
   cambiar: (c: Creador, cambios: Partial<Creador>, pregunta?: string) => void;
   pagoManual: (c: Creador) => void;
+  exentar: (c: Creador, exenta: boolean) => void;
+  regalarMes: (c: Creador) => void;
 }) {
   const [ahora] = useState(() => Date.now());
   const sus = estadoSuscripcion(c, ahora);
@@ -238,13 +263,26 @@ function Tienda({
           </button>
         )}
         {c.uid && !enRevision && sus.fase !== "sin-fecha" && (
-          <span className={`rounded-full px-3 py-1.5 text-xs font-semibold ${sus.fase === "pausada" ? "bg-rosa/10 text-rosa" : sus.fase === "vencida" ? "bg-maiz/30" : "bg-jade/10 text-jade"}`}>
-            {sus.fase === "prueba" ? `Gratis hasta ${fechaCorta(sus.finGratis)}` : sus.fase === "activa" ? `Pagada hasta ${fechaCorta(sus.vence)}` : sus.fase === "vencida" ? "Mensualidad vencida" : "Pausada por falta de pago"}
+          <span className={`rounded-full px-3 py-1.5 text-xs font-semibold ${sus.fase === "pausada" ? "bg-rosa/10 text-rosa" : sus.fase === "vencida" ? "bg-maiz/30" : sus.fase === "exenta" ? "bg-terracota/10 text-terracota" : "bg-jade/10 text-jade"}`}>
+            {sus.fase === "exenta" ? "Sin mensualidad" : sus.fase === "prueba" ? `Gratis hasta ${fechaCorta(sus.finGratis)}` : sus.fase === "activa" ? `Pagada hasta ${fechaCorta(sus.vence)}` : sus.fase === "vencida" ? "Mensualidad vencida" : "Pausada por falta de pago"}
           </span>
         )}
-        {c.uid && !enRevision && (
-          <button onClick={() => pagoManual(c)} className="rounded-full px-3 py-1.5 text-xs ring-1 ring-arena-oscura hover:bg-arena">
-            + Registrar pago de 1 mes
+        {c.uid && !enRevision && sus.fase !== "exenta" && (
+          <>
+            <button onClick={() => pagoManual(c)} className="rounded-full px-3 py-1.5 text-xs ring-1 ring-arena-oscura hover:bg-arena">
+              + Registrar pago de 1 mes
+            </button>
+            <button onClick={() => regalarMes(c)} className="rounded-full px-3 py-1.5 text-xs ring-1 ring-arena-oscura hover:bg-arena">
+              🎁 Regalar 1 mes
+            </button>
+          </>
+        )}
+        {c.uid && (
+          <button
+            onClick={() => exentar(c, sus.fase !== "exenta")}
+            className={`rounded-full px-3 py-1.5 text-xs font-semibold ring-1 ${sus.fase === "exenta" ? "text-cafe ring-arena-oscura hover:bg-arena" : "text-terracota ring-terracota/40 hover:bg-terracota/10"}`}
+          >
+            {sus.fase === "exenta" ? "Volver a cobrar mensualidad" : "Sin mensualidad"}
           </button>
         )}
         <label className="flex cursor-pointer items-center gap-2 rounded-full px-3 py-1.5 text-sm ring-1 ring-arena-oscura has-checked:bg-jade/10 has-checked:ring-jade">

@@ -8,7 +8,8 @@ export const DIAS_TOLERANCIA = 7;
 const DIA = 24 * 60 * 60 * 1000;
 
 // Lo guarda solo el servidor o la administración (las reglas no dejan que la tienda lo cambie)
-export type Suscripcion = { inicio?: number; pagadoHasta?: number };
+// exenta: la administración decidió que esta tienda no paga mensualidad
+export type Suscripcion = { inicio?: number; pagadoHasta?: number; exenta?: boolean };
 
 export type PagoSuscripcion = {
   id: string;
@@ -30,9 +31,10 @@ export const sumarMeses = (ms: number, meses: number) => {
   return d.getTime();
 };
 
-export type FaseSuscripcion = "prueba" | "activa" | "vencida" | "pausada" | "sin-fecha";
+export type FaseSuscripcion = "exenta" | "prueba" | "activa" | "vencida" | "pausada" | "sin-fecha";
 
 export function estadoSuscripcion(c: Pick<Creador, "suscripcion" | "solicitada">, ahora: number) {
+  if (c.suscripcion?.exenta) return { fase: "exenta" as FaseSuscripcion, finGratis: 0, vence: 0, pausaEn: 0 };
   const inicio = c.suscripcion?.inicio ?? c.solicitada;
   if (!inicio) return { fase: "sin-fecha" as FaseSuscripcion, finGratis: 0, vence: 0, pausaEn: 0 };
   const finGratis = sumarMeses(inicio, MESES_GRATIS);
@@ -46,7 +48,7 @@ export function estadoSuscripcion(c: Pick<Creador, "suscripcion" | "solicitada">
 // si ya estaba pausada, desde hoy.
 export function nuevoPagadoHasta(c: Pick<Creador, "suscripcion" | "solicitada">, meses: number, ahora: number) {
   const { fase, vence } = estadoSuscripcion(c, ahora);
-  const base = fase === "pausada" || fase === "sin-fecha" ? ahora : vence;
+  const base = fase === "pausada" || fase === "sin-fecha" || fase === "exenta" ? ahora : vence;
   return sumarMeses(base, meses);
 }
 
