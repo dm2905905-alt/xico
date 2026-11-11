@@ -43,8 +43,10 @@ function Cuenta({ creador }: { creador: Creador }) {
             </dd>
           </div>
           <div className="rounded-2xl bg-arena/60 p-4">
-            <dt className="text-cafe">Comisión XICO</dt>
-            <dd className="mt-1 font-semibold">15% por venta</dd>
+            <dt className="text-cafe">Costo</dt>
+            <dd className="mt-1 font-semibold">
+              <Link href="/panel/suscripcion" className="hover:underline">$400/mes + 15% por venta</Link>
+            </dd>
           </div>
           <div className="rounded-2xl bg-arena/60 p-4">
             <dt className="text-cafe">Pagos</dt>

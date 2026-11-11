@@ -8,6 +8,7 @@ import type { Creador, Producto } from "@/lib/datos";
 import { obtenerDb } from "@/lib/firebase";
 import type { Pedido } from "@/lib/pedidos";
 import type { DatosPrivados } from "@/lib/panel";
+import type { PagoSuscripcion } from "@/lib/suscripcion";
 
 // Llama a una ruta del servidor con la sesión de la persona
 export async function llamar<T = Record<string, unknown>>(usuario: User, ruta: string, cuerpo: unknown): Promise<T> {
@@ -39,7 +40,7 @@ export function useEsAdmin(usuario: User | null) {
 }
 
 // privados: cuenta de pago y dirección de cada tienda (por slug)
-export type DatosAdmin = { creadores: Creador[]; productos: Producto[]; pedidos: Pedido[]; privados: Record<string, DatosPrivados>; listo: boolean };
+export type DatosAdmin = { creadores: Creador[]; productos: Producto[]; pedidos: Pedido[]; privados: Record<string, DatosPrivados>; pagosSuscripcion: PagoSuscripcion[]; listo: boolean };
 
 // Todo en vivo (las reglas solo dejan leer pedidos a la cuenta administradora)
 export function useDatosAdmin(activo: boolean): DatosAdmin {
@@ -47,6 +48,7 @@ export function useDatosAdmin(activo: boolean): DatosAdmin {
   const [productos, setProductos] = useState<Producto[] | null>(null);
   const [pedidos, setPedidos] = useState<Pedido[] | null>(null);
   const [privados, setPrivados] = useState<Record<string, DatosPrivados>>({});
+  const [pagosSuscripcion, setPagosSuscripcion] = useState<PagoSuscripcion[]>([]);
 
   useEffect(() => {
     const db = obtenerDb();
@@ -64,6 +66,11 @@ export function useDatosAdmin(activo: boolean): DatosAdmin {
         (s) => setPrivados(Object.fromEntries(s.docs.map((d) => [d.id, d.data() as DatosPrivados]))),
         () => setPrivados({}),
       ),
+      onSnapshot(
+        collection(db, "pagosSuscripcion"),
+        (s) => setPagosSuscripcion(s.docs.map((d) => d.data() as PagoSuscripcion)),
+        () => setPagosSuscripcion([]),
+      ),
     ];
     return () => quitar.forEach((f) => f());
   }, [activo]);
@@ -73,6 +80,7 @@ export function useDatosAdmin(activo: boolean): DatosAdmin {
     productos: productos ?? [],
     pedidos: pedidos ?? [],
     privados,
+    pagosSuscripcion,
     listo: creadores !== null && productos !== null && pedidos !== null,
   };
 }

@@ -2,13 +2,14 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { doc, updateDoc } from "firebase/firestore";
+import { collection, doc, updateDoc, writeBatch } from "firebase/firestore";
 import { BadgeCheck, Check, ExternalLink, Star } from "lucide-react";
 import { clabeLegible } from "@/lib/clabe";
 import { estadoPorSlug, tiendaActiva, type Creador } from "@/lib/datos";
 import { mensajeError, obtenerDb } from "@/lib/firebase";
 import { precio } from "@/lib/formato";
 import type { DatosPrivados } from "@/lib/panel";
+import { MENSUALIDAD, estadoSuscripcion, nuevoPagadoHasta, type PagoSuscripcion } from "@/lib/suscripcion";
 import { cobrados, type DatosAdmin } from "./datos";
 
 type Filtro = "solicitudes" | "todas" | "pendientes" | "suspendidas" | "ejemplo";
@@ -34,6 +35,30 @@ export function TabCreadores({ datos }: { datos: DatosAdmin }) {
     setError("");
     try {
       await updateDoc(doc(db, "creadores", c.slug), cambios);
+    } catch (e) {
+      setError(mensajeError(e));
+    }
+  }
+
+  // Mensualidad pagada por otro medio (transferencia o efectivo)
+  async function pagoManual(c: Creador) {
+    const db = obtenerDb();
+    if (!db || !c.uid) return;
+    if (!window.confirm(`¿Registrar que ${c.taller} te pagó 1 mes (${precio(MENSUALIDAD)}) por transferencia o efectivo?`)) return;
+    setError("");
+    try {
+      const ahora = Date.now();
+      const ref = doc(collection(db, "pagosSuscripcion"));
+      const pago: PagoSuscripcion = {
+        id: ref.id, creador: c.slug, uid: c.uid, taller: c.taller, meses: 1, monto: MENSUALIDAD,
+        estado: "pagado", metodo: "manual", creado: ahora, pagado: ahora,
+      };
+      const lote = writeBatch(db);
+      lote.set(ref, pago);
+      lote.update(doc(db, "creadores", c.slug), {
+        suscripcion: { inicio: c.suscripcion?.inicio ?? c.solicitada ?? ahora, pagadoHasta: nuevoPagadoHasta(c, 1, ahora) },
+      });
+      await lote.commit();
     } catch (e) {
       setError(mensajeError(e));
     }
@@ -89,6 +114,7 @@ export function TabCreadores({ datos }: { datos: DatosAdmin }) {
             productos={datos.productos.filter((p) => p.creador === c.slug).length}
             vendido={ventasDe(c.slug)}
             cambiar={cambiar}
+            pagoManual={pagoManual}
           />
         ))}
         {!lista.length && <li className="text-sm text-cafe">{filtro === "solicitudes" ? "No hay solicitudes nuevas. 🎉" : "No hay tiendas en esta lista."}</li>}
@@ -103,13 +129,18 @@ function Tienda({
   productos,
   vendido,
   cambiar,
+  pagoManual,
 }: {
   c: Creador;
   privado?: DatosPrivados;
   productos: number;
   vendido: number;
   cambiar: (c: Creador, cambios: Partial<Creador>, pregunta?: string) => void;
+  pagoManual: (c: Creador) => void;
 }) {
+  const [ahora] = useState(() => Date.now());
+  const sus = estadoSuscripcion(c, ahora);
+  const fechaCorta = (ms: number) => new Date(ms).toLocaleDateString("es-MX", { day: "numeric", month: "short", year: "numeric" });
   const enRevision = c.estadoTienda === "revision";
   const suspendida = c.estadoTienda === "suspendida";
   const [abierto, setAbierto] = useState(enRevision);
@@ -204,6 +235,16 @@ function Tienda({
             className={`rounded-full px-4 py-1.5 text-sm ring-1 ${suspendida ? "text-jade ring-jade" : "text-rosa ring-rosa/40"}`}
           >
             {suspendida ? "Reactivar tienda" : "Suspender"}
+          </button>
+        )}
+        {c.uid && !enRevision && sus.fase !== "sin-fecha" && (
+          <span className={`rounded-full px-3 py-1.5 text-xs font-semibold ${sus.fase === "pausada" ? "bg-rosa/10 text-rosa" : sus.fase === "vencida" ? "bg-maiz/30" : "bg-jade/10 text-jade"}`}>
+            {sus.fase === "prueba" ? `Gratis hasta ${fechaCorta(sus.finGratis)}` : sus.fase === "activa" ? `Pagada hasta ${fechaCorta(sus.vence)}` : sus.fase === "vencida" ? "Mensualidad vencida" : "Pausada por falta de pago"}
+          </span>
+        )}
+        {c.uid && !enRevision && (
+          <button onClick={() => pagoManual(c)} className="rounded-full px-3 py-1.5 text-xs ring-1 ring-arena-oscura hover:bg-arena">
+            + Registrar pago de 1 mes
           </button>
         )}
         <label className="flex cursor-pointer items-center gap-2 rounded-full px-3 py-1.5 text-sm ring-1 ring-arena-oscura has-checked:bg-jade/10 has-checked:ring-jade">

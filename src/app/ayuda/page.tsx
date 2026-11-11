@@ -51,7 +51,8 @@ export default function Ayuda() {
 
   const creadores: Pregunta[] = [
     { p: "¿Quién puede vender?", r: "Cualquier persona que haga sus productos a mano o los personalice ella misma. No se permite revender productos importados ni hechos por otros." },
-    { p: "¿Cuánto cuesta vender?", r: `Abrir tu tienda es gratis. ${n.marca} cobra ${n.comision} de comisión solo cuando vendes.` },
+    { p: "¿Cuánto cuesta vender?", r: `Tus primeros ${n.mesesGratis} meses son gratis. Después la mensualidad es de ${n.mensualidad} al mes, más ${n.comision} de comisión solo cuando vendes. La mensualidad se paga con Mercado Pago desde Mi tienda → Mensualidad.` },
+    { p: "¿Qué pasa si no pago la mensualidad?", r: `Tienes ${n.diasTolerancia} días de tolerancia. Si no pagas, tu tienda se pausa: tus productos dejan de mostrarse, pero no se borra nada. En cuanto pagas, vuelve a aparecer.` },
     { p: "¿Cómo abro mi tienda?", r: "Entra a Vende en XICO y llena la solicitud: los datos de tu tienda, tu CLABE para cobrar y tu dirección. La revisamos y, al aprobarla, tus productos aparecen en XICO." },
     { p: "¿Cómo subo un producto?", r: "Entra a Mi tienda → Nuevo producto. Puedes usar el asistente con IA: le cuentas tu producto y te propone título, descripción y un precio justo." },
     { p: "¿Cómo y cuándo me pagan?", r: "Recibes el precio de tus productos menos la comisión, más el envío cobrado por tu paquete. Cada semana te transferimos a tu CLABE lo de tus pedidos ya entregados. Puedes cambiar tu cuenta en Mi tienda → Cobros." },

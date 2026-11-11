@@ -3,7 +3,9 @@
 import { FieldValue } from "firebase-admin/firestore";
 import type { UsuarioVerificado } from "./admin";
 import type { Propuesta } from "../chat";
-import { tiendaActiva, type Creador, type Producto } from "../datos";
+import type { Creador, Producto } from "../datos";
+import { tiendaVisible } from "../suscripcion";
+import { confirmarPagoSuscripcion } from "./suscripcion";
 import {
   COMISION_XICO,
   problemaDireccion,
@@ -108,7 +110,7 @@ export async function crearPedido(usuario: UsuarioVerificado, solicitados: Artic
   creadoresDocs.forEach((d, i) => {
     const c = d.data() as Creador | undefined;
     // Solo tiendas aprobadas y con dueño real (las de ejemplo no venden)
-    if (!c || !c.uid || !tiendaActiva(c)) throw new ErrorXico(`La tienda "${listaGrupos[i].taller}" no está disponible por ahora. Quita sus productos del carrito.`);
+    if (!c || !c.uid || !tiendaVisible(c, Date.now())) throw new ErrorXico(`La tienda "${listaGrupos[i].taller}" no está disponible por ahora. Quita sus productos del carrito.`);
   });
   const uidsCreadores = creadoresDocs.map((d) => (d.data() as Creador | undefined)?.uid).filter((u): u is string => !!u);
 
@@ -171,6 +173,8 @@ async function cobrar(ref: FirebaseFirestore.DocumentReference, listaGrupos: Gru
 // Consulta el pago en Mercado Pago (la única fuente confiable) y actualiza el pedido
 export async function confirmarPago(pagoId: string, pedidoEsperado?: string) {
   const pago = await obtenerPago(pagoId);
+  // Los pagos de mensualidad llevan la referencia "sus_…"
+  if (pago.external_reference?.startsWith("sus_")) return confirmarPagoSuscripcion(pago);
   const pedidoId = pago.external_reference;
   if (!pedidoId) throw new ErrorXico("El pago no corresponde a ningún pedido.");
   if (pedidoEsperado && pedidoId !== pedidoEsperado) throw new ErrorXico("El pago no corresponde a este pedido.");
@@ -253,7 +257,7 @@ export async function crearPedidoPropuesta(usuario: UsuarioVerificado, propuesta
   if (!(p.precio > 0 && p.precio <= 200000)) throw new ErrorXico("Precio no válido.");
 
   const tienda = (await db.collection("creadores").doc(p.creador).get()).data() as Creador | undefined;
-  if (!tienda?.uid || !tiendaActiva(tienda)) throw new ErrorXico("La tienda ya no está disponible.");
+  if (!tienda?.uid || !tiendaVisible(tienda, Date.now())) throw new ErrorXico("La tienda ya no está disponible.");
 
   const envio = p.precio >= ENVIO_GRATIS_DESDE ? 0 : ENVIO_POR_CREADOR;
   const comision = Math.round(p.precio * COMISION_XICO);

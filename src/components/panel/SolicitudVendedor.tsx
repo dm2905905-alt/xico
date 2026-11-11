@@ -40,7 +40,7 @@ export function SolicitudVendedor({ uid }: { uid: string }) {
     <div className="rounded-[2rem] bg-white/90 p-6 ring-1 ring-white backdrop-blur sm:p-8">
       <h2 className="font-display text-2xl font-bold">Solicitud para vender en XICO</h2>
       <p className="mt-1 text-sm text-cafe">
-        Revisamos cada solicitud para que en XICO solo vendan creadores reales. Mientras la revisamos podrás preparar tus productos.
+        Revisamos cada solicitud para que en XICO solo vendan creadores reales. Tus primeros 3 meses son gratis; después, $400 al mes más 15% de comisión por venta.
       </p>
 
       {/* Avance */}
@@ -92,7 +92,7 @@ export function SolicitudVendedor({ uid }: { uid: string }) {
               <Link href="/terminos" target="_blank" className="font-semibold text-terracota underline">
                 Términos y condiciones para vendedores
               </Link>
-: solo vendo lo que yo hago, cumplo los tiempos de entrega y acepto la comisión del 15% por venta. También acepto el{" "}
+: solo vendo lo que yo hago, cumplo los tiempos de entrega y acepto la comisión del 15% por venta y, después de 3 meses gratis, la mensualidad de $400. También acepto el{" "}
               <Link href="/privacidad" target="_blank" className="font-semibold text-terracota underline">
                 Aviso de privacidad
               </Link>{" "}

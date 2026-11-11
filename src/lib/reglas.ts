@@ -51,7 +51,11 @@ service cloud.firestore {
         && request.resource.data.top == false
         && request.resource.data.calificacion == 0
         && request.resource.data.resenas == 0
-        && request.resource.data.estadoTienda == 'revision');
+        && request.resource.data.estadoTienda == 'revision'
+        // Los 3 meses gratis cuentan desde ahora: la fecha la pone el navegador, pero debe ser la de hoy
+        && request.resource.data.solicitada is int
+        && math.abs(request.resource.data.solicitada - request.time.toMillis()) < 600000
+        && !('suscripcion' in request.resource.data));
       allow update: if esAdmin() || (conSesion()
         && resource.data.uid == request.auth.uid
         && textoValido(request.resource.data.taller, 2, 60)
@@ -118,6 +122,14 @@ service cloud.firestore {
                 && request.resource.data.pago.clabe.matches('^[0-9]{18}$')
                 && textoValido(request.resource.data.pago.titular, 5, 100))));
       allow delete: if esAdmin();
+    }
+
+    // Pagos de mensualidad: los crea el servidor; la tienda solo ve los suyos.
+    // La administración puede registrar pagos hechos por otro medio (transferencia, efectivo).
+    match /pagosSuscripcion/{pago} {
+      allow read: if esAdmin() || (conSesion() && resource.data.uid == request.auth.uid);
+      allow create: if esAdmin() && request.resource.data.metodo == 'manual';
+      allow update, delete: if false;
     }
 
     match /pedidos/{pedido} {

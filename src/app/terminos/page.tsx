@@ -106,7 +106,13 @@ export default function Terminos() {
         </li>
         <li>Lo que publiques (fotos, textos, precios, tiempos de elaboración) debe ser verdadero. Puedes usar el asistente de IA, pero tú eres responsable de revisar lo que publicas.</li>
         <li>
-          {n.marca} cobra una <strong>comisión del {n.comision}</strong> sobre el precio de tus productos vendidos. Recibes el precio de
+          <strong>Mensualidad:</strong> los primeros {n.mesesGratis} meses desde que registras tu tienda son gratis. Después pagas{" "}
+          <strong>{n.mensualidad} al mes</strong> con Mercado Pago desde tu panel; puedes pagar varios meses por adelantado. Si la
+          mensualidad vence, tienes {n.diasTolerancia} días de tolerancia; después tu tienda se pausa (tus productos no se muestran ni se
+          pueden comprar) hasta que pagues. No se borra nada. Los pagos de mensualidad no son reembolsables.
+        </li>
+        <li>
+          Además, {n.marca} cobra una <strong>comisión del {n.comision}</strong> sobre el precio de tus productos vendidos. Recibes el precio de
           tus productos menos la comisión, más el costo de envío cobrado al cliente para tu paquete.
         </li>
         <li>Debes elaborar y enviar los pedidos en el tiempo indicado y registrar la guía de envío en tu panel.</li>

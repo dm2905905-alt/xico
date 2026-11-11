@@ -12,6 +12,7 @@ import { ListaPedidos } from "../ListaPedidos";
 import { useSesion } from "../Sesion";
 import { FotoProducto } from "../FotoProducto";
 import { ConTienda } from "./ConTienda";
+import { AvisoSuscripcion } from "./VistaSuscripcion";
 
 export function VistaPanel() {
   return <ConTienda volver="/panel">{(creador) => <Tablero creador={creador} />}</ConTienda>;
@@ -104,6 +105,9 @@ function Tablero({ creador }: { creador: Creador }) {
           </Link>
         ))}
       </nav>
+
+      {/* Mensualidad: periodo gratis, al corriente, vencida o pausada */}
+      {creador.estadoTienda !== "revision" && <AvisoSuscripcion creador={creador} />}
 
       {/* Avisos de la solicitud y de la cuenta */}
       {creador.estadoTienda === "revision" && (

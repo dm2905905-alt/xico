@@ -14,6 +14,9 @@ export const negocio = {
   whatsapp: "524521326295", // para el enlace wa.me
   sitio: "xico.vercel.app",
   comision: "15%",
+  mensualidad: "$400",
+  mesesGratis: 3,
+  diasTolerancia: 7,
   diasParaReportar: 7, // días después de recibir el pedido para reportar un problema
   actualizado: "11 de noviembre de 2026",
 };

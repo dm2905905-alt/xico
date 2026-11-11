@@ -4,7 +4,7 @@ import { BadgeCheck, Camera, HandCoins, Sparkles, Store, Truck } from "lucide-re
 
 export const metadata: Metadata = {
   title: "Vende en XICO",
-  description: "Abre tu tienda gratis y vende tus productos hechos a mano a todo México.",
+  description: "Abre tu tienda con 3 meses gratis y vende tus productos hechos a mano a todo México.",
 };
 
 const pasos = [
@@ -16,6 +16,7 @@ const pasos = [
 const beneficios = [
   { icono: Sparkles, texto: "Personalización: nombres, colores, fotos de referencia y extras con costo." },
   { icono: BadgeCheck, texto: "Insignias de Artista verificado y Top vendedor que dan confianza." },
+  { icono: HandCoins, texto: "3 meses gratis. Después, $400 al mes más 15% de comisión solo cuando vendes. Sin contratos: si no pagas, tu tienda solo se pausa." },
   { icono: Truck, texto: "Envíos a todo México con guía y seguimiento." },
 ];
 
@@ -29,10 +30,10 @@ export default function Vende() {
             Tus manos crean. <span className="italic">Nosotros te llevamos a todo México.</span>
           </h1>
           <p className="mx-auto mt-4 max-w-2xl text-crema/90 sm:text-lg">
-            Abre tu tienda gratis en XICO, el marketplace de lo hecho a mano. Revisamos cada solicitud: solo creadores reales, sin reventa ni importados.
+            Abre tu tienda en XICO, el marketplace de lo hecho a mano, con 3 meses gratis. Revisamos cada solicitud: solo creadores reales, sin reventa ni importados.
           </p>
           <Link href="/panel" className="mt-8 inline-block rounded-full bg-crema px-8 py-4 text-lg font-semibold text-terracota-oscura transition hover:bg-white">
-            Abrir mi tienda gratis
+            Empezar mis 3 meses gratis
           </Link>
         </div>
       </section>
@@ -77,7 +78,7 @@ export default function Vende() {
       {/* Celular: botón fijo arriba de la barra inferior */}
       <div className="sticky bottom-20 z-30 mt-6 px-4 md:hidden">
         <Link href="/panel" className="degradado-xico flex h-12 items-center justify-center rounded-full font-semibold text-white shadow-lg shadow-terracota/30">
-          Abrir mi tienda gratis
+          Empezar mis 3 meses gratis
         </Link>
       </div>
     </>
