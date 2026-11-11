@@ -32,9 +32,35 @@ html {
   scroll-behavior: smooth;
 }
 
+/* Fondo creativo: degradado pastel (rosa → lila → durazno) en lugar de blanco liso */
 body {
-  background: var(--color-crema);
+  background: linear-gradient(170deg, #fff1f8 0%, #f6efff 45%, #fff6ec 100%) fixed;
   color: var(--color-tinta);
+}
+
+/* Garabatos de marca repetidos (estrellas, círculos, cruces y ondas) muy sutiles */
+.fondo-garabatos {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260' viewBox='0 0 260 260'%3E%3Cg fill='none' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M30 40l6 14 15 2-11 10 3 15-13-8-13 8 3-15-11-10 15-2z' stroke='%23ff2d87'/%3E%3Ccircle cx='190' cy='50' r='10' stroke='%237c2df0'/%3E%3Cpath d='M120 120h20M130 110v20' stroke='%23ffc634'/%3E%3Cpath d='M20 190q15-15 30 0t30 0 30 0' stroke='%230fb5a6'/%3E%3Cpath d='M200 170l5 11 12 2-9 8 2 12-10-6-10 6 2-12-9-8 12-2z' stroke='%23d63af0'/%3E%3Ccircle cx='100' cy='230' r='5' fill='%23ff2d87' stroke='none'/%3E%3Ccircle cx='235' cy='120' r='4' fill='%237c2df0' stroke='none'/%3E%3Cpath d='M70 95l10 10M80 95l-10 10' stroke='%237c2df0'/%3E%3C/g%3E%3C/svg%3E");
+  background-size: 260px 260px;
+}
+
+/* Emojis flotando despacio */
+@keyframes flotar {
+  0%,
+  100% {
+    transform: translateY(0) rotate(var(--giro, 0deg));
+  }
+  50% {
+    transform: translateY(-14px) rotate(calc(var(--giro, 0deg) + 6deg));
+  }
+}
+.flotante {
+  animation: flotar var(--duracion, 9s) ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .flotante {
+    animation: none;
+  }
 }
 
 /* Degradado de marca: rosa → fucsia → morado */

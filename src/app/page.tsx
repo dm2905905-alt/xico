@@ -79,7 +79,7 @@ export default async function Inicio() {
       )}
 
       {/* Garantías */}
-      <section className="border-b border-arena-oscura/60 bg-white">
+      <section className="border-y border-white/60 bg-white/55 backdrop-blur">
         <ul className="mx-auto grid max-w-7xl grid-cols-1 gap-4 px-4 py-5 text-sm sm:grid-cols-3">
           <li className="flex items-center gap-3">
             <ShieldCheck className="size-6 shrink-0 text-jade" />
