@@ -9,6 +9,7 @@ import { mensajeError, obtenerDb } from "@/lib/firebase";
 import { firebaseConfig } from "@/lib/firebase-config";
 import { reglasFirestore, reglasStorage } from "@/lib/reglas";
 import { llamar } from "./datos";
+import { EstadoMercadoPago } from "./EstadoMercadoPago";
 
 type Conteo = { productos: number; creadores: number } | "error" | null;
 
@@ -74,6 +75,8 @@ export function TabConfiguracion({ usuario }: { usuario: User }) {
       <p className="text-sm text-cafe">
         Cuenta administradora: <strong className="text-tinta">{correo || "(sin correo: entra con Google)"}</strong>
       </p>
+
+      <EstadoMercadoPago usuario={usuario} />
 
       {/* Paso 1 */}
       <section className="rounded-3xl bg-white p-6 ring-1 ring-arena-oscura/60">
