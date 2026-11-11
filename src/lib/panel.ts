@@ -122,6 +122,7 @@ export type DatosProducto = Pick<
   Producto,
   | "nombre"
   | "categoria"
+  | "subcategoria"
   | "precio"
   | "precioAntes"
   | "descripcion"

@@ -1,10 +1,13 @@
-import { categoriaPorSlug, estadoPorSlug, type Producto } from "./datos";
+import { categoriaPorSlug, estadoPorSlug, subcategoriaDe, type Producto } from "./datos";
 
 export type Filtros = {
   q?: string;
   categoria?: string;
+  sub?: string; // subcategoría
   estado?: string;
+  min?: number;
   max?: number;
+  calif?: number; // calificación mínima
   orden?: "relevancia" | "vendidos" | "nuevos" | "precio-asc" | "precio-desc" | "calificacion";
   personalizable?: boolean;
   ofertas?: boolean;
@@ -15,15 +18,20 @@ const normalizar = (t: string) =>
   t.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
 
 const textoBuscable = (p: Producto) =>
-  normalizar([p.nombre, categoriaPorSlug(p.categoria)?.nombre, p.taller, estadoPorSlug(p.estado)?.nombre].join(" "));
+  normalizar(
+    [p.nombre, categoriaPorSlug(p.categoria)?.nombre, subcategoriaDe(p.categoria, p.subcategoria)?.nombre, p.materiales, p.taller, estadoPorSlug(p.estado)?.nombre].join(" "),
+  );
 
 export function buscarProductos(productos: Producto[], f: Filtros): Producto[] {
   const palabras = f.q ? normalizar(f.q).split(/\s+/).filter((w) => w.length > 1) : [];
 
   let lista = productos.filter((p) => {
     if (f.categoria && p.categoria !== f.categoria) return false;
+    if (f.sub && p.subcategoria !== f.sub) return false;
     if (f.estado && p.estado !== f.estado) return false;
+    if (f.min && p.precio < f.min) return false;
     if (f.max && p.precio > f.max) return false;
+    if (f.calif && p.calificacion < f.calif) return false;
     if (f.personalizable && !p.personalizable) return false;
     if (f.ofertas && !p.precioAntes) return false;
     if (palabras.length) {
@@ -67,14 +75,20 @@ export function leerFiltros(sp: Record<string, string | string[] | undefined>): 
     const v = sp[k];
     return Array.isArray(v) ? v[0] : v;
   };
-  const max = Number(uno("max"));
+  const numero = (k: string) => {
+    const n = Number(uno(k));
+    return Number.isFinite(n) && n > 0 ? n : undefined;
+  };
   const ordenes = ["relevancia", "vendidos", "nuevos", "precio-asc", "precio-desc", "calificacion"] as const;
   const orden = ordenes.find((o) => o === uno("orden"));
   return {
     q: uno("q")?.slice(0, 80),
     categoria: uno("categoria"),
+    sub: uno("sub"),
     estado: uno("estado"),
-    max: Number.isFinite(max) && max > 0 ? max : undefined,
+    min: numero("min"),
+    max: numero("max"),
+    calif: numero("calif"),
     orden,
     personalizable: uno("personalizable") === "1",
     ofertas: uno("ofertas") === "1",

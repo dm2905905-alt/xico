@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Check, Loader2, Sparkles } from "lucide-react";
-import { categoriaPorSlug, type CategoriaSlug } from "@/lib/datos";
+import { categoriaPorSlug, subcategoriaDe, type CategoriaSlug } from "@/lib/datos";
 import { precio } from "@/lib/formato";
 import type { DatosProducto } from "@/lib/panel";
 import { useSesion } from "../Sesion";
@@ -12,6 +12,7 @@ type Propuesta = {
   descripcion: string;
   materiales: string;
   categoria: CategoriaSlug;
+  subcategoria?: string;
   precioSugerido: number;
   precioMin: number;
   precioMax: number;
@@ -110,9 +111,12 @@ export function AsistenteIA({ aplicar }: { aplicar: (cambios: Partial<DatosProdu
           <div className="flex items-start justify-between gap-3">
             <div>
               <p className="text-xs font-semibold text-cafe uppercase">Materiales y categoría</p>
-              <p>{propuesta.materiales} · {categoriaPorSlug(propuesta.categoria)?.nombre}</p>
+              <p>
+                {propuesta.materiales} · {categoriaPorSlug(propuesta.categoria)?.nombre}
+                {subcategoriaDe(propuesta.categoria, propuesta.subcategoria) && ` › ${subcategoriaDe(propuesta.categoria, propuesta.subcategoria)?.nombre}`}
+              </p>
             </div>
-            {botonUsar("detalles", { materiales: propuesta.materiales, categoria: propuesta.categoria })}
+            {botonUsar("detalles", { materiales: propuesta.materiales, categoria: propuesta.categoria, subcategoria: propuesta.subcategoria })}
           </div>
           <div className="flex items-start justify-between gap-3 rounded-xl bg-maiz/15 p-3">
             <div>
@@ -127,7 +131,7 @@ export function AsistenteIA({ aplicar }: { aplicar: (cambios: Partial<DatosProdu
           <button
             type="button"
             onClick={() => {
-              aplicar({ nombre: propuesta.nombre, descripcion: propuesta.descripcion, materiales: propuesta.materiales, categoria: propuesta.categoria, precio: propuesta.precioSugerido });
+              aplicar({ nombre: propuesta.nombre, descripcion: propuesta.descripcion, materiales: propuesta.materiales, categoria: propuesta.categoria, subcategoria: propuesta.subcategoria, precio: propuesta.precioSugerido });
               setUsados(["nombre", "descripcion", "detalles", "precio"]);
             }}
             className="justify-self-start rounded-full border border-tinta px-4 py-1.5 text-xs font-semibold hover:bg-arena"

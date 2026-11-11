@@ -2,16 +2,29 @@
 // Los productos y creadores viven en Firestore: ver catalogo.ts.
 
 export type CategoriaSlug =
-  | "fundas"
   | "ropa"
-  | "cuadros"
+  | "calzado"
+  | "bolsas"
+  | "accesorios"
   | "joyeria"
+  | "fundas"
+  | "cuadros"
+  | "decoracion"
+  | "cocina"
+  | "jardin"
   | "velas"
+  | "belleza"
+  | "papeleria"
+  | "fiestas"
+  | "bebes"
+  | "juguetes"
+  | "mascotas"
   | "regalos"
   | "artesania"
-  | "decoracion";
+  | "manualidades";
 
-export type Categoria = { slug: CategoriaSlug; nombre: string };
+export type Subcategoria = { slug: string; nombre: string };
+export type Categoria = { slug: CategoriaSlug; nombre: string; subcategorias: Subcategoria[] };
 
 export type Ciudad = { nombre: string; lat: number; lon: number };
 
@@ -62,6 +75,7 @@ export type Producto = {
   taller: string; // copia del nombre del taller (para las tarjetas)
   estado: string; // copia del estado del creador (para filtrar)
   categoria: CategoriaSlug;
+  subcategoria?: string; // slug dentro de su categoría (opcional)
   precio: number;
   precioAntes?: number;
   calificacion: number;
@@ -122,15 +136,89 @@ export const aTarjeta = (p: ProductoTarjeta & { fotos?: Foto[] }): ProductoTarje
   forma: p.forma,
 });
 
+// Catálogo de categorías: todo lo que se hace a mano (no solo artesanía).
+// Sin electrodomésticos, herramientas ni electrónicos. Los slugs de las 8 originales no cambian.
+const sub = (slug: string, nombre: string): Subcategoria => ({ slug, nombre });
+
 export const categorias: Categoria[] = [
-  { slug: "fundas", nombre: "Fundas pintadas" },
-  { slug: "ropa", nombre: "Ropa intervenida" },
-  { slug: "cuadros", nombre: "Cuadros y lienzos" },
-  { slug: "joyeria", nombre: "Joyería" },
-  { slug: "velas", nombre: "Velas y aromas" },
-  { slug: "regalos", nombre: "Regalos personalizados" },
-  { slug: "artesania", nombre: "Artesanía" },
-  { slug: "decoracion", nombre: "Decoración" },
+  { slug: "ropa", nombre: "Ropa", subcategorias: [
+    sub("intervenida", "Ropa intervenida y pintada"), sub("playeras", "Playeras y blusas"), sub("sudaderas", "Sudaderas y chamarras"),
+    sub("vestidos", "Vestidos y faldas"), sub("bordada", "Ropa bordada y tradicional"), sub("tejida", "Tejida y crochet"), sub("pijamas", "Pijamas y ropa de casa"),
+  ] },
+  { slug: "calzado", nombre: "Calzado", subcategorias: [
+    sub("tenis", "Tenis pintados"), sub("huaraches", "Huaraches"), sub("botas", "Botas y botines"), sub("sandalias", "Sandalias"), sub("pantuflas", "Pantuflas"),
+  ] },
+  { slug: "bolsas", nombre: "Bolsas y mochilas", subcategorias: [
+    sub("de-mano", "Bolsas de mano"), sub("tote", "Tote bags"), sub("mochilas", "Mochilas"), sub("carteras", "Carteras y monederos"),
+    sub("cosmetiqueras", "Cosmetiqueras y estuches"), sub("tejidas", "Bolsas tejidas"),
+  ] },
+  { slug: "accesorios", nombre: "Accesorios", subcategorias: [
+    sub("cabello", "Moños, diademas y pinzas"), sub("gorras", "Gorras y sombreros"), sub("bufandas", "Bufandas y gorros"), sub("cinturones", "Cinturones"),
+    sub("llaveros", "Llaveros"), sub("pines", "Pines y parches"), sub("paliacates", "Paliacates y pañuelos"),
+  ] },
+  { slug: "joyeria", nombre: "Joyería y bisutería", subcategorias: [
+    sub("aretes", "Aretes"), sub("collares", "Collares"), sub("pulseras", "Pulseras"), sub("anillos", "Anillos"), sub("plata", "Joyería de plata"),
+    sub("chaquira", "Chaquira y bisutería"), sub("personalizada", "Joyería con nombre"),
+  ] },
+  { slug: "fundas", nombre: "Fundas y accesorios de celular", subcategorias: [
+    sub("fundas-celular", "Fundas de celular"), sub("fundas-laptop", "Fundas de laptop y tablet"), sub("correas", "Correas y colgantes"),
+    sub("soportes", "Soportes y popsockets"), sub("stickers", "Stickers"),
+  ] },
+  { slug: "cuadros", nombre: "Arte y cuadros", subcategorias: [
+    sub("pinturas", "Pinturas"), sub("retratos", "Retratos por encargo"), sub("ilustraciones", "Ilustraciones y prints"), sub("fotografia", "Fotografía"),
+    sub("esculturas", "Esculturas"), sub("bordado", "Arte bordado"),
+  ] },
+  { slug: "decoracion", nombre: "Decoración del hogar", subcategorias: [
+    sub("cojines", "Cojines y mantas"), sub("pared", "Decoración de pared"), sub("figuras", "Figuras y adornos"), sub("lamparas", "Lámparas"),
+    sub("espejos", "Espejos"), sub("tapetes", "Tapetes"), sub("letreros", "Letreros y nombres"), sub("macrame", "Macramé"),
+  ] },
+  { slug: "cocina", nombre: "Cocina y mesa", subcategorias: [
+    sub("tazas", "Tazas y vasos"), sub("vajilla", "Platos y vajilla"), sub("madera", "Utensilios y tablas de madera"), sub("textiles", "Manteles y caminos de mesa"),
+    sub("molcajetes", "Molcajetes y barro"), sub("posavasos", "Posavasos y portavasos"),
+  ] },
+  { slug: "jardin", nombre: "Jardín y plantas", subcategorias: [
+    sub("macetas", "Macetas"), sub("terrarios", "Terrarios y kokedamas"), sub("colgantes", "Colgantes para plantas"), sub("aves", "Comederos y casitas para aves"),
+    sub("exterior", "Decoración de exterior"),
+  ] },
+  { slug: "velas", nombre: "Velas y aromas", subcategorias: [
+    sub("velas", "Velas"), sub("difusores", "Difusores y aromatizantes"), sub("incienso", "Incienso y copal"), sub("portavelas", "Portavelas"),
+  ] },
+  { slug: "belleza", nombre: "Belleza y cuidado personal", subcategorias: [
+    sub("jabones", "Jabones artesanales"), sub("cremas", "Cremas y bálsamos"), sub("cabello", "Cuidado del cabello"), sub("bano", "Sales y bombas de baño"),
+    sub("aceites", "Aceites y aromaterapia"), sub("kits", "Kits de regalo"),
+  ] },
+  { slug: "papeleria", nombre: "Papelería", subcategorias: [
+    sub("libretas", "Libretas y agendas"), sub("tarjetas", "Tarjetas y postales"), sub("stickers", "Stickers y washi"), sub("invitaciones", "Invitaciones"),
+    sub("separadores", "Separadores"), sub("encuadernacion", "Encuadernación artesanal"),
+  ] },
+  { slug: "fiestas", nombre: "Fiestas y eventos", subcategorias: [
+    sub("pinatas", "Piñatas"), sub("globos", "Globos personalizados"), sub("centros", "Centros de mesa"), sub("recuerdos", "Recuerdos y souvenirs"),
+    sub("toppers", "Toppers de pastel"), sub("bodas", "Bodas y XV años"), sub("decoracion-fiesta", "Decoración de fiesta"),
+  ] },
+  { slug: "bebes", nombre: "Bebés y niños", subcategorias: [
+    sub("ropa-bebe", "Ropa de bebé"), sub("mantas", "Mantas y cobijas"), sub("moviles", "Móviles de cuna"), sub("cuarto", "Decoración infantil"),
+    sub("accesorios-bebe", "Baberos y accesorios"), sub("bautizo", "Bautizo y primera comunión"),
+  ] },
+  { slug: "juguetes", nombre: "Juguetes y juegos", subcategorias: [
+    sub("peluches", "Peluches y amigurumis"), sub("madera", "Juguetes de madera"), sub("munecas", "Muñecas"), sub("juegos-mesa", "Juegos de mesa"),
+    sub("rompecabezas", "Rompecabezas"), sub("tradicionales", "Juguetes tradicionales"),
+  ] },
+  { slug: "mascotas", nombre: "Mascotas", subcategorias: [
+    sub("collares", "Collares y correas"), sub("placas", "Placas con nombre"), sub("camas", "Camas y cobijas"), sub("ropa-mascota", "Ropa para mascotas"),
+    sub("juguetes-mascota", "Juguetes"), sub("retratos-mascota", "Retratos de mascotas"),
+  ] },
+  { slug: "regalos", nombre: "Regalos personalizados", subcategorias: [
+    sub("con-nombre", "Con nombre o frase"), sub("pareja", "Para parejas"), sub("cajas", "Cajas de regalo"), sub("fotos", "Con tu foto"),
+    sub("fechas", "Fechas especiales"), sub("empresas", "Regalos corporativos"),
+  ] },
+  { slug: "artesania", nombre: "Artesanía mexicana", subcategorias: [
+    sub("barro", "Barro y alfarería"), sub("talavera", "Talavera"), sub("textiles", "Textiles tradicionales"), sub("alebrijes", "Alebrijes"),
+    sub("cesteria", "Cestería y palma"), sub("madera-tallada", "Madera tallada"), sub("vidrio", "Vidrio soplado"), sub("papel", "Papel picado y cartonería"),
+  ] },
+  { slug: "manualidades", nombre: "Manualidades y materiales", subcategorias: [
+    sub("kits", "Kits para hacer tú"), sub("patrones", "Patrones y moldes"), sub("hilos", "Hilos y estambres teñidos"), sub("cuentas", "Cuentas y dijes"),
+    sub("cursos", "Cursos y tutoriales"),
+  ] },
 ];
 
 // Los 32 estados de México. Coordenadas aproximadas (latitud, longitud) de capitales y ciudades principales.
@@ -183,6 +271,8 @@ export const paletaMexicana = [
 
 export const estadoPorSlug = (slug: string) => estados.find((e) => e.slug === slug);
 export const categoriaPorSlug = (slug: string) => categorias.find((c) => c.slug === slug);
+export const subcategoriaDe = (categoria: string, sub?: string) =>
+  sub ? categoriaPorSlug(categoria)?.subcategorias.find((x) => x.slug === sub) : undefined;
 
 // ¿La tienda puede vender? (las tiendas antiguas no tienen estado: se consideran aprobadas)
 export const tiendaActiva = (c: Pick<Creador, "estadoTienda">) => !c.estadoTienda || c.estadoTienda === "aprobada";

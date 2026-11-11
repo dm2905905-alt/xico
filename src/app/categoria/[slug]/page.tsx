@@ -37,25 +37,37 @@ export default async function PaginaCategoria({ params, searchParams }: PageProp
         </span>
         <h1 className="font-display text-2xl font-bold tracking-tight sm:text-3xl">{cat.nombre}</h1>
       </div>
-      {/* Otras categorías a un toque */}
-      <ul className="sin-barra -mx-4 mb-3 flex gap-2 overflow-x-auto px-4 pb-1">
-        {categorias.map((c) => (
-          <li key={c.slug} className="shrink-0">
-            <Link
-              href={`/categoria/${c.slug}`}
-              aria-current={c.slug === cat.slug ? "page" : undefined}
-              className={`block rounded-full px-3.5 py-1.5 text-sm whitespace-nowrap ${c.slug === cat.slug ? "bg-tinta font-semibold text-crema" : "bg-white ring-1 ring-arena-oscura hover:bg-arena"}`}
-            >
-              {c.nombre}
-            </Link>
-          </li>
-        ))}
-      </ul>
+      {/* Tipos de producto de esta categoría */}
+      <Suspense fallback={<div className="mb-3 h-9" />}>
+        <Subcategorias slug={cat.slug} searchParams={searchParams} />
+      </Suspense>
 
       <Suspense fallback={<CatalogoCargando />}>
         <Resultados slug={cat.slug} searchParams={searchParams} />
       </Suspense>
     </div>
+  );
+}
+
+async function Subcategorias({ slug, searchParams }: { slug: string; searchParams: Promise<Record<string, string | string[] | undefined>> }) {
+  const cat = categoriaPorSlug(slug)!;
+  const sp = await searchParams;
+  const activa = typeof sp.sub === "string" ? sp.sub : undefined;
+  const chip = (activo: boolean) =>
+    `block rounded-full px-3.5 py-1.5 text-sm whitespace-nowrap ${activo ? "bg-tinta font-semibold text-crema" : "bg-white ring-1 ring-arena-oscura hover:bg-arena"}`;
+  return (
+    <ul className="sin-barra -mx-4 mb-3 flex gap-2 overflow-x-auto px-4 pb-1">
+      <li className="shrink-0">
+        <Link href={`/categoria/${slug}`} className={chip(!activa)}>Todo</Link>
+      </li>
+      {cat.subcategorias.map((sc) => (
+        <li key={sc.slug} className="shrink-0">
+          <Link href={`/categoria/${slug}?sub=${sc.slug}`} aria-current={activa === sc.slug ? "page" : undefined} className={chip(activa === sc.slug)}>
+            {sc.nombre}
+          </Link>
+        </li>
+      ))}
+    </ul>
   );
 }
 

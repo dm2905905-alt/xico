@@ -9,7 +9,7 @@ import { Personalizador } from "@/components/Personalizador";
 import { Fila } from "@/components/Fila";
 import { TarjetaProducto } from "@/components/TarjetaProducto";
 import { RELLENO, conRelleno, consultas, obtenerCatalogo } from "@/lib/catalogo";
-import { aTarjeta, categoriaPorSlug, estadoPorSlug } from "@/lib/datos";
+import { aTarjeta, categoriaPorSlug, estadoPorSlug, subcategoriaDe } from "@/lib/datos";
 import { descuento, precio } from "@/lib/formato";
 
 export async function generateStaticParams() {
@@ -37,10 +37,13 @@ export default async function PaginaProducto({ params }: PageProps<"/producto/[s
   const creador = creadorPorSlug(producto.creador);
   const estado = estadoPorSlug(producto.estado);
   const categoria = categoriaPorSlug(producto.categoria);
+  const subcategoria = subcategoriaDe(producto.categoria, producto.subcategoria);
   const off = descuento(producto.precio, producto.precioAntes);
 
   const delCreador = productosDeCreador(producto.creador).filter((p) => p.slug !== slug);
-  const parecidos = productos.filter((p) => p.categoria === producto.categoria && p.slug !== slug && p.creador !== producto.creador);
+  const parecidos = productos
+    .filter((p) => p.categoria === producto.categoria && p.slug !== slug && p.creador !== producto.creador)
+    .sort((a, b) => Number(b.subcategoria === producto.subcategoria) - Number(a.subcategoria === producto.subcategoria));
 
   const iniciales = creador?.nombre.split(" ").map((p) => p[0]).slice(0, 2).join("") || creador?.taller.slice(0, 1);
 
@@ -52,6 +55,12 @@ export default async function PaginaProducto({ params }: PageProps<"/producto/[s
         {categoria && (
           <>
             <Link href={`/categoria/${categoria.slug}`} className="hover:text-terracota">{categoria.nombre}</Link>
+            <ChevronRight className="size-4" />
+          </>
+        )}
+        {categoria && subcategoria && (
+          <>
+            <Link href={`/categoria/${categoria.slug}?sub=${subcategoria.slug}`} className="hover:text-terracota">{subcategoria.nombre}</Link>
             <ChevronRight className="size-4" />
           </>
         )}

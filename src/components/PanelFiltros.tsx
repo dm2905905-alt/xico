@@ -4,15 +4,18 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
 import { createPortal } from "react-dom";
 import { SlidersHorizontal, X } from "lucide-react";
-import { categorias, estados } from "@/lib/datos";
+import { categoriaPorSlug, categorias, estados } from "@/lib/datos";
 import type { Filtros } from "@/lib/busqueda";
 
-const precios = [
-  { valor: 99, texto: "Hasta $99" },
-  { valor: 300, texto: "Hasta $300" },
-  { valor: 500, texto: "Hasta $500" },
-  { valor: 1000, texto: "Hasta $1,000" },
+// Rangos de precio (mínimo y máximo)
+const rangos = [
+  { id: "0-99", min: undefined, max: 99, texto: "Hasta $99" },
+  { id: "100-300", min: 100, max: 300, texto: "$100 a $300" },
+  { id: "300-500", min: 300, max: 500, texto: "$300 a $500" },
+  { id: "500-1000", min: 500, max: 1000, texto: "$500 a $1,000" },
+  { id: "1000-", min: 1000, max: undefined, texto: "Más de $1,000" },
 ];
+const rangoActual = (v: Filtros) => rangos.find((r) => r.min === v.min && r.max === v.max)?.id ?? "";
 
 const ordenes = [
   { valor: "relevancia", texto: "Relevancia" },
@@ -38,14 +41,20 @@ export function PanelFiltros({
   const [cargando, iniciar] = useTransition();
 
   // Actualiza la URL con el filtro cambiado; la página vuelve a calcular resultados
-  function cambiar(clave: Clave, valor: string | boolean | undefined) {
+  function cambiar(clave: Clave, valor: string | number | boolean | undefined) {
+    cambiarVarios({ [clave]: valor });
+  }
+
+  function cambiarVarios(cambios: Partial<Record<Clave, string | number | boolean | undefined>>) {
     const sig: Record<string, string> = {};
     for (const [k, v] of Object.entries(valores)) {
       if (fijos.includes(k as Clave) || v === undefined || v === false || v === "") continue;
       sig[k] = v === true ? "1" : String(v);
     }
-    if (valor === undefined || valor === false || valor === "") delete sig[clave];
-    else sig[clave] = valor === true ? "1" : String(valor);
+    for (const [clave, valor] of Object.entries(cambios)) {
+      if (valor === undefined || valor === false || valor === "") delete sig[clave];
+      else sig[clave] = valor === true ? "1" : String(valor);
+    }
     const qs = new URLSearchParams(sig).toString();
     iniciar(() => router.replace(qs ? `${ruta}?${qs}` : ruta, { scroll: false }));
   }
@@ -53,7 +62,10 @@ export function PanelFiltros({
   const hayFiltros =
     (!fijos.includes("categoria") && valores.categoria) ||
     (!fijos.includes("estado") && valores.estado) ||
+    valores.sub ||
+    valores.min ||
     valores.max ||
+    valores.calif ||
     valores.personalizable ||
     valores.ofertas;
 
@@ -68,7 +80,14 @@ export function PanelFiltros({
     };
   }, [hoja]);
 
-  const cuantos = [!fijos.includes("categoria") && valores.categoria, !fijos.includes("estado") && valores.estado, valores.max].filter(Boolean).length;
+  const cuantos = [
+    !fijos.includes("categoria") && valores.categoria,
+    !fijos.includes("sub") && valores.sub,
+    !fijos.includes("estado") && valores.estado,
+    valores.min || valores.max,
+    valores.calif,
+  ].filter(Boolean).length;
+  const categoriaElegida = valores.categoria ? categoriaPorSlug(valores.categoria) : undefined;
 
   const quitar = () =>
     iniciar(() => router.replace(valores.q && !fijos.includes("q") ? `${ruta}?q=${encodeURIComponent(valores.q)}` : ruta, { scroll: false }));
@@ -88,10 +107,22 @@ export function PanelFiltros({
       {!fijos.includes("categoria") && (
         <label className="grid gap-1 text-xs font-semibold text-cafe">
           Categoría
-          <select className={selectCls} value={valores.categoria ?? ""} onChange={(e) => cambiar("categoria", e.target.value)}>
+          <select className={selectCls} value={valores.categoria ?? ""} onChange={(e) => cambiarVarios({ categoria: e.target.value, sub: undefined })}>
             <option value="">Todas</option>
             {categorias.map((c) => (
               <option key={c.slug} value={c.slug}>{c.nombre}</option>
+            ))}
+          </select>
+        </label>
+      )}
+
+      {categoriaElegida && !fijos.includes("sub") && (
+        <label className="grid gap-1 text-xs font-semibold text-cafe">
+          Tipo de producto
+          <select className={selectCls} value={valores.sub ?? ""} onChange={(e) => cambiar("sub", e.target.value)}>
+            <option value="">Todos</option>
+            {categoriaElegida.subcategorias.map((sc) => (
+              <option key={sc.slug} value={sc.slug}>{sc.nombre}</option>
             ))}
           </select>
         </label>
@@ -111,11 +142,27 @@ export function PanelFiltros({
 
       <label className="grid gap-1 text-xs font-semibold text-cafe">
         Presupuesto
-        <select className={selectCls} value={valores.max ?? ""} onChange={(e) => cambiar("max", e.target.value)}>
+        <select
+          className={selectCls}
+          value={rangoActual(valores)}
+          onChange={(e) => {
+            const r = rangos.find((x) => x.id === e.target.value);
+            cambiarVarios({ min: r?.min, max: r?.max });
+          }}
+        >
           <option value="">Cualquier precio</option>
-          {precios.map((p) => (
-            <option key={p.valor} value={p.valor}>{p.texto}</option>
+          {rangos.map((r) => (
+            <option key={r.id} value={r.id}>{r.texto}</option>
           ))}
+        </select>
+      </label>
+
+      <label className="grid gap-1 text-xs font-semibold text-cafe">
+        Calificación
+        <select className={selectCls} value={valores.calif ?? ""} onChange={(e) => cambiar("calif", e.target.value)}>
+          <option value="">Cualquiera</option>
+          <option value="4">4 estrellas o más</option>
+          <option value="4.5">4.5 estrellas o más</option>
         </select>
       </label>
     </>
@@ -139,11 +186,17 @@ export function PanelFiltros({
         <button type="button" onClick={() => cambiar("ofertas", !valores.ofertas)} className={chip(!!valores.ofertas)}>
           🏷️ Ofertas
         </button>
-        {precios.slice(0, 3).map((p) => (
-          <button key={p.valor} type="button" onClick={() => cambiar("max", valores.max === p.valor ? undefined : String(p.valor))} className={chip(valores.max === p.valor)}>
-            {p.texto}
-          </button>
-        ))}
+        <button type="button" onClick={() => cambiar("calif", valores.calif ? undefined : 4.5)} className={chip(!!valores.calif)}>
+          ⭐ 4.5+
+        </button>
+        {rangos.slice(0, 3).map((r) => {
+          const activo = rangoActual(valores) === r.id;
+          return (
+            <button key={r.id} type="button" onClick={() => cambiarVarios(activo ? { min: undefined, max: undefined } : { min: r.min, max: r.max })} className={chip(activo)}>
+              {r.texto}
+            </button>
+          );
+        })}
         <button type="button" onClick={() => cambiar("orden", valores.orden === "vendidos" ? undefined : "vendidos")} className={chip(valores.orden === "vendidos")}>
           🔥 Más vendidos
         </button>

@@ -1,5 +1,5 @@
 // Asistente de IA para creadores (Gemini). Solo en el servidor: la clave nunca llega al navegador.
-import { categorias, estadoPorSlug, type Creador } from "../datos";
+import { categorias, estadoPorSlug, subcategoriaDe, type Creador } from "../datos";
 import { ErrorXico } from "./admin";
 
 const API = "https://generativelanguage.googleapis.com/v1beta/models";
@@ -10,6 +10,7 @@ export type PropuestaIA = {
   descripcion: string;
   materiales: string;
   categoria: string;
+  subcategoria?: string;
   precioSugerido: number;
   precioMin: number;
   precioMax: number;
@@ -23,6 +24,12 @@ const esquema = {
     descripcion: { type: "STRING", description: "2 a 4 frases cálidas: qué es, cómo se hace a mano, medidas o cuidados si se conocen" },
     materiales: { type: "STRING", description: "Materiales separados por coma" },
     categoria: { type: "STRING", enum: categorias.map((c) => c.slug) },
+    subcategoria: {
+      type: "STRING",
+      description:
+        "Slug del tipo de producto dentro de la categoría elegida. Opciones por categoría: " +
+        categorias.map((c) => `${c.slug}: ${c.subcategorias.map((x) => x.slug).join(", ")}`).join(" | "),
+    },
     precioSugerido: { type: "INTEGER", description: "Precio de venta sugerido en pesos mexicanos" },
     precioMin: { type: "INTEGER" },
     precioMax: { type: "INTEGER" },
@@ -42,7 +49,7 @@ export async function proponerProducto(idea: string, tienda: Creador | undefined
     ? `El creador es "${tienda.taller}" de ${estadoPorSlug(tienda.estado)?.nombre ?? "México"}${tienda.especialidad ? `, especialidad: ${tienda.especialidad}` : ""}.`
     : "";
 
-  const instrucciones = `Eres el asistente de XICO, un marketplace de productos hechos a mano por artesanos y creadores mexicanos.
+  const instrucciones = `Eres el asistente de XICO, un marketplace de productos hechos a mano por creadores mexicanos (ropa, accesorios, arte, decoración, belleza, papelería, juguetes, mascotas, artesanía y más).
 Ayudas a un creador a publicar su producto. Escribe en español de México, cálido y honesto, sin exagerar ni inventar datos
 (no inventes medidas, materiales ni certificaciones que el creador no mencionó). No uses emojis ni mayúsculas sostenidas.
 Sugiere un precio justo en pesos mexicanos para un producto artesanal vendido en línea en México en 2026, considerando
@@ -77,6 +84,7 @@ el trabajo a mano; da un rango razonable. ${contexto}`;
       descripcion: String(p.descripcion).slice(0, 2000),
       materiales: String(p.materiales).slice(0, 150),
       categoria: categorias.some((c) => c.slug === p.categoria) ? p.categoria : "regalos",
+      subcategoria: subcategoriaDe(p.categoria, p.subcategoria) ? p.subcategoria : undefined,
       precioSugerido: precio(p.precioSugerido),
       precioMin: precio(p.precioMin),
       precioMax: precio(p.precioMax),

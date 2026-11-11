@@ -65,6 +65,7 @@ function Formulario({ creador, existente }: { creador: Creador; existente?: Prod
   const [d, setD] = useState<DatosProducto>({
     nombre: existente?.nombre ?? "",
     categoria: existente?.categoria ?? "regalos",
+    subcategoria: existente?.subcategoria,
     precio: existente?.precio ?? 0,
     precioAntes: existente?.precioAntes,
     descripcion: existente?.descripcion ?? "",
@@ -169,14 +170,31 @@ function Formulario({ creador, existente }: { creador: Creador; existente?: Prod
               Nombre del producto *
               <input className={campo} maxLength={120} value={d.nombre} onChange={(e) => poner("nombre", e.target.value)} placeholder="Ej. Taza de talavera con tu nombre" />
             </label>
-            <label className={etiqueta}>
-              Categoría
-              <select className={campo} value={d.categoria} onChange={(e) => poner("categoria", e.target.value as CategoriaSlug)}>
-                {categorias.map((c) => (
-                  <option key={c.slug} value={c.slug}>{c.nombre}</option>
-                ))}
-              </select>
-            </label>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <label className={etiqueta}>
+                Categoría
+                <select
+                  className={campo}
+                  value={d.categoria}
+                  onChange={(e) => setD((x) => ({ ...x, categoria: e.target.value as CategoriaSlug, subcategoria: undefined }))}
+                >
+                  {categorias.map((c) => (
+                    <option key={c.slug} value={c.slug}>{c.nombre}</option>
+                  ))}
+                </select>
+              </label>
+              <label className={etiqueta}>
+                Tipo de producto
+                <select className={campo} value={d.subcategoria ?? ""} onChange={(e) => setD((x) => ({ ...x, subcategoria: e.target.value || undefined }))}>
+                  <option value="">Elige uno (opcional)</option>
+                  {categorias
+                    .find((c) => c.slug === d.categoria)
+                    ?.subcategorias.map((sc) => (
+                      <option key={sc.slug} value={sc.slug}>{sc.nombre}</option>
+                    ))}
+                </select>
+              </label>
+            </div>
             <label className={etiqueta}>
               Descripción *
               <textarea
