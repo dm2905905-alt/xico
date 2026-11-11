@@ -96,8 +96,8 @@ export function VistaPedido({ id, pagoId }: { id: string; pagoId?: string }) {
   }[pedido.estado];
 
   return (
-    <div className="grid gap-6">
-      <div className={`flex items-start gap-4 rounded-3xl p-6 ${encabezado.color}`}>
+    <div className="grid gap-4 sm:gap-6">
+      <div className={`flex items-start gap-4 rounded-3xl p-5 sm:p-6 ${encabezado.color}`}>
         <encabezado.Icono className="size-8 shrink-0" />
         <div>
           <h2 className="font-display text-2xl font-semibold">{comprador ? encabezado.titulo : miParte ? `Tu paquete: ${nombreEnvio[miParte.envioEstado ?? "preparando"]}` : nombreEstado[pedido.estado]}</h2>
@@ -108,19 +108,38 @@ export function VistaPedido({ id, pagoId }: { id: string; pagoId?: string }) {
         </div>
       </div>
 
+      {/* Avance del pedido (como el rastreo de una app) */}
+      {comprador && ["pagado", "enviado", "entregado"].includes(pedido.estado) && (
+        <ol className="grid grid-cols-4 rounded-3xl bg-white p-4 ring-1 ring-arena-oscura/60">
+          {["Pagado", "Preparando", "Enviado", "Entregado"].map((t, i) => {
+            const nivel = pedido.estado === "entregado" ? 3 : pedido.estado === "enviado" ? 2 : 1;
+            const hecho = i <= nivel;
+            return (
+              <li key={t} className="relative flex flex-col items-center gap-1.5 text-center text-[11px] font-medium sm:text-xs">
+                {i > 0 && <span className={`absolute top-3.5 right-1/2 h-1 w-full -translate-y-1/2 rounded-full ${i <= nivel ? "bg-jade" : "bg-arena-oscura"}`} aria-hidden />}
+                <span className={`relative grid size-7 place-items-center rounded-full text-xs font-bold ${hecho ? "bg-jade text-white" : "bg-arena-oscura text-cafe"}`}>
+                  {hecho ? "✓" : i + 1}
+                </span>
+                <span className={hecho ? "text-tinta" : "text-cafe"}>{t}</span>
+              </li>
+            );
+          })}
+        </ol>
+      )}
+
       {aviso && <p className="rounded-xl bg-maiz/20 px-4 py-3 text-sm">{aviso}</p>}
 
-      <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-4 lg:grid-cols-[1fr_320px] lg:gap-6">
         <div className="grid content-start gap-4">
           {grupos.map((g) => (
             <section key={g.creador} className="overflow-hidden rounded-3xl bg-white ring-1 ring-arena-oscura/60">
-              <header className="flex justify-between border-b border-arena-oscura/60 bg-arena/40 px-5 py-3 text-sm">
+              <header className="flex justify-between border-b border-arena-oscura/60 bg-arena/40 px-4 py-2.5 text-sm">
                 <Link href={`/creador/${g.creador}`} className="font-semibold hover:text-terracota">{g.taller}</Link>
                 <span className="text-cafe">Envío: {g.envio ? precio(g.envio) : "gratis"}</span>
               </header>
               <ul className="divide-y divide-arena-oscura/50">
                 {g.articulos.map((a, i) => (
-                  <li key={a.slug + i} className="flex gap-4 p-5">
+                  <li key={a.slug + i} className="flex gap-3 p-4">
                     <div className="w-16 shrink-0 overflow-hidden rounded-xl">
                       <FotoProducto producto={{ colores: a.colores, forma: a.forma, categoria: a.categoria, foto: a.foto }} uniforme />
                     </div>

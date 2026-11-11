@@ -65,10 +65,10 @@ export function VistaPagar() {
     "h-11 w-full rounded-xl border border-arena-oscura bg-white px-3.5 text-sm outline-none focus:border-terracota focus:ring-2 focus:ring-terracota/15";
 
   return (
-    <div className="grid gap-8 lg:grid-cols-[1fr_360px]">
-      <div className="grid content-start gap-5">
+    <div className="grid grid-cols-[minmax(0,1fr)] gap-4 lg:grid-cols-[1fr_360px] lg:gap-8">
+      <div className="order-2 grid content-start gap-4 lg:order-1">
         {/* Paso 1: cuenta (solo se pide aquí, al pagar) */}
-        <section className="rounded-3xl bg-white p-6 ring-1 ring-arena-oscura/60">
+        <section className="rounded-3xl bg-white p-5 ring-1 ring-arena-oscura/60 sm:p-6">
           <h2 className="flex items-center gap-2 font-display text-xl font-semibold">
             <span className="grid size-7 place-items-center rounded-full bg-terracota text-sm text-crema">1</span> Tu cuenta
           </h2>
@@ -85,7 +85,7 @@ export function VistaPagar() {
         </section>
 
         {/* Paso 2: dirección */}
-        <section className={`rounded-3xl bg-white p-6 ring-1 ring-arena-oscura/60 ${usuario ? "" : "pointer-events-none opacity-50"}`}>
+        <section className={`rounded-3xl bg-white p-5 ring-1 ring-arena-oscura/60 sm:p-6 ${usuario ? "" : "pointer-events-none opacity-50"}`}>
           <h2 className="flex items-center gap-2 font-display text-xl font-semibold">
             <span className={`grid size-7 place-items-center rounded-full text-sm ${usuario ? "bg-terracota text-crema" : "bg-arena-oscura"}`}>2</span>
             Dirección de envío
@@ -122,7 +122,7 @@ export function VistaPagar() {
         </section>
 
         {/* Paso 3: pago */}
-        <section className={`rounded-3xl bg-white p-6 ring-1 ring-arena-oscura/60 ${usuario ? "" : "opacity-50"}`}>
+        <section className={`rounded-3xl bg-white p-5 ring-1 ring-arena-oscura/60 sm:p-6 ${usuario ? "" : "opacity-50"}`}>
           <h2 className="flex items-center gap-2 font-display text-xl font-semibold">
             <span className={`grid size-7 place-items-center rounded-full text-sm ${usuario ? "bg-terracota text-crema" : "bg-arena-oscura"}`}>3</span>
             Pago con Mercado Pago
@@ -131,22 +131,40 @@ export function VistaPagar() {
             Te llevamos a Mercado Pago para pagar con tarjeta, OXXO o tu saldo. Al terminar regresas aquí a ver tu pedido.
           </p>
           {error && (
-            <p role="alert" className="mt-4 rounded-xl bg-rosa/10 px-4 py-3 text-sm text-rosa">
+            <p role="alert" className="mt-4 hidden rounded-xl bg-rosa/10 px-4 py-3 text-sm text-rosa md:block">
               {error}
             </p>
           )}
           <button
             onClick={pagar}
             disabled={!usuario || pagando}
-            className="mt-5 flex h-14 w-full items-center justify-center gap-2 rounded-full bg-[#009ee3] text-base font-semibold text-white transition hover:bg-[#0089c7] disabled:opacity-60 sm:w-auto sm:px-10"
+            className="mt-5 hidden h-14 w-auto items-center justify-center gap-2 rounded-full bg-[#009ee3] px-10 text-base font-semibold text-white transition hover:bg-[#0089c7] disabled:opacity-60 md:flex"
           >
             {pagando ? <Loader2 className="size-5 animate-spin" /> : <Lock className="size-5" />}
             {pagando ? "Preparando tu pago…" : `Pagar ${precio(total)} con Mercado Pago`}
           </button>
         </section>
+
+        {/* Celular: botón de pago fijo abajo (como en una app) */}
+        <div className="h-20 md:hidden" aria-hidden />
+        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-arena-oscura/70 bg-crema/95 px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur md:hidden">
+          {error && (
+            <p role="alert" className="mb-2 rounded-xl bg-rosa/10 px-4 py-2.5 text-sm text-rosa">
+              {error}
+            </p>
+          )}
+          <button
+            onClick={pagar}
+            disabled={!usuario || pagando}
+            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#009ee3] font-semibold text-white disabled:opacity-60"
+          >
+            {pagando ? <Loader2 className="size-5 animate-spin" /> : <Lock className="size-5" />}
+            {pagando ? "Preparando tu pago…" : usuario ? `Pagar ${precio(total)}` : "Entra a tu cuenta para pagar"}
+          </button>
+        </div>
       </div>
 
-      <aside className="self-start rounded-3xl bg-white p-6 ring-1 ring-arena-oscura/60 lg:sticky lg:top-36">
+      <aside className="order-1 self-start rounded-3xl bg-white p-5 ring-1 ring-arena-oscura/60 sm:p-6 lg:sticky lg:top-24 lg:order-2">
         <h2 className="font-display text-xl font-semibold">Tu pedido</h2>
         <ul className="mt-4 grid gap-2 text-sm">
           {grupos.map((g) => (

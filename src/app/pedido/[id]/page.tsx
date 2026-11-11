@@ -10,8 +10,8 @@ export const metadata: Metadata = {
 // Mercado Pago regresa aquí con ?payment_id=... (o collection_id en versiones anteriores)
 export default function PaginaPedido({ params, searchParams }: PageProps<"/pedido/[id]">) {
   return (
-    <div className="mx-auto max-w-6xl px-4 py-8">
-      <h1 className="mb-6 font-display text-3xl font-semibold tracking-tight sm:text-4xl">Tu pedido</h1>
+    <div className="mx-auto max-w-6xl px-4 py-4 md:py-8">
+      <h1 className="mb-4 font-display text-2xl font-bold tracking-tight sm:text-4xl">Tu pedido</h1>
       <Suspense fallback={<div className="h-64 animate-pulse rounded-3xl bg-arena" />}>
         {Promise.all([params, searchParams]).then(([{ id }, sp]) => {
           const uno = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v);

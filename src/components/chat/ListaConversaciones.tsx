@@ -35,15 +35,15 @@ export function ListaConversaciones({ activa }: { activa?: string }) {
   }
 
   return (
-    <ul className="overflow-hidden rounded-[2rem] bg-white/85 shadow-xl shadow-terracota/10 ring-1 ring-white backdrop-blur">
+    <ul className="overflow-hidden rounded-3xl bg-white ring-1 ring-arena-oscura/60">
       {conversaciones.map((c) => {
         const soyVendedor = c.creadorUid === usuario.uid;
         const nombre = soyVendedor ? c.compradorNombre : c.taller;
         const nuevo = sinLeer(c, usuario.uid);
         return (
           <li key={c.id} className="border-b border-arena-oscura/50 last:border-0">
-            <Link href={`/mensajes/${c.id}`} className={`flex items-center gap-3 px-4 py-3 transition hover:bg-arena/60 ${activa === c.id ? "bg-arena" : ""}`}>
-              <span className="degradado-xico grid size-11 shrink-0 place-items-center rounded-full font-display font-extrabold text-white">{nombre.trim()[0]?.toUpperCase()}</span>
+            <Link href={`/mensajes/${c.id}`} className={`flex items-center gap-3 px-4 py-3.5 transition hover:bg-arena/60 ${activa === c.id ? "bg-arena" : ""}`}>
+              <span className="degradado-xico grid size-12 shrink-0 place-items-center rounded-full font-display text-lg font-extrabold text-white">{nombre.trim()[0]?.toUpperCase()}</span>
               <span className="min-w-0 flex-1">
                 <span className="flex items-center justify-between gap-2">
                   <span className={`truncate ${nuevo ? "font-bold" : "font-semibold"}`}>{nombre}</span>
