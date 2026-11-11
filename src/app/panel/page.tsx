@@ -8,8 +8,8 @@ export const metadata: Metadata = {
 
 export default function Panel() {
   return (
-    <div className="mx-auto max-w-5xl px-4 py-8">
-      <h1 className="mb-6 font-display text-3xl font-semibold tracking-tight sm:text-4xl">Mi tienda</h1>
+    <div className="mx-auto max-w-5xl px-4 py-4 md:py-8">
+      <h1 className="sr-only">Mi tienda</h1>
       <VistaPanel />
     </div>
   );

@@ -48,37 +48,48 @@ function Tablero({ creador }: { creador: Creador }) {
   const [a, b] = creador.colores;
 
   return (
-    <div className="grid gap-6">
-      {/* Encabezado de la tienda */}
-      <div className="overflow-hidden rounded-3xl bg-white ring-1 ring-arena-oscura/60">
-        <div className="patron-picado h-20" style={{ background: `linear-gradient(135deg, ${a}, ${b})` }} />
-        <div className="flex flex-wrap items-center gap-4 p-5">
-          <div className="min-w-0 flex-1">
-            <h2 className="flex items-center gap-2 font-display text-2xl font-semibold">
-              {creador.taller}
-              {creador.verificado && <BadgeCheck className="size-5 text-jade" aria-label="Verificado" />}
-            </h2>
-            <p className="text-sm text-cafe">{creador.especialidad || "Completa tu perfil para que te conozcan"}</p>
-            {!creador.verificado && (
-              <p className="mt-1 text-xs text-cafe">⏳ Verificación pendiente: el equipo de XICO revisará tu trabajo.</p>
-            )}
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <Link href={`/creador/${creador.slug}`} className="flex items-center gap-1.5 rounded-full border border-arena-oscura px-4 py-2 text-sm hover:bg-arena">
-              <ExternalLink className="size-4" /> Ver mi tienda
-            </Link>
-            <Link href="/panel/perfil" className="flex items-center gap-1.5 rounded-full border border-arena-oscura px-4 py-2 text-sm hover:bg-arena">
-              <Settings className="size-4" /> Editar perfil
-            </Link>
-            <Link href="/panel/cuenta" className="flex items-center gap-1.5 rounded-full border border-arena-oscura px-4 py-2 text-sm hover:bg-arena">
-              <CreditCard className="size-4" /> Mi cuenta de vendedor
-            </Link>
-            <Link href="/mensajes" className="degradado-xico flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-semibold text-white">
-              <MessageCircle className="size-4" /> Mensajes
-            </Link>
-          </div>
+    <div className="grid gap-4 sm:gap-6">
+      {/* Encabezado: foto, nombre y enlace a la tienda pública */}
+      <div className="flex items-center gap-3">
+        <span
+          className="grid size-14 shrink-0 place-items-center overflow-hidden rounded-full font-display text-xl font-bold text-white"
+          style={{ background: `linear-gradient(135deg, ${a}, ${b})` }}
+        >
+          {creador.foto ? (
+            // eslint-disable-next-line @next/next/no-img-element -- miniatura ya reducida al subirla
+            <img src={creador.foto.mini} alt="" className="size-full object-cover" />
+          ) : (
+            creador.taller.slice(0, 1).toUpperCase()
+          )}
+        </span>
+        <div className="min-w-0 flex-1">
+          <h2 className="flex items-center gap-1.5 font-display text-xl font-bold sm:text-2xl">
+            <span className="truncate">{creador.taller}</span>
+            {creador.verificado && <BadgeCheck className="size-5 shrink-0 text-jade" aria-label="Verificado" />}
+          </h2>
+          <Link href={`/creador/${creador.slug}`} className="inline-flex items-center gap-1 text-sm text-terracota hover:underline">
+            Ver mi tienda <ExternalLink className="size-3.5" />
+          </Link>
         </div>
       </div>
+
+      {/* Accesos rápidos estilo app */}
+      <nav className="grid grid-cols-4 gap-2" aria-label="Accesos de mi tienda">
+        {[
+          { href: "/panel/producto/nuevo", texto: "Nuevo producto", icono: Plus, fuerte: true },
+          { href: "/mensajes", texto: "Mensajes", icono: MessageCircle },
+          { href: "/panel/perfil", texto: "Editar perfil", icono: Settings },
+          { href: "/panel/cuenta", texto: "Cobros", icono: CreditCard, alerta: sinCobro },
+        ].map((x) => (
+          <Link key={x.href} href={x.href} className="relative flex flex-col items-center gap-1.5 rounded-2xl bg-white p-3 text-center text-[11px] leading-tight font-medium ring-1 ring-arena-oscura/60 transition hover:ring-terracota sm:text-xs">
+            <span className={`grid size-10 place-items-center rounded-xl ${x.fuerte ? "degradado-xico text-white" : "bg-arena text-terracota"}`}>
+              <x.icono className="size-5" />
+            </span>
+            {x.texto}
+            {x.alerta && <span className="absolute top-2 right-2 size-2.5 rounded-full bg-rosa" aria-label="Falta completar" />}
+          </Link>
+        ))}
+      </nav>
 
       {/* Avisos de la solicitud y de la cuenta */}
       {creador.estadoTienda === "revision" && (
@@ -103,27 +114,26 @@ function Tablero({ creador }: { creador: Creador }) {
       )}
 
       {/* Números */}
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+      <div className="grid grid-cols-4 gap-2">
         {[
           { icono: Package, valor: productos.length, texto: "Productos" },
-          { icono: ShoppingBag, valor: vendidos, texto: "Piezas vendidas" },
+          { icono: ShoppingBag, valor: vendidos, texto: "Vendidas" },
           { icono: Star, valor: creador.resenas ? creador.calificacion.toFixed(1) : "—", texto: "Calificación" },
-          { icono: Package, valor: porEnviar, texto: "Pedidos por enviar" },
+          { icono: Package, valor: porEnviar, texto: "Por enviar" },
         ].map((n) => (
-          <div key={n.texto} className="rounded-3xl bg-white p-5 ring-1 ring-arena-oscura/60">
-            <n.icono className="size-5 text-terracota" />
-            <p className="mt-2 text-2xl font-bold">{n.valor}</p>
-            <p className="text-sm text-cafe">{n.texto}</p>
+          <div key={n.texto} className={`rounded-2xl p-3 text-center ring-1 ${n.texto === "Por enviar" && porEnviar > 0 ? "bg-maiz/20 ring-maiz/60" : "bg-white ring-arena-oscura/60"}`}>
+            <p className="text-lg font-bold sm:text-2xl">{n.valor}</p>
+            <p className="text-[11px] text-cafe sm:text-sm">{n.texto}</p>
           </div>
         ))}
       </div>
 
       {/* Productos */}
-      <section className="rounded-3xl bg-white p-5 ring-1 ring-arena-oscura/60 sm:p-6">
-        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-          <h2 className="font-display text-xl font-semibold">Mis productos</h2>
-          <Link href="/panel/producto/nuevo" className="flex items-center gap-1.5 rounded-full bg-terracota px-5 py-2.5 text-sm font-semibold text-crema hover:bg-terracota-oscura">
-            <Plus className="size-4" /> Nuevo producto
+      <section className="rounded-3xl bg-white p-4 ring-1 ring-arena-oscura/60 sm:p-6">
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+          <h2 className="font-display text-lg font-bold sm:text-xl">Mis productos</h2>
+          <Link href="/panel/producto/nuevo" className="flex items-center gap-1 rounded-full px-3 py-1.5 text-sm font-semibold text-terracota hover:bg-terracota/10">
+            <Plus className="size-4" /> Agregar
           </Link>
         </div>
 
@@ -172,7 +182,7 @@ function Tablero({ creador }: { creador: Creador }) {
         <p className="mt-4 text-xs text-cafe">Los cambios aparecen en la tienda pública en 1 a 2 minutos.</p>
       </section>
 
-      <section className="rounded-3xl bg-white p-5 ring-1 ring-arena-oscura/60 sm:p-6">
+      <section className="rounded-3xl bg-white p-4 ring-1 ring-arena-oscura/60 sm:p-6">
         <h2 className="font-display text-xl font-semibold">Pedidos</h2>
         {pedidos.length ? (
           <ListaPedidos pedidos={pedidos} creador={creador.slug} />
