@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import { ImagePlus, Loader2, Plus, Trash2, X } from "lucide-react";
 import { crearPropuesta, type Conversacion } from "@/lib/chat";
 import { ocultarContacto } from "@/lib/contacto";
@@ -54,9 +55,10 @@ export function FormularioPropuesta({ c, uid, cerrar }: { c: Conversacion; uid: 
 
   const campo = "h-10 w-full rounded-xl border border-arena-oscura bg-white px-3 text-sm outline-none focus:border-terracota";
 
-  return (
-    <div className="fixed inset-0 z-50 grid place-items-end bg-tinta/40 p-0 sm:place-items-center sm:p-4" role="dialog" aria-modal="true" aria-label="Crear propuesta">
-      <form onSubmit={enviar} className="max-h-[92vh] w-full overflow-y-auto rounded-t-3xl bg-white p-5 shadow-2xl sm:max-w-lg sm:rounded-3xl">
+  // Se dibuja directo en <body>: dentro del chat quedaba recortada y no se veía el botón de enviar
+  return createPortal(
+    <div className="fixed inset-0 z-[60] grid place-items-end bg-tinta/40 p-0 sm:place-items-center sm:p-4" role="dialog" aria-modal="true" aria-label="Crear propuesta">
+      <form onSubmit={enviar} className="max-h-[92dvh] w-full overflow-y-auto overscroll-contain rounded-t-3xl bg-white p-5 pb-8 shadow-2xl sm:max-w-lg sm:rounded-3xl">
         <div className="mb-4 flex items-center justify-between">
           <h2 className="font-display text-2xl font-bold">📝 Nueva propuesta</h2>
           <button type="button" onClick={cerrar} className="grid size-9 place-items-center rounded-full hover:bg-arena" aria-label="Cerrar">
@@ -132,11 +134,12 @@ export function FormularioPropuesta({ c, uid, cerrar }: { c: Conversacion; uid: 
 
           {error && <p role="alert" className="rounded-xl bg-rosa/10 px-4 py-2 text-sm text-rosa">{error}</p>}
 
-          <button type="submit" disabled={ocupado || subiendo} className="degradado-xico flex h-12 items-center justify-center gap-2 rounded-full font-semibold text-white disabled:opacity-60">
+          <button type="submit" disabled={ocupado || subiendo} className="degradado-xico sticky bottom-0 flex h-12 items-center justify-center gap-2 rounded-full font-semibold text-white shadow-lg shadow-terracota/30 ring-4 ring-white disabled:opacity-60">
             {ocupado && <Loader2 className="size-5 animate-spin" />} Enviar propuesta
           </button>
         </div>
       </form>
-    </div>
+    </div>,
+    document.body,
   );
 }

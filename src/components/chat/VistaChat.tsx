@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { ArrowLeft, FileSignature, ImagePlus, Loader2, Send, ShieldCheck } from "lucide-react";
-import { enviarImagen, enviarTexto, marcarLeido, useConversacion, type Mensaje } from "@/lib/chat";
+import { enviarImagen, enviarTexto, marcarLeido, sinLeer, useConversacion, type Mensaje } from "@/lib/chat";
 import { OCULTO } from "@/lib/contacto";
 import { subirFoto } from "@/lib/fotos";
 import { FormularioEntrar } from "../FormularioEntrar";
@@ -20,13 +20,21 @@ export function VistaChat({ id }: { id: string }) {
   const [enviando, setEnviando] = useState(false);
   const [aviso, setAviso] = useState("");
   const [proponer, setProponer] = useState(false);
-  const fin = useRef<HTMLDivElement>(null);
+  const lista = useRef<HTMLDivElement>(null);
 
-  // Baja al último mensaje y marca como leído
+  // Baja al último mensaje moviendo SOLO la caja del chat (no la página: en celular brincaba con el teclado)
   useEffect(() => {
-    fin.current?.scrollIntoView({ block: "end" });
-    if (usuario && c) marcarLeido(c.id, usuario.uid);
-  }, [mensajes.length, usuario, c]);
+    const caja = lista.current;
+    if (caja) caja.scrollTop = caja.scrollHeight;
+  }, [mensajes.length]);
+
+  // Marca como leído solo cuando hay algo nuevo de la otra persona
+  // (antes se marcaba en cada cambio y eso provocaba un ciclo de actualizaciones)
+  const uid = usuario?.uid;
+  const pendiente = !!c && !!uid && sinLeer(c, uid);
+  useEffect(() => {
+    if (pendiente && c && uid) marcarLeido(c.id, uid);
+  }, [pendiente, c, uid]);
 
   if (cargandoSesion) return <div className="h-96 animate-pulse rounded-3xl bg-arena" />;
   if (!usuario) {
@@ -104,7 +112,7 @@ export function VistaChat({ id }: { id: string }) {
       </header>
 
       {/* Mensajes */}
-      <div className="flex-1 overflow-y-auto px-4 py-4">
+      <div ref={lista} className="flex-1 overflow-y-auto overscroll-contain px-4 py-4">
         <p className="mx-auto mb-4 flex max-w-md items-start gap-2 rounded-2xl bg-jade/10 px-4 py-3 text-xs text-tinta/80">
           <ShieldCheck className="size-4 shrink-0 text-jade" />
           Acuerden todo aquí y paguen por XICO: así tienes Compra protegida. Por seguridad no se permiten teléfonos, correos ni redes sociales.
@@ -119,7 +127,6 @@ export function VistaChat({ id }: { id: string }) {
             <Burbuja key={m.id} m={m} mio={m.de === usuario.uid} uid={usuario.uid} />
           ))}
         </ul>
-        <div ref={fin} />
       </div>
 
       {/* Escribir */}
