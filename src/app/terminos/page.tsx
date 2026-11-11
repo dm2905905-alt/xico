@@ -15,7 +15,7 @@ export default function Terminos() {
     <PaginaLegal titulo="Términos y condiciones" subtitulo={`Las reglas para comprar y vender en ${n.marca}.`}>
       <h2>1. Qué es {n.marca}</h2>
       <p>
-        {n.marca} es un marketplace operado por <Dato v={n.responsable} /> (RFC <Dato v={n.rfc} />) que conecta a personas que compran con
+        {n.marca} ({n.sitio}) es un marketplace operado por <Dato v={n.responsable} />, persona física con RFC <Dato v={n.rfc} />, que conecta a personas que compran con
         creadores, artesanos y emprendedores mexicanos que venden productos hechos a mano por ellos mismos. Al usar {n.marca} aceptas
         estos términos y nuestro <Link href="/privacidad">Aviso de privacidad</Link>.
       </p>
@@ -68,7 +68,7 @@ export default function Terminos() {
       </ul>
       <p>
         Repórtalo dentro de los {n.diasParaReportar} días naturales siguientes a la entrega (o a la fecha estimada, si no llegó)
-        escribiendo a <Dato v={n.correoContacto} /> con tu número de pedido y fotos del producto y del empaque. Revisaremos el caso con
+        escribiendo a <Dato v={n.correoContacto} /> o por <Dato v={n.telefono} /> con tu número de pedido y fotos del producto y del empaque. Revisaremos el caso con
         el creador y, si procede, te reembolsaremos por el mismo medio de pago o te enviaremos un reemplazo.
       </p>
       <p>
@@ -86,6 +86,19 @@ export default function Terminos() {
       </p>
 
       <h2>7. Vender en {n.marca} (creadores)</h2>
+      <h3>Solicitud y revisión</h3>
+      <ul>
+        <li>
+          Para vender llenas una solicitud con los datos de tu tienda, tu cuenta para cobrar (CLABE) y tu domicilio. El equipo de{" "}
+          {n.marca} la revisa y decide si la aprueba. Mientras está en revisión puedes subir productos, pero no se muestran ni se
+          pueden comprar.
+        </li>
+        <li>La cuenta donde cobras debe estar a tu nombre o al de tu negocio. Eres responsable de que tus datos sean correctos.</li>
+        <li>
+          Si cambias tu CLABE, {n.marca} puede pedirte que lo confirmes antes de enviarte el siguiente pago, para proteger tu dinero.
+        </li>
+      </ul>
+      <h3>Reglas para vender</h3>
       <ul>
         <li>
           <strong>Regla de oro: solo puedes vender lo que tú haces.</strong> No se permite la reventa de productos importados o hechos
@@ -97,7 +110,15 @@ export default function Terminos() {
           tus productos menos la comisión, más el costo de envío cobrado al cliente para tu paquete.
         </li>
         <li>Debes elaborar y enviar los pedidos en el tiempo indicado y registrar la guía de envío en tu panel.</li>
-        <li>Los pagos a creadores se hacen después de confirmado el cobro, por transferencia o por el medio que {n.marca} indique.</li>
+        <li>
+          Los pagos a creadores se hacen <strong>cada semana por transferencia</strong> a la CLABE que registraste, e incluyen los
+          pedidos que ya fueron <strong>entregados</strong>. Los pedidos en camino se pagan en el corte siguiente a su entrega. Si hay
+          una aclaración o reembolso de Compra protegida, el pago de ese pedido puede retenerse hasta resolverla.
+        </li>
+        <li>
+          Puedes acordar piezas personalizadas con los clientes en el chat de {n.marca} y enviarles una propuesta con precio; el
+          cliente la paga dentro de {n.marca} y aplica la misma comisión.
+        </li>
         <li>Eres responsable de tus obligaciones fiscales por tus ventas.</li>
         <li>
           {n.marca} puede ocultar productos o suspender tiendas que incumplan estas reglas. La insignia &quot;Artista verificado&quot; la
@@ -115,7 +136,10 @@ export default function Terminos() {
       <ul>
         <li>Publicar contenido ilegal, ofensivo, engañoso o que infrinja derechos de terceros.</li>
         <li>Intentar pagar menos de lo debido, manipular precios o calificaciones, o acceder a cuentas ajenas.</li>
-        <li>Pedir o dar datos de contacto para cerrar la venta fuera de {n.marca}.</li>
+        <li>
+          Pedir o dar teléfonos, correos u otros datos de contacto para cerrar la venta fuera de {n.marca}. El chat los bloquea y la
+          tienda o cuenta que lo intente puede ser suspendida, porque fuera de {n.marca} el comprador pierde la Compra protegida.
+        </li>
       </ul>
 
       <h2>10. Responsabilidad</h2>

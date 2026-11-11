@@ -1,19 +1,21 @@
 // Datos legales y de contacto de XICO. Se usan en el Aviso de privacidad, los Términos y el Centro de ayuda.
-// ⚠️ ANTES DE LANZAR: reemplaza cada "[Pendiente: …]" con los datos reales (y pide a un abogado que revise los textos).
+// Tomados de la Constancia de Situación Fiscal. Antes de lanzar: pide a un abogado que revise los textos,
+// y cambia "sitio" (y los correos, si quieres) cuando compres el dominio.
 
 export const negocio = {
   marca: "XICO",
-  // Persona física o empresa responsable (como aparece en tu RFC)
-  responsable: "[Pendiente: nombre completo o razón social]",
-  rfc: "[Pendiente: RFC]",
-  domicilio: "[Pendiente: calle, número, colonia, código postal, ciudad y estado]",
-  correoContacto: "[Pendiente: correo de contacto, ej. hola@xico.mx]",
-  correoPrivacidad: "[Pendiente: correo para temas de privacidad, ej. privacidad@xico.mx]",
-  telefono: "[Pendiente: teléfono o WhatsApp de atención]",
-  sitio: "[Pendiente: dominio, ej. www.xico.mx]",
+  // Persona física responsable (como aparece en el RFC)
+  responsable: "Damián Medina Ibarra",
+  rfc: "MEID071001N22",
+  domicilio: "Calle Kinyeti 263, Col. Jesús del Monte, C.P. 58350, Morelia, Michoacán, México",
+  correoContacto: "dm2905905@gmail.com",
+  correoPrivacidad: "dm2905905@gmail.com",
+  telefono: "WhatsApp 452 132 6295",
+  whatsapp: "524521326295", // para el enlace wa.me
+  sitio: "xico.vercel.app",
   comision: "15%",
   diasParaReportar: 7, // días después de recibir el pedido para reportar un problema
-  actualizado: "10 de noviembre de 2026",
+  actualizado: "11 de noviembre de 2026",
 };
 
 export const pendiente = (texto: string) => texto.startsWith("[Pendiente");

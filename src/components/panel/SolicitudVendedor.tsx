@@ -92,7 +92,11 @@ export function SolicitudVendedor({ uid }: { uid: string }) {
               <Link href="/terminos" target="_blank" className="font-semibold text-terracota underline">
                 Términos y condiciones para vendedores
               </Link>
-              : solo vendo lo que yo hago, cumplo los tiempos de entrega y acepto la comisión del 15% por venta.
+: solo vendo lo que yo hago, cumplo los tiempos de entrega y acepto la comisión del 15% por venta. También acepto el{" "}
+              <Link href="/privacidad" target="_blank" className="font-semibold text-terracota underline">
+                Aviso de privacidad
+              </Link>{" "}
+              y autorizo que XICO use mis datos bancarios para pagarme mis ventas.
             </span>
           </label>
 
