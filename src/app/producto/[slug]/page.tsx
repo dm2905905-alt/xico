@@ -13,8 +13,8 @@ import { aTarjeta, categoriaPorSlug, estadoPorSlug, subcategoriaDe } from "@/lib
 import { descuento, precio } from "@/lib/formato";
 
 export async function generateStaticParams() {
-  const { productos } = await obtenerCatalogo();
-  return conRelleno(productos.map((p) => p.slug));
+  const { productos, vendidos } = await obtenerCatalogo();
+  return conRelleno([...productos, ...vendidos].map((p) => p.slug));
 }
 
 export async function generateMetadata({ params }: PageProps<"/producto/[slug]">): Promise<Metadata> {
@@ -91,8 +91,14 @@ export default async function PaginaProducto({ params }: PageProps<"/producto/[s
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
             <span className="text-3xl font-extrabold tracking-tight">{precio(producto.precio)}</span>
             {producto.precioAntes && <span className="text-base text-cafe/70 line-through">{precio(producto.precioAntes)}</span>}
-            {off > 0 && <span className="rounded-full bg-rosa px-2.5 py-0.5 text-xs font-bold text-white">-{off}%</span>}
-            {producto.nuevo && <span className="rounded-full bg-maiz px-2.5 py-0.5 text-xs font-bold">Nuevo</span>}
+            {producto.vendido ? (
+              <span className="rounded-full bg-tinta px-2.5 py-0.5 text-xs font-bold text-white">Vendido</span>
+            ) : (
+              <>
+                {off > 0 && <span className="rounded-full bg-rosa px-2.5 py-0.5 text-xs font-bold text-white">-{off}%</span>}
+                {producto.nuevo && <span className="rounded-full bg-maiz px-2.5 py-0.5 text-xs font-bold">Nuevo</span>}
+              </>
+            )}
           </div>
 
           <h1 className="mt-2 font-display text-xl leading-snug font-semibold tracking-tight sm:text-3xl">{producto.nombre}</h1>
@@ -166,13 +172,27 @@ export default async function PaginaProducto({ params }: PageProps<"/producto/[s
             <p className="text-sm leading-relaxed text-tinta/85">{producto.descripcion}</p>
           </div>
 
-          <div className="mt-5">
-            <Personalizador producto={producto} />
-          </div>
+          {producto.vendido ? (
+            // Pieza ya vendida: no se puede comprar, pero se puede pedir una parecida
+            <div className="mt-5 rounded-2xl bg-tinta p-4 text-white">
+              <p className="font-display text-lg font-bold">Esta pieza ya se vendió</p>
+              <p className="mt-1 text-sm text-white/80">
+                Es parte de los trabajos anteriores de {producto.taller}. Si te gustó, pídele una parecida o hecha a tu medida.
+              </p>
+            </div>
+          ) : (
+            <div className="mt-5">
+              <Personalizador producto={producto} />
+            </div>
+          )}
 
           {/* ¿Lo quiere diferente? Chat con el creador */}
           {creador?.uid && (
-            <BotonEscribir creador={creador} texto="¿Lo quieres diferente? Escribe al creador" className="mt-4" />
+            <BotonEscribir
+              creador={creador}
+              texto={producto.vendido ? "Pedir una parecida al creador" : "¿Lo quieres diferente? Escribe al creador"}
+              className="mt-4"
+            />
           )}
         </div>
       </div>

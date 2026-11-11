@@ -9,7 +9,8 @@ import { catalogoEjemplo } from "./ejemplo";
 import type { Video } from "./videos";
 import { firebaseConfig, firebaseConfigurado } from "./firebase-config";
 
-export type Catalogo = { productos: Producto[]; creadores: Creador[]; origen: "firebase" | "ejemplo" };
+// productos: los que se pueden comprar · vendidos: piezas únicas ya vendidas ("Trabajos anteriores")
+export type Catalogo = { productos: Producto[]; vendidos: Producto[]; creadores: Creador[]; origen: "firebase" | "ejemplo" };
 
 const NOMBRE_APP = "servidor";
 
@@ -18,7 +19,7 @@ export async function obtenerCatalogo(): Promise<Catalogo> {
   cacheLife("minutes");
 
   // Sin Firebase configurado (por ejemplo, alguien que descarga el código) se usan los datos de ejemplo
-  if (!firebaseConfigurado) return { ...catalogoEjemplo(), origen: "ejemplo" };
+  if (!firebaseConfigurado) return { ...catalogoEjemplo(), vendidos: [], origen: "ejemplo" };
 
   const app = getApps().some((a) => a.name === NOMBRE_APP) ? getApp(NOMBRE_APP) : initializeApp(firebaseConfig, NOMBRE_APP);
   const db = getFirestore(app);
@@ -27,27 +28,31 @@ export async function obtenerCatalogo(): Promise<Catalogo> {
     // Solo tiendas aprobadas: las solicitudes en revisión y las suspendidas no se muestran
     const creadores = c.docs.map((d) => d.data() as Creador).filter(tiendaActiva);
     const activas = new Set(creadores.map((x) => x.slug));
+    // Los productos ocultos por moderación (o de tiendas no activas) no aparecen en la tienda
+    const visibles = p.docs.map((d) => d.data() as Producto).filter((x) => !x.oculto && activas.has(x.creador));
     return {
-      // Los productos ocultos por moderación (o de tiendas no activas) no aparecen en la tienda
-      productos: p.docs.map((d) => d.data() as Producto).filter((x) => !x.oculto && activas.has(x.creador)),
+      productos: visibles.filter((x) => !x.vendido),
+      vendidos: visibles.filter((x) => x.vendido).sort((a, b) => (b.vendidoEn ?? 0) - (a.vendidoEn ?? 0)),
       creadores,
       origen: "firebase",
     };
   } catch (e) {
     // Base de datos sin crear, sin permisos o sin conexión: la tienda se muestra vacía en lugar de romperse
     console.error("[XICO] No se pudo leer el catálogo de Firestore:", (e as Error).message);
-    return { productos: [], creadores: [], origen: "firebase" };
+    return { productos: [], vendidos: [], creadores: [], origen: "firebase" };
   }
 }
 
 // Consultas sobre el catálogo ya cargado
-export function consultas({ productos, creadores }: Catalogo) {
+export function consultas({ productos, vendidos, creadores }: Catalogo) {
   const creadorPorSlug = (slug: string) => creadores.find((c) => c.slug === slug);
   return {
     productos,
     creadores,
     creadorPorSlug,
-    productoPorSlug: (slug: string) => productos.find((p) => p.slug === slug),
+    // Incluye los vendidos: su página sigue existiendo (sin botón de compra)
+    productoPorSlug: (slug: string) => productos.find((p) => p.slug === slug) ?? vendidos.find((p) => p.slug === slug),
+    vendidosDeCreador: (slug: string) => vendidos.filter((p) => p.creador === slug),
     productosDeCreador: (slug: string) => productos.filter((p) => p.creador === slug),
     productosDeEstado: (estado: string) => productos.filter((p) => p.estado === estado),
     creadoresDeEstado: (estado: string) => creadores.filter((c) => c.estado === estado),

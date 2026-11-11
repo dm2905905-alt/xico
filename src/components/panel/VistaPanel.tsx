@@ -6,7 +6,7 @@ import { BadgeCheck, CreditCard, ExternalLink, Film, MessageCircle, Package, Pen
 import type { Creador } from "@/lib/datos";
 import { mensajeError } from "@/lib/firebase";
 import { precio } from "@/lib/formato";
-import { borrarProducto, useDatosPrivados, useProductosDe } from "@/lib/panel";
+import { borrarProducto, marcarVendido, useDatosPrivados, useProductosDe } from "@/lib/panel";
 import { usePedidosDe } from "@/lib/usar-pedidos";
 import { ListaPedidos } from "../ListaPedidos";
 import { useSesion } from "../Sesion";
@@ -31,6 +31,19 @@ function Tablero({ creador }: { creador: Creador }) {
   const [error, setError] = useState("");
 
   const vendidos = productos.reduce((s, p) => s + p.vendidos, 0);
+
+  async function vendido(slug: string, nombre: string, valor: boolean) {
+    const pregunta = valor
+      ? `¿Marcar "${nombre}" como vendido? Ya no se podrá comprar y aparecerá en tu tienda como "Trabajos anteriores".`
+      : `¿Volver a poner "${nombre}" a la venta?`;
+    if (!window.confirm(pregunta)) return;
+    setError("");
+    try {
+      await marcarVendido(slug, valor);
+    } catch (e) {
+      setError(mensajeError(e));
+    }
+  }
 
   async function borrar(slug: string, nombre: string) {
     if (!window.confirm(`¿Borrar "${nombre}"? Ya no aparecerá en la tienda. Esto no se puede deshacer.`)) return;
@@ -149,8 +162,8 @@ function Tablero({ creador }: { creador: Creador }) {
           </div>
         ) : (
           <ul className="divide-y divide-arena-oscura/50">
-            {productos.map((p) => (
-              <li key={p.slug} className="flex items-center gap-4 py-3">
+            {[...productos].sort((a, b) => Number(!!a.vendido) - Number(!!b.vendido)).map((p) => (
+              <li key={p.slug} className={`flex items-center gap-3 py-3 ${p.vendido ? "opacity-70" : ""}`}>
                 <div className="w-16 shrink-0 overflow-hidden rounded-xl">
                   <FotoProducto producto={p} uniforme />
                 </div>
@@ -159,12 +172,19 @@ function Tablero({ creador }: { creador: Creador }) {
                   <p className="text-sm text-cafe">
                     {precio(p.precio)} · {p.vendidos} vendidos{p.personalizable && " · ✍️ personalizable"}
                   </p>
+                  {p.vendido && <p className="text-xs font-semibold text-jade">✅ Vendido · se muestra en Trabajos anteriores</p>}
                   {p.oculto && (
                     <p className="mt-1 rounded-lg bg-rosa/10 px-2 py-1 text-xs text-rosa">
                       🚫 Oculto por XICO{p.motivoOculto ? `: ${p.motivoOculto}` : ""}. Escríbenos si crees que es un error.
                     </p>
                   )}
                 </div>
+                <button
+                  onClick={() => vendido(p.slug, p.nombre, !p.vendido)}
+                  className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold ring-1 ${p.vendido ? "text-jade ring-jade/50 hover:bg-jade/10" : "text-cafe ring-arena-oscura hover:bg-arena"}`}
+                >
+                  {p.vendido ? "Volver a vender" : "Vendido"}
+                </button>
                 <Link href={`/panel/producto/${p.slug}`} className="grid size-10 place-items-center rounded-full hover:bg-arena" aria-label={`Editar ${p.nombre}`}>
                   <Pencil className="size-4" />
                 </Link>

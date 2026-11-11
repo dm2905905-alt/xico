@@ -76,6 +76,8 @@ export type Producto = {
   estado: string; // copia del estado del creador (para filtrar)
   categoria: CategoriaSlug;
   subcategoria?: string; // slug dentro de su categoría (opcional)
+  vendido?: boolean; // pieza ya vendida: sale del catálogo y queda en "Trabajos anteriores"
+  vendidoEn?: number;
   precio: number;
   precioAntes?: number;
   calificacion: number;
@@ -102,6 +104,7 @@ export type Paquete = { pesoKg: number; largoCm: number; anchoCm: number; altoCm
 // Lo mínimo para dibujar una tarjeta (se guarda también en favoritos)
 export type ProductoTarjeta = Pick<
   Producto,
+  | "vendido"
   | "slug"
   | "nombre"
   | "taller"
@@ -134,6 +137,7 @@ export const aTarjeta = (p: ProductoTarjeta & { fotos?: Foto[] }): ProductoTarje
   personalizable: p.personalizable,
   colores: p.colores,
   forma: p.forma,
+  ...(p.vendido ? { vendido: true } : {}),
 });
 
 // Catálogo de categorías: todo lo que se hace a mano (no solo artesanía).

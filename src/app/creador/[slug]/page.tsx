@@ -19,12 +19,13 @@ export async function generateMetadata({ params }: PageProps<"/creador/[slug]">)
 
 export default async function PaginaCreador({ params }: PageProps<"/creador/[slug]">) {
   const { slug } = await params;
-  const { creadorPorSlug, productosDeCreador } = consultas(await obtenerCatalogo());
+  const { creadorPorSlug, productosDeCreador, vendidosDeCreador } = consultas(await obtenerCatalogo());
   const creador = slug === RELLENO ? undefined : creadorPorSlug(slug);
   if (!creador) notFound();
 
   const estado = estadoPorSlug(creador.estado);
   const suyos = productosDeCreador(slug);
+  const anteriores = vendidosDeCreador(slug);
   const vendidos = suyos.reduce((s, p) => s + p.vendidos, 0);
   const [a, b] = creador.colores;
   const iniciales = creador.nombre.split(" ").map((p) => p[0]).slice(0, 2).join("");
@@ -109,9 +110,26 @@ export default async function PaginaCreador({ params }: PageProps<"/creador/[slu
               ))}
             </div>
           ) : (
-            <p className="rounded-2xl bg-white p-6 text-center text-sm text-cafe ring-1 ring-arena-oscura/60">Esta tienda aún no tiene productos.</p>
+            <p className="rounded-2xl bg-white p-6 text-center text-sm text-cafe ring-1 ring-arena-oscura/60">
+              {anteriores.length ? "Por ahora no tiene piezas a la venta. Mira sus trabajos anteriores y pídele una parecida." : "Esta tienda aún no tiene productos."}
+            </p>
           )}
         </section>
+
+        {/* Piezas únicas ya vendidas: su portafolio */}
+        {anteriores.length > 0 && (
+          <section className="mt-8">
+            <h2 className="flex items-center gap-2 font-display text-lg font-bold sm:text-2xl">
+              Trabajos anteriores <span className="text-sm font-normal text-cafe">({anteriores.length})</span>
+            </h2>
+            <p className="mb-3 text-sm text-cafe">Piezas que ya encontraron dueño. ¿Te gusta alguna? Pídele una parecida.</p>
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4">
+              {anteriores.map((p) => (
+                <TarjetaProducto key={p.slug} producto={p} />
+              ))}
+            </div>
+          </section>
+        )}
       </div>
     </>
   );

@@ -15,8 +15,14 @@ export function TarjetaProducto({ producto, mosaico = false }: { producto: Produ
         <div className="relative overflow-hidden">
           <FotoProducto producto={producto} uniforme={!mosaico} className="transition duration-300 group-hover:scale-[1.03]" />
           <div className="absolute top-2.5 left-2.5 flex flex-wrap gap-1.5">
-            {off > 0 && <span className="rounded-full bg-rosa px-2 py-0.5 text-xs font-bold text-white">-{off}%</span>}
-            {producto.nuevo && <span className="rounded-full bg-maiz px-2 py-0.5 text-xs font-bold text-tinta">Nuevo</span>}
+            {producto.vendido ? (
+              <span className="rounded-full bg-tinta px-2.5 py-0.5 text-xs font-bold text-white">Vendido</span>
+            ) : (
+              <>
+                {off > 0 && <span className="rounded-full bg-rosa px-2 py-0.5 text-xs font-bold text-white">-{off}%</span>}
+                {producto.nuevo && <span className="rounded-full bg-maiz px-2 py-0.5 text-xs font-bold text-tinta">Nuevo</span>}
+              </>
+            )}
           </div>
           {producto.personalizable && (
             <span className="absolute bottom-2.5 left-2.5 rounded-full bg-white/90 px-2 py-0.5 text-xs font-medium text-tinta backdrop-blur">

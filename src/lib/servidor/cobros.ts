@@ -52,6 +52,7 @@ export async function crearPedido(usuario: UsuarioVerificado, solicitados: Artic
   for (const a of solicitados) {
     const p = productos.get(String(a.slug));
     if (!p) throw new ErrorXico("Un producto de tu carrito ya no está disponible. Quítalo e inténtalo de nuevo.");
+    if (p.vendido) throw new ErrorXico(`"${p.nombre}" ya se vendió. Quítalo de tu carrito.`);
     const cantidad = Math.floor(Number(a.cantidad));
     if (!(cantidad >= 1 && cantidad <= 20)) throw new ErrorXico("Cantidad no válida.");
 

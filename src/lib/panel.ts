@@ -12,6 +12,7 @@ import {
   onSnapshot,
   query,
   setDoc,
+  updateDoc,
   where,
   writeBatch,
 } from "firebase/firestore";
@@ -173,6 +174,13 @@ export async function guardarProducto(creador: Creador, datos: DatosProducto, ex
   if (!nuevo.precioAntes) delete nuevo.precioAntes;
   await setDoc(doc(db, "productos", slug), nuevo);
   return slug;
+}
+
+// Pieza vendida: sale del catálogo pero queda en "Trabajos anteriores" (se puede volver a poner a la venta)
+export async function marcarVendido(slug: string, vendido: boolean) {
+  const db = obtenerDb();
+  if (!db) throw new Error("Firebase no configurado");
+  await updateDoc(doc(db, "productos", slug), vendido ? { vendido: true, vendidoEn: Date.now() } : { vendido: deleteField(), vendidoEn: deleteField() });
 }
 
 export async function borrarProducto(slug: string) {
