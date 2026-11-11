@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { Bricolage_Grotesque, Geist } from "next/font/google";
 import { BarraInferior } from "@/components/BarraInferior";
 import { Encabezado } from "@/components/Encabezado";
@@ -48,7 +49,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           <Encabezado />
           <main className="flex-1">{children}</main>
           <PiePagina />
-          <BarraInferior />
+          {/* Lee la ruta actual: va en Suspense para no bloquear el prerender */}
+          <Suspense fallback={null}>
+            <BarraInferior />
+          </Suspense>
         </ProveedorSesion>
       </body>
     </html>
