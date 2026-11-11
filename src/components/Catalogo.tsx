@@ -19,19 +19,19 @@ export async function Catalogo({
   const resultados = buscarProductos(productos, filtros);
 
   return (
-    <div className="grid gap-8 lg:grid-cols-[240px_1fr]">
-      <aside className="lg:sticky lg:top-36 lg:self-start">
+    <div className="grid grid-cols-[minmax(0,1fr)] gap-4 lg:grid-cols-[240px_minmax(0,1fr)] lg:gap-8">
+      <aside className="lg:sticky lg:top-24 lg:self-start">
         <PanelFiltros valores={filtros} ruta={ruta} fijos={fijos} />
       </aside>
 
       <div>
-        <p className="mb-4 text-sm text-cafe">
+        <p className="mb-3 text-sm text-cafe">
           {resultados.length} {resultados.length === 1 ? "producto" : "productos"}
         </p>
         {resultados.length ? (
-          <div className="columns-2 gap-4 sm:columns-3 xl:columns-4 *:mb-4 *:break-inside-avoid">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 xl:grid-cols-4">
             {resultados.map((p) => (
-              <TarjetaProducto key={p.slug} producto={p} mosaico />
+              <TarjetaProducto key={p.slug} producto={p} />
             ))}
           </div>
         ) : (
@@ -51,11 +51,11 @@ export async function Catalogo({
 
 export function CatalogoCargando() {
   return (
-    <div className="grid gap-8 lg:grid-cols-[240px_1fr]" aria-busy>
-      <div className="h-40 animate-pulse rounded-2xl bg-arena" />
-      <div className="columns-2 gap-4 sm:columns-3 xl:columns-4 *:mb-4">
+    <div className="grid grid-cols-[minmax(0,1fr)] gap-4 lg:grid-cols-[240px_minmax(0,1fr)] lg:gap-8" aria-busy>
+      <div className="h-10 animate-pulse rounded-full bg-arena lg:h-40 lg:rounded-2xl" />
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 xl:grid-cols-4">
         {Array.from({ length: 8 }, (_, i) => (
-          <div key={i} className={`animate-pulse rounded-2xl bg-arena ${i % 3 ? "h-64" : "h-80"}`} />
+          <div key={i} className="h-72 animate-pulse rounded-2xl bg-arena" />
         ))}
       </div>
     </div>

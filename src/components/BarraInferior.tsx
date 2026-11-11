@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Heart, Home, LayoutGrid, MapPin, User } from "lucide-react";
+import { useCarrito } from "@/lib/carrito";
 import { useFavoritos } from "@/lib/favoritos";
 
 const botones = [
@@ -20,7 +21,9 @@ const sinBarra = (r: string) => /^\/mensajes\/.+/.test(r) || r.startsWith("/paga
 export function BarraInferior() {
   const ruta = usePathname();
   const favoritos = useFavoritos().length;
-  if (sinBarra(ruta)) return null;
+  const enCarrito = useCarrito().length;
+  // El carrito con productos tiene su propio botón de pago fijo abajo
+  if (sinBarra(ruta) || (ruta.startsWith("/carrito") && enCarrito > 0)) return null;
 
   return (
     <>

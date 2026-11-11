@@ -28,13 +28,13 @@ export function VistaCarrito() {
   }
 
   return (
-    <div className="grid gap-8 lg:grid-cols-[1fr_360px]">
-      <div className="grid gap-5">
+    <div className="grid gap-4 lg:grid-cols-[1fr_360px] lg:gap-8">
+      <div className="grid gap-4">
         {grupos.map((g) => {
           const faltaEnvioGratis = ENVIO_GRATIS_DESDE - g.subtotal;
           return (
             <section key={g.creador} className="overflow-hidden rounded-3xl bg-white ring-1 ring-arena-oscura/60">
-              <header className="flex flex-wrap items-center justify-between gap-2 border-b border-arena-oscura/60 bg-arena/40 px-5 py-3">
+              <header className="flex flex-wrap items-center justify-between gap-2 border-b border-arena-oscura/60 bg-arena/40 px-4 py-2.5">
                 <Link href={`/creador/${g.creador}`} className="font-semibold hover:text-terracota">
                   {g.taller}
                 </Link>
@@ -50,13 +50,13 @@ export function VistaCarrito() {
 
               <ul className="divide-y divide-arena-oscura/50">
                 {g.articulos.map((a) => (
-                  <li key={a.id} className="flex gap-4 p-5">
-                    <Link href={`/producto/${a.producto.slug}`} className="w-20 shrink-0 overflow-hidden rounded-xl sm:w-24">
+                  <li key={a.id} className="flex gap-3 p-4">
+                    <Link href={`/producto/${a.producto.slug}`} className="w-20 shrink-0 self-start overflow-hidden rounded-xl sm:w-24">
                       <FotoProducto producto={a.producto} uniforme />
                     </Link>
                     <div className="min-w-0 flex-1">
                       <div className="flex justify-between gap-3">
-                        <Link href={`/producto/${a.producto.slug}`} className="line-clamp-2 font-medium hover:text-terracota">
+                        <Link href={`/producto/${a.producto.slug}`} className="line-clamp-2 text-sm font-medium hover:text-terracota">
                           {a.producto.nombre}
                         </Link>
                         <p className="shrink-0 font-bold">{precio(a.precioUnitario * a.cantidad)}</p>
@@ -86,8 +86,8 @@ export function VistaCarrito() {
                           <span className="w-7 text-center text-sm font-semibold">{a.cantidad}</span>
                           <button onClick={() => cambiarCantidad(a.id, a.cantidad + 1)} className="size-9 rounded-full hover:bg-arena" aria-label="Agregar uno">+</button>
                         </div>
-                        <button onClick={() => quitarDelCarrito(a.id)} className="flex items-center gap-1 text-sm text-cafe hover:text-rosa">
-                          <Trash2 className="size-4" /> Quitar
+                        <button onClick={() => quitarDelCarrito(a.id)} aria-label={`Quitar ${a.producto.nombre}`} className="grid size-9 place-items-center rounded-full text-cafe hover:bg-rosa/10 hover:text-rosa">
+                          <Trash2 className="size-4" />
                         </button>
                       </div>
                     </div>
@@ -95,7 +95,7 @@ export function VistaCarrito() {
                 ))}
               </ul>
 
-              <footer className="flex justify-between border-t border-arena-oscura/60 px-5 py-3 text-sm">
+              <footer className="flex justify-between border-t border-arena-oscura/60 px-4 py-2.5 text-sm">
                 <span className="text-cafe">Subtotal de {g.taller}</span>
                 <span className="font-semibold">{precio(g.subtotal)}</span>
               </footer>
@@ -105,7 +105,7 @@ export function VistaCarrito() {
       </div>
 
       {/* Resumen */}
-      <aside className="self-start rounded-3xl bg-white p-6 ring-1 ring-arena-oscura/60 lg:sticky lg:top-36">
+      <aside className="self-start rounded-3xl bg-white p-5 ring-1 ring-arena-oscura/60 lg:sticky lg:top-24 lg:p-6">
         <h2 className="font-display text-xl font-semibold">Resumen</h2>
         <dl className="mt-4 grid gap-2 text-sm">
           <div className="flex justify-between">
@@ -128,7 +128,7 @@ export function VistaCarrito() {
         )}
         <Link
           href="/pagar"
-          className="mt-5 flex h-12 items-center justify-center rounded-full bg-terracota font-semibold text-crema transition hover:bg-terracota-oscura"
+          className="mt-5 hidden h-12 items-center justify-center rounded-full bg-terracota font-semibold text-crema transition hover:bg-terracota-oscura md:flex"
         >
           Continuar al pago
         </Link>
@@ -136,6 +136,18 @@ export function VistaCarrito() {
           Seguir comprando
         </Link>
       </aside>
+
+      {/* Celular: total y botón de pago fijos abajo (como en una app) */}
+      <div className="h-20 md:hidden" aria-hidden />
+      <div className="fixed inset-x-0 bottom-0 z-40 flex items-center gap-3 border-t border-arena-oscura/70 bg-crema/95 px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur md:hidden">
+        <div className="min-w-0">
+          <p className="text-xs text-cafe">Total ({piezas} {piezas === 1 ? "pieza" : "piezas"})</p>
+          <p className="text-lg font-bold">{precio(total)}</p>
+        </div>
+        <Link href="/pagar" className="flex h-12 flex-1 items-center justify-center rounded-full bg-terracota font-semibold text-crema">
+          Continuar al pago
+        </Link>
+      </div>
     </div>
   );
 }

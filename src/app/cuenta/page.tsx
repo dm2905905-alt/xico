@@ -8,8 +8,8 @@ export const metadata: Metadata = {
 
 export default function Cuenta() {
   return (
-    <div className="mx-auto max-w-5xl px-4 py-8">
-      <h1 className="mb-6 font-display text-3xl font-semibold tracking-tight sm:text-4xl">Mi cuenta</h1>
+    <div className="mx-auto max-w-2xl px-4 py-4 md:py-8">
+      <h1 className="sr-only">Mi cuenta</h1>
       <VistaCuenta />
     </div>
   );
