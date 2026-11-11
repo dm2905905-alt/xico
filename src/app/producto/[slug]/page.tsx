@@ -1,14 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { BadgeCheck, ChevronRight, Clock, MapPin, Package, ShieldCheck, Star, Truck } from "lucide-react";
+import { BadgeCheck, ChevronRight, Clock, MapPin, Package, Play, ShieldCheck, Star, Truck } from "lucide-react";
 import { BotonFavorito } from "@/components/BotonFavorito";
 import { BotonEscribir } from "@/components/chat/BotonEscribir";
 import { GaleriaProducto } from "@/components/GaleriaProducto";
 import { Personalizador } from "@/components/Personalizador";
 import { Fila } from "@/components/Fila";
 import { TarjetaProducto } from "@/components/TarjetaProducto";
-import { RELLENO, conRelleno, consultas, obtenerCatalogo } from "@/lib/catalogo";
+import { RELLENO, conRelleno, consultas, obtenerCatalogo, obtenerVideos } from "@/lib/catalogo";
 import { aTarjeta, categoriaPorSlug, estadoPorSlug, subcategoriaDe } from "@/lib/datos";
 import { descuento, precio } from "@/lib/formato";
 
@@ -35,6 +35,7 @@ export default async function PaginaProducto({ params }: PageProps<"/producto/[s
   if (!producto) notFound();
 
   const creador = creadorPorSlug(producto.creador);
+  const video = (await obtenerVideos()).find((v) => v.producto === producto.slug);
   const estado = estadoPorSlug(producto.estado);
   const categoria = categoriaPorSlug(producto.categoria);
   const subcategoria = subcategoriaDe(producto.categoria, producto.subcategoria);
@@ -73,6 +74,14 @@ export default async function PaginaProducto({ params }: PageProps<"/producto/[s
           <div className="relative overflow-hidden md:rounded-3xl">
             <GaleriaProducto producto={producto} />
             <BotonFavorito producto={aTarjeta(producto)} grande className="absolute top-4 right-4" />
+            {video && (
+              <Link
+                href={`/descubre?v=${video.id}`}
+                className="absolute bottom-8 left-4 flex items-center gap-1.5 rounded-full bg-black/60 px-3.5 py-2 text-sm font-semibold text-white backdrop-blur md:bottom-4"
+              >
+                <Play className="size-4 fill-white" /> Ver cómo se hace
+              </Link>
+            )}
           </div>
         </div>
 

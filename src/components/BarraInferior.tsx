@@ -15,7 +15,7 @@ const botones = [
 ];
 
 // Pantallas con su propia barra abajo (chat, pagar, comprar un producto) o de trabajo: sin barra
-const sinBarra = (r: string) => /^\/mensajes\/.+/.test(r) || r.startsWith("/pagar") || r.startsWith("/producto/") || r.startsWith("/admin") || r.startsWith("/panel/producto");
+const sinBarra = (r: string) => /^\/mensajes\/.+/.test(r) || r.startsWith("/pagar") || r.startsWith("/producto/") || r.startsWith("/admin") || r.startsWith("/panel/producto") || r.startsWith("/descubre");
 
 // Barra de botones fija abajo, solo en celular (como una app)
 export function BarraInferior() {

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { BadgeCheck, Clock, Gift, MapPin, ShieldCheck, Sparkles, Store, Truck } from "lucide-react";
+import { BadgeCheck, Clock, Gift, MapPin, Play, ShieldCheck, Sparkles, Store, Truck } from "lucide-react";
 import { Fila } from "@/components/Fila";
 import { IconoCategoria } from "@/components/IconoCategoria";
 import { TarjetaProducto } from "@/components/TarjetaProducto";
@@ -18,10 +18,11 @@ export default async function Inicio() {
   const listaBaratos = desde99();
 
   const banners = [
+    { href: "/descubre", titulo: "Descubre: así se hace", texto: "Videos de creadores haciendo sus piezas", icono: Play, fondo: "bg-tinta" },
     { href: "/regalos", titulo: "Encuentra un regalo", texto: "Dinos para quién y tu presupuesto", icono: Gift, fondo: "bg-rosa" },
     { href: "/estados", titulo: "Explora el mapa", texto: "Creadores de cada estado de México", icono: MapPin, fondo: "bg-jade" },
     { href: "/buscar?ofertas=1", titulo: "Ofertas del día", texto: "Precios especiales por tiempo limitado", icono: Clock, fondo: "bg-terracota" },
-    { href: "/vende", titulo: "¿Haces cosas a mano?", texto: "Abre tu tienda en XICO", icono: Store, fondo: "bg-tinta" },
+    { href: "/vende", titulo: "¿Haces cosas a mano?", texto: "Abre tu tienda en XICO", icono: Store, fondo: "degradado-xico" },
   ];
 
   return (
@@ -53,7 +54,7 @@ export default async function Inicio() {
 
       {/* Banners */}
       <div className="mx-auto max-w-7xl">
-        <ul className="sin-barra mt-3 flex snap-x scroll-px-4 gap-3 overflow-x-auto px-4 pb-1 *:w-[85%] *:shrink-0 *:snap-start sm:*:w-[360px] lg:grid lg:grid-cols-4 lg:overflow-visible lg:*:w-auto">
+        <ul className="sin-barra mt-3 flex snap-x scroll-px-4 gap-3 overflow-x-auto px-4 pb-1 *:w-[85%] *:shrink-0 *:snap-start sm:*:w-[360px] lg:*:w-[300px]">
           {banners.map((b, i) => (
             <li key={b.href}>
               <Link

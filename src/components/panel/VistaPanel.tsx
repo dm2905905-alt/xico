@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { BadgeCheck, CreditCard, ExternalLink, MessageCircle, Package, Pencil, Plus, Settings, ShoppingBag, Star, Trash2 } from "lucide-react";
+import { BadgeCheck, CreditCard, ExternalLink, Film, MessageCircle, Package, Pencil, Plus, Settings, ShoppingBag, Star, Trash2 } from "lucide-react";
 import type { Creador } from "@/lib/datos";
 import { mensajeError } from "@/lib/firebase";
 import { precio } from "@/lib/formato";
@@ -74,14 +74,15 @@ function Tablero({ creador }: { creador: Creador }) {
       </div>
 
       {/* Accesos rápidos estilo app */}
-      <nav className="grid grid-cols-4 gap-2" aria-label="Accesos de mi tienda">
+      <nav className="grid grid-cols-5 gap-1.5 sm:gap-2" aria-label="Accesos de mi tienda">
         {[
           { href: "/panel/producto/nuevo", texto: "Nuevo producto", icono: Plus, fuerte: true },
+          { href: "/panel/videos", texto: "Videos", icono: Film },
           { href: "/mensajes", texto: "Mensajes", icono: MessageCircle },
-          { href: "/panel/perfil", texto: "Editar perfil", icono: Settings },
+          { href: "/panel/perfil", texto: "Perfil", icono: Settings },
           { href: "/panel/cuenta", texto: "Cobros", icono: CreditCard, alerta: sinCobro },
         ].map((x) => (
-          <Link key={x.href} href={x.href} className="relative flex flex-col items-center gap-1.5 rounded-2xl bg-white p-3 text-center text-[11px] leading-tight font-medium ring-1 ring-arena-oscura/60 transition hover:ring-terracota sm:text-xs">
+          <Link key={x.href} href={x.href} className="relative flex flex-col items-center gap-1.5 rounded-2xl bg-white px-1 py-3 text-center text-[11px] leading-tight font-medium ring-1 ring-arena-oscura/60 transition hover:ring-terracota sm:text-xs">
             <span className={`grid size-10 place-items-center rounded-xl ${x.fuerte ? "degradado-xico text-white" : "bg-arena text-terracota"}`}>
               <x.icono className="size-5" />
             </span>

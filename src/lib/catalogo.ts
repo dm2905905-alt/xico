@@ -6,6 +6,7 @@ import { getApp, getApps, initializeApp } from "firebase/app";
 import { collection, getDocs, getFirestore } from "firebase/firestore/lite";
 import { tiendaActiva, type Creador, type Producto } from "./datos";
 import { catalogoEjemplo } from "./ejemplo";
+import type { Video } from "./videos";
 import { firebaseConfig, firebaseConfigurado } from "./firebase-config";
 
 export type Catalogo = { productos: Producto[]; creadores: Creador[]; origen: "firebase" | "ejemplo" };
@@ -61,3 +62,22 @@ export function consultas({ productos, creadores }: Catalogo) {
 // si la tienda está vacía se usa uno de relleno que termina en "no encontrado".
 export const RELLENO = "__vacio__";
 export const conRelleno = (slugs: string[]) => (slugs.length ? slugs : [RELLENO]).map((slug) => ({ slug }));
+
+// Videos de "Descubre": solo de tiendas aprobadas y productos visibles, los más nuevos primero
+export async function obtenerVideos(): Promise<Video[]> {
+  "use cache";
+  cacheLife("minutes");
+  if (!firebaseConfigurado) return [];
+  const app = getApps().some((a) => a.name === NOMBRE_APP) ? getApp(NOMBRE_APP) : initializeApp(firebaseConfig, NOMBRE_APP);
+  try {
+    const [s, catalogo] = await Promise.all([getDocs(collection(getFirestore(app), "videos")), obtenerCatalogo()]);
+    const visibles = new Set(catalogo.productos.map((p) => p.slug));
+    return s.docs
+      .map((d) => d.data() as Video)
+      .filter((v) => !v.oculto && visibles.has(v.producto))
+      .sort((a, b) => b.creado - a.creado);
+  } catch (e) {
+    console.error("[XICO] No se pudieron leer los videos:", (e as Error).message);
+    return [];
+  }
+}

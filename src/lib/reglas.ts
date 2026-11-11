@@ -83,6 +83,30 @@ service cloud.firestore {
       allow delete: if esAdmin() || (conSesion() && esDuenoDe(resource.data.creador));
     }
 
+    // Videos de Descubre: subidos a XICO o enlace de YouTube, siempre de un producto de la misma tienda
+    match /videos/{video} {
+      allow read: if true;
+      allow create: if conSesion()
+        && request.resource.data.id == video
+        && request.resource.data.creadorUid == request.auth.uid
+        && esDuenoDe(request.resource.data.creador)
+        && get(/databases/$(database)/documents/productos/$(request.resource.data.producto)).data.creador == request.resource.data.creador
+        && textoValido(request.resource.data.titulo, 0, 100)
+        && sinContacto(request.resource.data.titulo)
+        && !('oculto' in request.resource.data)
+        && ((request.resource.data.tipo == 'youtube'
+              && request.resource.data.youtubeId.matches('^[A-Za-z0-9_-]{11}$'))
+          || (request.resource.data.tipo == 'archivo'
+              && request.resource.data.ruta.matches('^videos/' + request.resource.data.creador + '/[A-Za-z0-9-]+$')));
+      // La tienda solo puede cambiar el texto; ocultar es de la administración
+      allow update: if esAdmin() || (conSesion()
+        && resource.data.creadorUid == request.auth.uid
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['titulo'])
+        && textoValido(request.resource.data.titulo, 0, 100)
+        && sinContacto(request.resource.data.titulo));
+      allow delete: if esAdmin() || (conSesion() && resource.data.creadorUid == request.auth.uid);
+    }
+
     match /tiendasPrivado/{creador} {
       allow read: if esAdmin() || (conSesion() && esDuenoDe(creador));
       // getAfter: la solicitud de vendedor crea la tienda y estos datos en el mismo lote
@@ -202,6 +226,15 @@ service firebase.storage {
     match /creadores/{creador}/{archivo} {
       allow read: if true;
       allow create, update: if (esAdmin() || esDueno(creador)) && imagenValida();
+      allow delete: if esAdmin() || esDueno(creador);
+    }
+
+    // Videos de Descubre (máximo 60 MB) y su portada
+    match /videos/{creador}/{archivo} {
+      allow read: if true;
+      allow create, update: if (esAdmin() || esDueno(creador))
+        && ((request.resource.size < 60 * 1024 * 1024 && request.resource.contentType.matches('video/.*'))
+          || imagenValida());
       allow delete: if esAdmin() || esDueno(creador);
     }
 
