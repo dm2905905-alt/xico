@@ -4,6 +4,7 @@
 import { useEffect, useState } from "react";
 import {
   collection,
+  deleteField,
   deleteDoc,
   doc,
   getDoc,
@@ -17,12 +18,13 @@ import {
 import type { Creador, Producto } from "./datos";
 import type { Direccion } from "./pedidos";
 import { obtenerDb } from "./firebase";
+import { borrarFoto } from "./fotos";
 
 // "Taller Xóchitl" → "taller-xochitl"
 export const aSlug = (texto: string) =>
   texto
     .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "")
+    .replace(/[\u0300-\u036f]/g, "")
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "")
@@ -69,7 +71,7 @@ export function useProductosDe(slugCreador: string | undefined) {
   return estado.slug === slugCreador ? { productos: estado.productos, cargando: false } : { productos: [], cargando: true };
 }
 
-export type DatosTienda = Pick<Creador, "nombre" | "taller" | "estado" | "ciudad" | "especialidad" | "historia" | "colores">;
+export type DatosTienda = Pick<Creador, "nombre" | "taller" | "estado" | "ciudad" | "especialidad" | "historia" | "colores" | "foto">;
 
 // Abre una tienda nueva. Las insignias y calificaciones empiezan en cero (lo exigen las reglas).
 export async function crearTienda(uid: string, datos: DatosTienda): Promise<string> {
@@ -87,11 +89,14 @@ export async function guardarTienda(creador: Creador, datos: DatosTienda, produc
   const db = obtenerDb();
   if (!db) throw new Error("Firebase no configurado");
   const lote = writeBatch(db);
-  lote.update(doc(db, "creadores", creador.slug), datos);
+  // Si quitó la foto, se borra el campo (sin esto, la foto anterior se quedaría)
+  lote.update(doc(db, "creadores", creador.slug), { ...datos, foto: datos.foto ?? deleteField() });
   if (datos.taller !== creador.taller || datos.estado !== creador.estado) {
     productos.forEach((p) => lote.update(doc(db, "productos", p.slug), { taller: datos.taller, estado: datos.estado }));
   }
   await lote.commit();
+  // La foto anterior ya no se usa: se borra del almacenamiento
+  if (creador.foto && creador.foto.ruta !== datos.foto?.ruta) borrarFoto(creador.foto);
 }
 
 export type DatosProducto = Pick<
@@ -107,6 +112,7 @@ export type DatosProducto = Pick<
   | "forma"
   | "personalizacion"
   | "paquete"
+  | "fotos"
 >;
 
 // Crea o actualiza un producto de la tienda

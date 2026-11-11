@@ -35,8 +35,13 @@ export default async function PaginaCreador({ params }: PageProps<"/creador/[slu
 
       <div className="mx-auto max-w-7xl px-4">
         <div className="-mt-14 flex flex-col gap-5 sm:-mt-16 sm:flex-row sm:items-end">
-          <span className="grid size-28 shrink-0 place-items-center rounded-full border-4 border-crema bg-tinta font-display text-4xl font-bold text-crema sm:size-32">
-            {iniciales}
+          <span className="grid size-28 shrink-0 place-items-center overflow-hidden rounded-full border-4 border-crema bg-tinta font-display text-4xl font-bold text-crema sm:size-32">
+            {creador.foto ? (
+            // eslint-disable-next-line @next/next/no-img-element -- miniatura ya reducida al subirla
+            <img src={creador.foto.mini} alt={`Foto de ${creador.taller}`} className="size-full object-cover" />
+          ) : (
+            iniciales
+          )}
           </span>
           <div className="flex-1 pb-1">
             <h1 className="flex flex-wrap items-center gap-2 font-display text-3xl font-semibold tracking-tight sm:text-4xl">

@@ -5,6 +5,7 @@ import { Loader2 } from "lucide-react";
 import { estados, type Creador } from "@/lib/datos";
 import { mensajeError } from "@/lib/firebase";
 import type { DatosTienda } from "@/lib/panel";
+import { FotoPerfil } from "./FotoPerfil";
 
 // Combinaciones de color para la portada de la tienda
 const portadas: [string, string][] = [
@@ -33,6 +34,7 @@ export function FormularioTienda({
     especialidad: inicial?.especialidad ?? "",
     historia: inicial?.historia ?? "",
     colores: inicial?.colores ?? portadas[0],
+    ...(inicial?.foto ? { foto: inicial.foto } : {}),
   });
   const [ocupado, setOcupado] = useState(false);
   const [error, setError] = useState("");
@@ -64,6 +66,17 @@ export function FormularioTienda({
 
   return (
     <form onSubmit={enviar} className="grid gap-5">
+      {/* Foto de perfil (solo cuando la tienda ya existe) */}
+      {inicial && (
+        <FotoPerfil
+          foto={datos.foto}
+          nombre={datos.taller}
+          colores={datos.colores}
+          carpeta={`creadores/${inicial.slug}`}
+          cambiar={(f) => poner("foto", f)}
+        />
+      )}
+
       <div className="grid gap-4 sm:grid-cols-2">
         <label className={etiqueta}>
           Nombre de tu taller o marca *

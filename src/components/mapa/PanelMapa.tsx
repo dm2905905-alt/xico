@@ -15,10 +15,15 @@ function Avatar({ c, grande = false }: { c: CreadorMapa; grande?: boolean }) {
   const [a, b] = c.colores;
   return (
     <span
-      className={`grid shrink-0 place-items-center rounded-full font-display font-extrabold text-white shadow-md ${grande ? "size-20 text-3xl" : "size-12 text-lg"}`}
+      className={`grid shrink-0 place-items-center overflow-hidden rounded-full font-display font-extrabold text-white shadow-md ${grande ? "size-20 text-3xl" : "size-12 text-lg"}`}
       style={{ background: `linear-gradient(135deg, ${a}, ${b})` }}
     >
-      {inicial(c)}
+      {c.foto ? (
+            // eslint-disable-next-line @next/next/no-img-element -- miniatura ya reducida al subirla
+            <img src={c.foto.mini} alt={`Foto de ${c.taller}`} className="size-full object-cover" />
+          ) : (
+            inicial(c)
+          )}
     </span>
   );
 }

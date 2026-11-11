@@ -316,10 +316,27 @@ export function MapaMexico({ creadores }: { creadores: CreadorMapa[] }) {
                     stroke="#ffffff"
                     strokeWidth="2.5"
                   />
-                  <circle cx="0" cy="-30" r="11" fill="#ffffff" />
-                  <text x="0" y="-25.5" textAnchor="middle" fontSize="13" fontWeight="800" fill="#7c2df0">
-                    {inicial}
-                  </text>
+                  <circle cx="0" cy="-30" r="12" fill="#ffffff" />
+                  {creador.foto ? (
+                    <>
+                      <clipPath id={`foto-${creador.slug}`}>
+                        <circle cx="0" cy="-30" r="12" />
+                      </clipPath>
+                      <image
+                        href={creador.foto.mini}
+                        x="-12"
+                        y="-42"
+                        width="24"
+                        height="24"
+                        preserveAspectRatio="xMidYMid slice"
+                        clipPath={`url(#foto-${creador.slug})`}
+                      />
+                    </>
+                  ) : (
+                    <text x="0" y="-25.5" textAnchor="middle" fontSize="13" fontWeight="800" fill="#7c2df0">
+                      {inicial}
+                    </text>
+                  )}
                   {(elegido || t.k >= 3) && (
                     <text y="16" textAnchor="middle" fontSize="12" fontWeight="700" fill="#1d0b36" stroke="#ffffff" strokeWidth="3.5" paintOrder="stroke">
                       {creador.taller}

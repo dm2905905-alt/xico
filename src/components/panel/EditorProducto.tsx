@@ -15,7 +15,9 @@ import {
 import { mensajeError } from "@/lib/firebase";
 import { guardarProducto, leerProducto, type DatosProducto } from "@/lib/panel";
 import { TarjetaProducto } from "../TarjetaProducto";
+import { borrarFoto } from "@/lib/fotos";
 import { AsistenteIA } from "./AsistenteIA";
+import { EditorFotos } from "./EditorFotos";
 import { ConTienda } from "./ConTienda";
 
 const tiempos = ["Listo para enviar", "1 a 3 días", "3 a 5 días", "5 a 7 días", "7 a 10 días", "10 a 15 días", "15 a 30 días"];
@@ -72,6 +74,7 @@ function Formulario({ creador, existente }: { creador: Creador; existente?: Prod
     forma: existente?.forma ?? "cuadrada",
     personalizacion: existente?.personalizacion ?? [],
     paquete: existente?.paquete,
+    fotos: existente?.fotos ?? [],
   });
   const [errores, setErrores] = useState<string[]>([]);
   const [ocupado, setOcupado] = useState(false);
@@ -120,6 +123,9 @@ function Formulario({ creador, existente }: { creador: Creador; existente?: Prod
         },
         existente,
       );
+      // Las fotos que se quitaron se borran del almacenamiento hasta que se guarda
+      const quedan = new Set((d.fotos ?? []).map((x) => x.ruta));
+      (existente?.fotos ?? []).filter((x) => !quedan.has(x.ruta)).forEach((x) => borrarFoto(x));
       router.push("/panel");
     } catch (err) {
       setErrorGuardar(mensajeError(err));
@@ -141,6 +147,7 @@ function Formulario({ creador, existente }: { creador: Creador; existente?: Prod
     personalizable: opciones.length > 0,
     colores: d.colores,
     forma: d.forma,
+    ...(d.fotos?.[0] ? { foto: d.fotos[0].mini } : {}),
   };
 
   const campo = "h-11 w-full rounded-xl border border-arena-oscura bg-white px-3.5 text-sm outline-none focus:border-terracota focus:ring-2 focus:ring-terracota/15";
@@ -209,6 +216,13 @@ function Formulario({ creador, existente }: { creador: Creador; existente?: Prod
             </label>
           </div>
           <p className="mt-3 text-xs text-cafe">XICO cobra una comisión por venta; la verás al conectar los pagos (Fase 6).</p>
+        </section>
+
+        {/* Fotos */}
+        <section className={tarjeta}>
+          <h2 className="font-display text-xl font-semibold">📸 Fotos</h2>
+          <p className="mt-1 mb-4 text-sm text-cafe">La primera es la portada que verán en la tienda. Puedes subir hasta 6.</p>
+          <EditorFotos fotos={d.fotos ?? []} cambiar={(f) => poner("fotos", f)} carpeta={`productos/${creador.slug}`} />
         </section>
 
         {/* Paquete para el envío */}

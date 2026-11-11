@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { BadgeCheck, ChevronRight, Clock, MapPin, Package, ShieldCheck, Star, Truck } from "lucide-react";
 import { BotonFavorito } from "@/components/BotonFavorito";
-import { FotoProducto } from "@/components/FotoProducto";
+import { GaleriaProducto } from "@/components/GaleriaProducto";
 import { Personalizador } from "@/components/Personalizador";
 import { Carrusel, Seccion } from "@/components/Seccion";
 import { TarjetaProducto } from "@/components/TarjetaProducto";
@@ -59,10 +59,9 @@ export default async function PaginaProducto({ params }: PageProps<"/producto/[s
         {/* Galería */}
         <div className="lg:sticky lg:top-36 lg:self-start">
           <div className="relative overflow-hidden rounded-3xl">
-            <FotoProducto producto={producto} uniforme />
+            <GaleriaProducto producto={producto} />
             <BotonFavorito producto={aTarjeta(producto)} grande className="absolute top-4 right-4" />
           </div>
-          <p className="mt-3 text-center text-xs text-cafe">Las fotos reales las sube el creador desde su panel.</p>
         </div>
 
         {/* Información y compra */}

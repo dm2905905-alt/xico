@@ -86,6 +86,7 @@ export async function crearPedido(usuario: UsuarioVerificado, solicitados: Artic
       colores: p.colores,
       forma: p.forma,
       categoria: p.categoria,
+      ...(p.fotos?.[0]?.mini ? { foto: p.fotos[0].mini } : {}),
     });
     g.subtotal += precioUnitario * cantidad;
     grupos.set(p.creador, g);

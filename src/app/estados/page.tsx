@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { MapaMexico } from "@/components/mapa/MapaMexico";
 import { consultas, obtenerCatalogo } from "@/lib/catalogo";
+import { miniaturaDe } from "@/lib/datos";
 import type { CreadorMapa } from "@/lib/mapa";
 
 export const metadata: Metadata = {
@@ -20,7 +21,15 @@ export default async function ExploraMexico() {
       productos: [...suyos]
         .sort((a, b) => b.vendidos - a.vendidos)
         .slice(0, 3)
-        .map(({ slug, nombre, precio, colores, forma, categoria }) => ({ slug, nombre, precio, colores, forma, categoria })),
+        .map((p) => ({
+          slug: p.slug,
+          nombre: p.nombre,
+          precio: p.precio,
+          colores: p.colores,
+          forma: p.forma,
+          categoria: p.categoria,
+          ...(miniaturaDe(p) ? { foto: miniaturaDe(p) } : {}),
+        })),
     };
   });
 

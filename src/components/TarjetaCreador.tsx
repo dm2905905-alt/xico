@@ -19,8 +19,13 @@ export function TarjetaCreador({ creador }: { creador: Creador }) {
       {/* Portada del taller */}
       <div className="patron-picado h-24" style={{ background: `linear-gradient(135deg, ${a}, ${b})` }} />
       <div className="-mt-9 flex flex-1 flex-col px-4 pb-4">
-        <span className="grid size-16 place-items-center rounded-full border-4 border-white bg-tinta font-display text-xl font-bold text-crema">
-          {iniciales}
+        <span className="grid size-16 place-items-center overflow-hidden rounded-full border-4 border-white bg-tinta font-display text-xl font-bold text-crema">
+          {creador.foto ? (
+            // eslint-disable-next-line @next/next/no-img-element -- miniatura ya reducida al subirla
+            <img src={creador.foto.mini} alt={`Foto de ${creador.taller}`} className="size-full object-cover" />
+          ) : (
+            iniciales
+          )}
         </span>
         <h3 className="mt-2 flex items-center gap-1 font-display text-lg font-semibold">
           {creador.taller}

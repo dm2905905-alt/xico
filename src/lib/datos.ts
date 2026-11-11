@@ -15,6 +15,9 @@ export type Categoria = { slug: CategoriaSlug; nombre: string };
 
 export type Ciudad = { nombre: string; lat: number; lon: number };
 
+// Foto subida a Firebase Storage, en dos tamaños: grande (página del producto) y mini (tarjetas)
+export type Foto = { url: string; mini: string; ruta: string };
+
 export type Estado = {
   slug: string;
   nombre: string;
@@ -39,6 +42,7 @@ export type Creador = {
   top: boolean;
   colores: [string, string];
   uid?: string; // cuenta dueña de la tienda (los creadores de ejemplo no tienen)
+  foto?: Foto; // foto de perfil
 };
 
 // Opciones del formulario de personalización de un producto
@@ -69,6 +73,7 @@ export type Producto = {
   diasElaboracion: string;
   personalizacion?: OpcionPersonalizacion[];
   paquete?: Paquete; // para cotizar el envío con la paquetería
+  fotos?: Foto[]; // hasta 6; la primera es la portada
   // Moderación: la administración puede ocultar un producto (por ejemplo, si es reventa)
   oculto?: boolean;
   motivoOculto?: string;
@@ -92,10 +97,14 @@ export type ProductoTarjeta = Pick<
   | "personalizable"
   | "colores"
   | "forma"
->;
+> & { foto?: string }; // miniatura de la primera foto
+
+// Primera foto (miniatura) de un producto, si tiene
+export const miniaturaDe = (p: { foto?: string; fotos?: Foto[] }) => p.foto ?? p.fotos?.[0]?.mini;
 
 // Recorta un producto a solo los datos de la tarjeta
-export const aTarjeta = (p: ProductoTarjeta): ProductoTarjeta => ({
+export const aTarjeta = (p: ProductoTarjeta & { fotos?: Foto[] }): ProductoTarjeta => ({
+  ...(miniaturaDe(p) ? { foto: miniaturaDe(p) } : {}),
   slug: p.slug,
   nombre: p.nombre,
   taller: p.taller,

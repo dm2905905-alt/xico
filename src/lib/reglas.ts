@@ -55,7 +55,7 @@ service cloud.firestore {
         && resource.data.uid == request.auth.uid
         && textoValido(request.resource.data.taller, 2, 60)
         && request.resource.data.diff(resource.data).affectedKeys()
-             .hasOnly(['nombre', 'taller', 'estado', 'ciudad', 'especialidad', 'historia', 'colores']));
+             .hasOnly(['nombre', 'taller', 'estado', 'ciudad', 'especialidad', 'historia', 'colores', 'foto']));
       allow delete: if esAdmin();
     }
 
@@ -98,6 +98,50 @@ service cloud.firestore {
       allow read, delete: if request.auth != null && request.auth.uid == uid;
       allow create, update: if request.auth != null && request.auth.uid == uid
         && request.resource.data.keys().hasOnly(['carrito', 'favoritos', 'actualizado']);
+    }
+  }
+}
+`;
+
+// Reglas de Firebase Storage (fotos).
+// - Cualquiera puede VER las fotos de productos y de perfil (la tienda es pública).
+// - Solo el dueño de la tienda (o la administración) puede subirlas o borrarlas.
+// - Solo imágenes de hasta 6 MB. Todo lo demás está cerrado.
+export const reglasStorage = (correoAdmin: string) => `rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    function esAdmin() {
+      return request.auth != null
+        && request.auth.token.email == "${correoAdmin}"
+        && request.auth.token.email_verified == true;
+    }
+
+    // Consulta en la base de datos quién es el dueño de la tienda
+    function esDueno(creador) {
+      return request.auth != null
+        && firestore.get(/databases/(default)/documents/creadores/$(creador)).data.uid == request.auth.uid;
+    }
+
+    function imagenValida() {
+      return request.resource.size < 6 * 1024 * 1024
+        && request.resource.contentType.matches('image/.*');
+    }
+
+    match /productos/{creador}/{archivo} {
+      allow read: if true;
+      allow create, update: if (esAdmin() || esDueno(creador)) && imagenValida();
+      allow delete: if esAdmin() || esDueno(creador);
+    }
+
+    match /creadores/{creador}/{archivo} {
+      allow read: if true;
+      allow create, update: if (esAdmin() || esDueno(creador)) && imagenValida();
+      allow delete: if esAdmin() || esDueno(creador);
+    }
+
+    match /{todo=**} {
+      allow read, write: if false;
     }
   }
 }

@@ -7,7 +7,7 @@ import { Check, Copy, Database, ExternalLink, Loader2, ShieldCheck, Trash2 } fro
 import { catalogoEjemplo } from "@/lib/ejemplo";
 import { mensajeError, obtenerDb } from "@/lib/firebase";
 import { firebaseConfig } from "@/lib/firebase-config";
-import { reglasFirestore } from "@/lib/reglas";
+import { reglasFirestore, reglasStorage } from "@/lib/reglas";
 import { llamar } from "./datos";
 
 type Conteo = { productos: number; creadores: number } | "error" | null;
@@ -15,6 +15,7 @@ type Conteo = { productos: number; creadores: number } | "error" | null;
 // Configuración: reglas de seguridad, importar datos de ejemplo y limpiar datos de prueba
 export function TabConfiguracion({ usuario }: { usuario: User }) {
   const [copiado, setCopiado] = useState(false);
+  const [copiadoFotos, setCopiadoFotos] = useState(false);
   const [conteo, setConteo] = useState<Conteo>(null);
   const [importando, setImportando] = useState(false);
   const [mensaje, setMensaje] = useState<{ tipo: "ok" | "error"; texto: string } | null>(null);
@@ -36,6 +37,8 @@ export function TabConfiguracion({ usuario }: { usuario: User }) {
   const correo = usuario.email ?? "";
   const reglas = reglasFirestore(correo);
   const urlReglas = `https://console.firebase.google.com/project/${firebaseConfig.projectId}/firestore/rules`;
+  const reglasFotos = reglasStorage(correo);
+  const urlReglasStorage = `https://console.firebase.google.com/project/${firebaseConfig.projectId}/storage/rules`;
 
   async function copiar() {
     await navigator.clipboard.writeText(reglas);
@@ -90,6 +93,27 @@ export function TabConfiguracion({ usuario }: { usuario: User }) {
         <pre className="mt-4 max-h-64 overflow-auto rounded-2xl bg-tinta p-4 text-xs leading-relaxed text-crema">{reglas}</pre>
         <button onClick={copiar} className="mt-3 flex items-center gap-2 rounded-full bg-tinta px-4 py-2 text-sm font-semibold text-crema hover:bg-tinta/85">
           {copiado ? <Check className="size-4" /> : <Copy className="size-4" />} {copiado ? "Copiado" : "Copiar reglas"}
+        </button>
+
+        {/* Reglas de las fotos (Storage) */}
+        <h3 className="mt-8 font-display text-lg font-semibold">Reglas de las fotos (Storage)</h3>
+        <p className="mt-1 text-sm text-cafe">
+          Igual que arriba, pero en{" "}
+          <a href={urlReglasStorage} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 font-semibold text-terracota hover:underline">
+            Storage → Reglas <ExternalLink className="size-3.5" />
+          </a>
+          . Si Firebase pregunta si permite que Storage consulte la base de datos, acepta: así revisa quién es dueño de cada tienda.
+        </p>
+        <pre className="mt-3 max-h-64 overflow-auto rounded-2xl bg-tinta p-4 text-xs leading-relaxed text-crema">{reglasFotos}</pre>
+        <button
+          onClick={async () => {
+            await navigator.clipboard.writeText(reglasFotos);
+            setCopiadoFotos(true);
+            setTimeout(() => setCopiadoFotos(false), 2500);
+          }}
+          className="mt-3 flex items-center gap-2 rounded-full bg-tinta px-4 py-2 text-sm font-semibold text-crema hover:bg-tinta/85"
+        >
+          {copiadoFotos ? <Check className="size-4" /> : <Copy className="size-4" />} {copiadoFotos ? "Copiado" : "Copiar reglas de fotos"}
         </button>
       </section>
 

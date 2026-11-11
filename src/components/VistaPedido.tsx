@@ -122,7 +122,7 @@ export function VistaPedido({ id, pagoId }: { id: string; pagoId?: string }) {
                 {g.articulos.map((a, i) => (
                   <li key={a.slug + i} className="flex gap-4 p-5">
                     <div className="w-16 shrink-0 overflow-hidden rounded-xl">
-                      <FotoProducto producto={{ colores: a.colores, forma: a.forma, categoria: a.categoria }} uniforme />
+                      <FotoProducto producto={{ colores: a.colores, forma: a.forma, categoria: a.categoria, foto: a.foto }} uniforme />
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex justify-between gap-3">

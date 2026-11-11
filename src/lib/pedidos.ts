@@ -25,6 +25,7 @@ export type ArticuloPedido = {
   colores: [string, string];
   forma: "alta" | "media" | "cuadrada";
   categoria: CategoriaSlug;
+  foto?: string; // miniatura del producto al momento de comprar
 };
 
 export type GrupoPedido = {

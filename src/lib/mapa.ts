@@ -1,11 +1,11 @@
 // Ubicación de los vendedores en el mapa de México
 import { estadoPorSlug, type Creador, type Producto } from "./datos";
 
-export type ProductoMini = Pick<Producto, "slug" | "nombre" | "precio" | "colores" | "forma" | "categoria">;
+export type ProductoMini = Pick<Producto, "slug" | "nombre" | "precio" | "colores" | "forma" | "categoria"> & { foto?: string };
 export type CreadorMapa = Creador & { productos: ProductoMini[]; totalProductos: number };
 
 const normalizar = (t: string) =>
-  t.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().trim();
+  t.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
 
 // Número estable a partir de un texto (para que el mismo vendedor siempre caiga en el mismo lugar)
 function semilla(texto: string) {
