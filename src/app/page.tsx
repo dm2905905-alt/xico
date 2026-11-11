@@ -12,6 +12,9 @@ const busquedasPopulares = ["funda pintada", "cuadro de Frida", "vela de copal",
 
 export default async function Inicio() {
   const { productos, creadores, ofertas, nuevos, masVendidos, desde99 } = consultas(await obtenerCatalogo());
+  // 8 estados para la portada: primero los que tienen creadores
+  const conCreadores = new Set(creadores.map((c) => c.estado));
+  const estadosPortada = [...estados].sort((a, b) => Number(conCreadores.has(b.slug)) - Number(conCreadores.has(a.slug))).slice(0, 8);
 
   return (
     <>
@@ -166,9 +169,19 @@ export default async function Inicio() {
       </Seccion>
 
       {/* Hecho en México: por estado */}
-      <Seccion titulo="Hecho en México" subtitulo="Compra por estado y conoce su tradición" verTodo="/estados">
+      <Seccion titulo="Hecho en México" subtitulo="Recorre el mapa y conoce a los creadores de cada estado" verTodo="/estados">
+        <Link
+          href="/estados"
+          className="degradado-xico patron-picado mb-4 flex items-center justify-between gap-4 rounded-3xl px-6 py-5 text-white shadow-lg shadow-terracota/20 transition hover:brightness-110"
+        >
+          <span>
+            <span className="block font-display text-2xl font-extrabold">🗺️ Explora el mapa de México</span>
+            <span className="text-sm text-white/90">Toca un estado y descubre quién crea qué, y dónde.</span>
+          </span>
+          <span className="shrink-0 rounded-full bg-white px-4 py-2 text-sm font-bold text-terracota">Abrir mapa →</span>
+        </Link>
         <ul className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-          {estados.map((e) => (
+          {estadosPortada.map((e) => (
             <li key={e.slug}>
               <Link
                 href={`/estado/${e.slug}`}

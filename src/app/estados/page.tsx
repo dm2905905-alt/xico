@@ -1,47 +1,40 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import { MapPin } from "lucide-react";
+import { MapaMexico } from "@/components/mapa/MapaMexico";
 import { consultas, obtenerCatalogo } from "@/lib/catalogo";
-import { estados } from "@/lib/datos";
+import type { CreadorMapa } from "@/lib/mapa";
 
 export const metadata: Metadata = {
-  title: "Explora México: compra por estado",
-  description: "Descubre productos hechos a mano por creadores de cada estado de México.",
+  title: "Explora México: el mapa de los creadores",
+  description: "Recorre el mapa de México, estado por estado, y conoce a los creadores que hacen a mano lo que venden: su historia y sus productos.",
 };
 
-export default async function Estados() {
-  const { creadoresDeEstado, productosDeEstado } = consultas(await obtenerCatalogo());
-  return (
-    <div className="mx-auto max-w-7xl px-4 py-10">
-      <h1 className="font-display text-4xl font-semibold tracking-tight">Explora México</h1>
-      <p className="mt-2 max-w-2xl text-cafe">
-        Cada estado tiene sus técnicas y tradiciones. Elige uno y conoce a sus creadores.
-      </p>
+export default async function ExploraMexico() {
+  const { creadores, productosDeCreador } = consultas(await obtenerCatalogo());
 
-      <ul className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {estados.map((e) => {
-          const nCreadores = creadoresDeEstado(e.slug).length;
-          const nProductos = productosDeEstado(e.slug).length;
-          return (
-            <li key={e.slug}>
-              <Link
-                href={`/estado/${e.slug}`}
-                className="patron-picado flex h-48 flex-col justify-end rounded-3xl p-5 text-white transition hover:brightness-110"
-                style={{ background: `linear-gradient(160deg, ${e.colores[1]}, ${e.colores[0]})` }}
-              >
-                <span className="flex items-center gap-1.5 font-display text-2xl font-semibold">
-                  <MapPin className="size-5" /> {e.nombre}
-                </span>
-                <span className="text-sm text-white/90">{e.especialidad}</span>
-                <span className="mt-2 text-xs text-white/75">
-                  {nCreadores} {nCreadores === 1 ? "creador" : "creadores"} · {nProductos}{" "}
-                  {nProductos === 1 ? "producto" : "productos"}
-                </span>
-              </Link>
-            </li>
-          );
-        })}
-      </ul>
+  // Al navegador solo se manda lo que muestra el mapa
+  const paraMapa: CreadorMapa[] = creadores.map((c) => {
+    const suyos = productosDeCreador(c.slug);
+    return {
+      ...c,
+      totalProductos: suyos.length,
+      productos: [...suyos]
+        .sort((a, b) => b.vendidos - a.vendidos)
+        .slice(0, 3)
+        .map(({ slug, nombre, precio, colores, forma, categoria }) => ({ slug, nombre, precio, colores, forma, categoria })),
+    };
+  });
+
+  return (
+    <div className="mx-auto max-w-7xl px-4 py-8">
+      <div className="mb-6 max-w-2xl">
+        <h1 className="font-display text-4xl leading-tight font-extrabold tracking-tight sm:text-5xl">
+          Explora <span className="texto-degradado">México</span> 🗺️
+        </h1>
+        <p className="mt-2 text-cafe">
+          Acércate, arrastra y toca cualquier estado. Cada pin es una persona creativa: conoce su historia y lo que hace.
+        </p>
+      </div>
+      <MapaMexico creadores={paraMapa} />
     </div>
   );
 }

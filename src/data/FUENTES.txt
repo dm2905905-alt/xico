@@ -1,0 +1,2 @@
+mexico-estados.json: límites de los 32 estados de México, simplificados.
+Fuente: Natural Earth (naturalearthdata.com), escala 1:10m, admin-1. Dominio público.
