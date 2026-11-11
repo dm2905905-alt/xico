@@ -29,7 +29,7 @@ export function IconosCuenta() {
       <Link
         href="/favoritos"
         aria-label={`Favoritos${favoritos ? ` (${favoritos})` : ""}`}
-        className="relative hidden size-10 place-items-center rounded-full hover:bg-arena sm:grid"
+        className="relative hidden size-10 place-items-center rounded-full hover:bg-arena md:grid"
       >
         <Heart className="size-5" />
         <Globo n={favoritos} />
@@ -40,7 +40,7 @@ export function IconosCuenta() {
           {hayNuevos && <span className="absolute top-1.5 right-1.5 size-2.5 rounded-full bg-rosa ring-2 ring-white" />}
         </Link>
       )}
-      <Link href="/cuenta" aria-label="Mi cuenta" className="grid size-10 place-items-center rounded-full hover:bg-arena">
+      <Link href="/cuenta" aria-label="Mi cuenta" className="hidden size-10 md:grid place-items-center rounded-full hover:bg-arena">
         {usuario ? (
           <span className="grid size-7 place-items-center rounded-full bg-jade text-xs font-bold text-white">{inicial ?? "✓"}</span>
         ) : (

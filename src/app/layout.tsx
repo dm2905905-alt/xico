@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Bricolage_Grotesque, Geist } from "next/font/google";
+import { BarraInferior } from "@/components/BarraInferior";
 import { Encabezado } from "@/components/Encabezado";
 import { FondoCreativo } from "@/components/FondoCreativo";
 import { PiePagina } from "@/components/PiePagina";
@@ -47,6 +48,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           <Encabezado />
           <main className="flex-1">{children}</main>
           <PiePagina />
+          <BarraInferior />
         </ProveedorSesion>
       </body>
     </html>
