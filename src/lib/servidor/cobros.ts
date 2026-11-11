@@ -106,7 +106,8 @@ export async function crearPedido(usuario: UsuarioVerificado, solicitados: Artic
   // Solo se puede comprar a tiendas aprobadas
   creadoresDocs.forEach((d, i) => {
     const c = d.data() as Creador | undefined;
-    if (!c || !tiendaActiva(c)) throw new ErrorXico(`La tienda "${listaGrupos[i].taller}" no está disponible por ahora. Quita sus productos del carrito.`);
+    // Solo tiendas aprobadas y con dueño real (las de ejemplo no venden)
+    if (!c || !c.uid || !tiendaActiva(c)) throw new ErrorXico(`La tienda "${listaGrupos[i].taller}" no está disponible por ahora. Quita sus productos del carrito.`);
   });
   const uidsCreadores = creadoresDocs.map((d) => (d.data() as Creador | undefined)?.uid).filter((u): u is string => !!u);
 
