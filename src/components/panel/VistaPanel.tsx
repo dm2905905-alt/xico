@@ -2,11 +2,11 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { BadgeCheck, ExternalLink, MessageCircle, Package, Pencil, Plus, Settings, ShoppingBag, Star, Trash2 } from "lucide-react";
+import { BadgeCheck, CreditCard, ExternalLink, MessageCircle, Package, Pencil, Plus, Settings, ShoppingBag, Star, Trash2 } from "lucide-react";
 import type { Creador } from "@/lib/datos";
 import { mensajeError } from "@/lib/firebase";
 import { precio } from "@/lib/formato";
-import { borrarProducto, useProductosDe } from "@/lib/panel";
+import { borrarProducto, useDatosPrivados, useProductosDe } from "@/lib/panel";
 import { usePedidosDe } from "@/lib/usar-pedidos";
 import { ListaPedidos } from "../ListaPedidos";
 import { useSesion } from "../Sesion";
@@ -25,6 +25,8 @@ function Tablero({ creador }: { creador: Creador }) {
     (p) => p.creadores.includes(creador.slug) && p.estado !== "pendiente_pago" && p.estado !== "rechazado",
   );
   const porEnviar = pedidos.filter((p) => (p.grupos.find((g) => g.creador === creador.slug)?.envioEstado ?? "preparando") === "preparando").length;
+  const privados = useDatosPrivados(creador.slug);
+  const sinCobro = !privados.cargando && !privados.datos.pago;
   const [borrando, setBorrando] = useState<string | null>(null);
   const [error, setError] = useState("");
 
@@ -68,12 +70,37 @@ function Tablero({ creador }: { creador: Creador }) {
             <Link href="/panel/perfil" className="flex items-center gap-1.5 rounded-full border border-arena-oscura px-4 py-2 text-sm hover:bg-arena">
               <Settings className="size-4" /> Editar perfil
             </Link>
+            <Link href="/panel/cuenta" className="flex items-center gap-1.5 rounded-full border border-arena-oscura px-4 py-2 text-sm hover:bg-arena">
+              <CreditCard className="size-4" /> Mi cuenta de vendedor
+            </Link>
             <Link href="/mensajes" className="degradado-xico flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-semibold text-white">
               <MessageCircle className="size-4" /> Mensajes
             </Link>
           </div>
         </div>
       </div>
+
+      {/* Avisos de la solicitud y de la cuenta */}
+      {creador.estadoTienda === "revision" && (
+        <div className="rounded-3xl bg-maiz/20 p-5 text-sm ring-1 ring-maiz/60">
+          <p className="font-semibold">⏳ Tu solicitud está en revisión</p>
+          <p className="mt-1 text-cafe">
+            El equipo de XICO la revisará pronto. Mientras tanto ya puedes subir tus productos: aparecerán en la tienda en cuanto te aprobemos.
+          </p>
+        </div>
+      )}
+      {creador.estadoTienda === "suspendida" && (
+        <div className="rounded-3xl bg-rosa/10 p-5 text-sm text-rosa ring-1 ring-rosa/30">
+          <p className="font-semibold">🚫 Tu tienda está suspendida</p>
+          <p className="mt-1">Tus productos no se muestran por ahora. Escríbenos desde la página de Ayuda para resolverlo.</p>
+        </div>
+      )}
+      {sinCobro && (
+        <Link href="/panel/cuenta" className="block rounded-3xl bg-white p-5 text-sm ring-2 ring-terracota/50 hover:ring-terracota">
+          <p className="font-semibold">💳 Falta tu cuenta de pago</p>
+          <p className="mt-1 text-cafe">Registra tu CLABE para que podamos depositarte tus ventas. <span className="font-semibold text-terracota">Agregarla →</span></p>
+        </Link>
+      )}
 
       {/* Números */}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">

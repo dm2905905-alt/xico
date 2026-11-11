@@ -4,7 +4,6 @@ import Link from "next/link";
 import { guardarTienda, useProductosDe } from "@/lib/panel";
 import type { Creador } from "@/lib/datos";
 import { ConTienda } from "./ConTienda";
-import { FormularioRecoleccion } from "./FormularioRecoleccion";
 import { FormularioTienda } from "./FormularioTienda";
 
 export function VistaPerfil() {
@@ -20,10 +19,9 @@ function Perfil({ creador }: { creador: Creador }) {
         <h2 className="mt-3 mb-6 font-display text-2xl font-semibold">Perfil de la tienda</h2>
         <FormularioTienda inicial={creador} textoBoton="Guardar cambios" alGuardar={(datos) => guardarTienda(creador, datos, productos)} />
       </div>
-      <div id="recoleccion" className="scroll-mt-40 rounded-3xl bg-white p-6 ring-1 ring-arena-oscura/60 sm:p-8">
-        <h2 className="mb-4 font-display text-2xl font-semibold">📦 Dirección de recolección</h2>
-        <FormularioRecoleccion slug={creador.slug} />
-      </div>
+      <Link href="/panel/cuenta" className="rounded-3xl bg-white p-5 text-sm ring-1 ring-arena-oscura/60 hover:ring-terracota">
+        💳 Tu cuenta de pago y tu dirección de recolección están en <strong className="text-terracota">Mi cuenta de vendedor →</strong>
+      </Link>
     </div>
   );
 }

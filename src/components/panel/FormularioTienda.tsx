@@ -19,14 +19,16 @@ const portadas: [string, string][] = [
 
 export function FormularioTienda({
   inicial,
+  borrador,
   textoBoton,
   alGuardar,
 }: {
   inicial?: Creador;
+  borrador?: DatosTienda; // valores ya escritos (solicitud de vendedor, al volver al paso 1)
   textoBoton: string;
   alGuardar: (datos: DatosTienda) => Promise<void>;
 }) {
-  const [datos, setDatos] = useState<DatosTienda>({
+  const [datos, setDatos] = useState<DatosTienda>(borrador ?? {
     nombre: inicial?.nombre ?? "",
     taller: inicial?.taller ?? "",
     estado: inicial?.estado ?? "",

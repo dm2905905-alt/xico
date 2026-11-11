@@ -2,10 +2,10 @@
 
 import type { User } from "firebase/auth";
 import type { Creador } from "@/lib/datos";
-import { crearTienda, useMiCreador } from "@/lib/panel";
+import { useMiCreador } from "@/lib/panel";
 import { FormularioEntrar } from "../FormularioEntrar";
 import { useSesion } from "../Sesion";
-import { FormularioTienda } from "./FormularioTienda";
+import { SolicitudVendedor } from "./SolicitudVendedor";
 
 // Envuelve las páginas del panel: pide sesión, y si la persona aún no tiene tienda, la registra.
 export function ConTienda({
@@ -31,23 +31,7 @@ export function ConTienda({
     );
   }
 
-  if (!creador) {
-    return (
-      <div className="rounded-3xl bg-white p-6 ring-1 ring-arena-oscura/60 sm:p-8">
-        <h2 className="font-display text-2xl font-semibold">Abre tu tienda en XICO</h2>
-        <p className="mt-1 mb-6 text-sm text-cafe">
-          Cuéntanos de tu taller. Podrás cambiar todo después. La insignia de <strong>Artista verificado</strong> la otorga el
-          equipo de XICO al revisar tu trabajo.
-        </p>
-        <FormularioTienda
-          textoBoton="Abrir mi tienda"
-          alGuardar={async (datos) => {
-            await crearTienda(usuario.uid, datos);
-          }}
-        />
-      </div>
-    );
-  }
+  if (!creador) return <SolicitudVendedor uid={usuario.uid} />;
 
   return <>{children(creador, usuario)}</>;
 }

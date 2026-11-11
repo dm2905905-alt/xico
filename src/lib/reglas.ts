@@ -50,7 +50,8 @@ service cloud.firestore {
         && request.resource.data.verificado == false
         && request.resource.data.top == false
         && request.resource.data.calificacion == 0
-        && request.resource.data.resenas == 0);
+        && request.resource.data.resenas == 0
+        && request.resource.data.estadoTienda == 'revision');
       allow update: if esAdmin() || (conSesion()
         && resource.data.uid == request.auth.uid
         && textoValido(request.resource.data.taller, 2, 60)
@@ -84,8 +85,14 @@ service cloud.firestore {
 
     match /tiendasPrivado/{creador} {
       allow read: if esAdmin() || (conSesion() && esDuenoDe(creador));
-      allow create, update: if esAdmin() || (conSesion() && esDuenoDe(creador)
-        && request.resource.data.keys().hasOnly(['direccion']));
+      // getAfter: la solicitud de vendedor crea la tienda y estos datos en el mismo lote
+      allow create, update: if esAdmin() || (conSesion()
+        && getAfter(/databases/$(database)/documents/creadores/$(creador)).data.uid == request.auth.uid
+        && request.resource.data.keys().hasOnly(['direccion', 'pago', 'aceptoTerminos'])
+        && (!('pago' in request.resource.data)
+            || (request.resource.data.pago.clabe is string
+                && request.resource.data.pago.clabe.matches('^[0-9]{18}$')
+                && textoValido(request.resource.data.pago.titular, 5, 100))));
       allow delete: if esAdmin();
     }
 

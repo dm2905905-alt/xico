@@ -43,6 +43,9 @@ export type Creador = {
   colores: [string, string];
   uid?: string; // cuenta dueña de la tienda (los creadores de ejemplo no tienen)
   foto?: Foto; // foto de perfil
+  // Solicitud de vendedor: las tiendas nuevas esperan aprobación (sin este dato = aprobada)
+  estadoTienda?: "revision" | "aprobada" | "suspendida";
+  solicitada?: number;
 };
 
 // Opciones del formulario de personalización de un producto
@@ -180,3 +183,6 @@ export const paletaMexicana = [
 
 export const estadoPorSlug = (slug: string) => estados.find((e) => e.slug === slug);
 export const categoriaPorSlug = (slug: string) => categorias.find((c) => c.slug === slug);
+
+// ¿La tienda puede vender? (las tiendas antiguas no tienen estado: se consideran aprobadas)
+export const tiendaActiva = (c: Pick<Creador, "estadoTienda">) => !c.estadoTienda || c.estadoTienda === "aprobada";

@@ -74,13 +74,32 @@ export function useProductosDe(slugCreador: string | undefined) {
 export type DatosTienda = Pick<Creador, "nombre" | "taller" | "estado" | "ciudad" | "especialidad" | "historia" | "colores" | "foto">;
 
 // Abre una tienda nueva. Las insignias y calificaciones empiezan en cero (lo exigen las reglas).
-export async function crearTienda(uid: string, datos: DatosTienda): Promise<string> {
+// Solicitud de vendedor: la tienda (pública) y sus datos de cobro y dirección (privados) se guardan juntos.
+// La tienda nace "en revisión": sus productos no se ven hasta que la administración la aprueba.
+export async function crearTienda(uid: string, datos: DatosTienda, privado: { pago: DatosCobro; direccion: Direccion }): Promise<string> {
   const db = obtenerDb();
   if (!db) throw new Error("Firebase no configurado");
   let slug = aSlug(datos.taller);
   if ((await getDoc(doc(db, "creadores", slug))).exists()) slug = `${slug}-${sufijo()}`;
-  const creador: Creador = { ...datos, slug, uid, verificado: false, top: false, calificacion: 0, resenas: 0 };
-  await setDoc(doc(db, "creadores", slug), creador);
+  const creador: Creador = {
+    ...datos,
+    slug,
+    uid,
+    verificado: false,
+    top: false,
+    calificacion: 0,
+    resenas: 0,
+    estadoTienda: "revision",
+    solicitada: Date.now(),
+  };
+  const lote = writeBatch(db);
+  lote.set(doc(db, "creadores", slug), creador);
+  lote.set(doc(db, "tiendasPrivado", slug), {
+    direccion: privado.direccion,
+    pago: { ...privado.pago, actualizado: Date.now() },
+    aceptoTerminos: Date.now(),
+  });
+  await lote.commit();
   return slug;
 }
 
@@ -168,22 +187,37 @@ export async function leerProducto(slug: string): Promise<Producto | null> {
   return snap.exists() ? (snap.data() as Producto) : null;
 }
 
-// ---- Dirección de recolección (privada: solo la ve el dueño de la tienda y el servidor) ----
+// ---- Datos privados de la tienda: cobro y dirección (solo los ve el dueño y la administración) ----
 
-export function useDireccionRecoleccion(slugCreador: string | undefined) {
-  const [estado, setEstado] = useState<{ slug?: string; direccion: Partial<Direccion> | null }>({ direccion: null });
+export type DatosCobro = { titular: string; clabe: string; banco: string; rfc?: string };
+export type DatosPrivados = { direccion?: Partial<Direccion>; pago?: DatosCobro & { actualizado?: number }; aceptoTerminos?: number };
+
+export function useDatosPrivados(slugCreador: string | undefined) {
+  const [estado, setEstado] = useState<{ slug?: string; datos: DatosPrivados }>({ datos: {} });
 
   useEffect(() => {
     const db = obtenerDb();
     if (!db || !slugCreador) return;
     return onSnapshot(
       doc(db, "tiendasPrivado", slugCreador),
-      (s) => setEstado({ slug: slugCreador, direccion: (s.data()?.direccion as Partial<Direccion>) ?? {} }),
-      () => setEstado({ slug: slugCreador, direccion: {} }),
+      (s) => setEstado({ slug: slugCreador, datos: (s.data() as DatosPrivados) ?? {} }),
+      () => setEstado({ slug: slugCreador, datos: {} }),
     );
   }, [slugCreador]);
 
-  return estado.slug === slugCreador ? { direccion: estado.direccion ?? {}, cargando: false } : { direccion: {}, cargando: true };
+  return estado.slug === slugCreador ? { datos: estado.datos, cargando: false } : { datos: {} as DatosPrivados, cargando: true };
+}
+
+// Compatibilidad con la pantalla de dirección de recolección
+export function useDireccionRecoleccion(slugCreador: string | undefined) {
+  const { datos, cargando } = useDatosPrivados(slugCreador);
+  return { direccion: datos.direccion ?? {}, cargando };
+}
+
+export async function guardarCobro(slugCreador: string, pago: DatosCobro) {
+  const db = obtenerDb();
+  if (!db) throw new Error("Firebase no configurado");
+  await setDoc(doc(db, "tiendasPrivado", slugCreador), { pago: { ...pago, actualizado: Date.now() } }, { merge: true });
 }
 
 export async function guardarDireccionRecoleccion(slugCreador: string, direccion: Direccion) {

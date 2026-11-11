@@ -3,7 +3,7 @@
 import { FieldValue } from "firebase-admin/firestore";
 import type { UsuarioVerificado } from "./admin";
 import type { Propuesta } from "../chat";
-import type { Creador, Producto } from "../datos";
+import { tiendaActiva, type Creador, type Producto } from "../datos";
 import {
   COMISION_XICO,
   problemaDireccion,
@@ -103,6 +103,11 @@ export async function crearPedido(usuario: UsuarioVerificado, solicitados: Artic
 
   // Dueños de las tiendas: podrán ver el pedido para prepararlo
   const creadoresDocs = await db.getAll(...listaGrupos.map((g) => db.collection("creadores").doc(g.creador)));
+  // Solo se puede comprar a tiendas aprobadas
+  creadoresDocs.forEach((d, i) => {
+    const c = d.data() as Creador | undefined;
+    if (!c || !tiendaActiva(c)) throw new ErrorXico(`La tienda "${listaGrupos[i].taller}" no está disponible por ahora. Quita sus productos del carrito.`);
+  });
   const uidsCreadores = creadoresDocs.map((d) => (d.data() as Creador | undefined)?.uid).filter((u): u is string => !!u);
 
   const ref = db.collection("pedidos").doc();
@@ -246,7 +251,7 @@ export async function crearPedidoPropuesta(usuario: UsuarioVerificado, propuesta
   if (!(p.precio > 0 && p.precio <= 200000)) throw new ErrorXico("Precio no válido.");
 
   const tienda = (await db.collection("creadores").doc(p.creador).get()).data() as Creador | undefined;
-  if (!tienda?.uid) throw new ErrorXico("La tienda ya no está disponible.");
+  if (!tienda?.uid || !tiendaActiva(tienda)) throw new ErrorXico("La tienda ya no está disponible.");
 
   const envio = p.precio >= ENVIO_GRATIS_DESDE ? 0 : ENVIO_POR_CREADOR;
   const comision = Math.round(p.precio * COMISION_XICO);

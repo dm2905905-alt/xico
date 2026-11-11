@@ -4,7 +4,7 @@
 import { cacheLife } from "next/cache";
 import { getApp, getApps, initializeApp } from "firebase/app";
 import { collection, getDocs, getFirestore } from "firebase/firestore/lite";
-import type { Creador, Producto } from "./datos";
+import { tiendaActiva, type Creador, type Producto } from "./datos";
 import { catalogoEjemplo } from "./ejemplo";
 import { firebaseConfig, firebaseConfigurado } from "./firebase-config";
 
@@ -23,10 +23,13 @@ export async function obtenerCatalogo(): Promise<Catalogo> {
   const db = getFirestore(app);
   try {
     const [p, c] = await Promise.all([getDocs(collection(db, "productos")), getDocs(collection(db, "creadores"))]);
+    // Solo tiendas aprobadas: las solicitudes en revisión y las suspendidas no se muestran
+    const creadores = c.docs.map((d) => d.data() as Creador).filter(tiendaActiva);
+    const activas = new Set(creadores.map((x) => x.slug));
     return {
-      // Los productos ocultos por moderación no aparecen en la tienda
-      productos: p.docs.map((d) => d.data() as Producto).filter((x) => !x.oculto),
-      creadores: c.docs.map((d) => d.data() as Creador),
+      // Los productos ocultos por moderación (o de tiendas no activas) no aparecen en la tienda
+      productos: p.docs.map((d) => d.data() as Producto).filter((x) => !x.oculto && activas.has(x.creador)),
+      creadores,
       origen: "firebase",
     };
   } catch (e) {

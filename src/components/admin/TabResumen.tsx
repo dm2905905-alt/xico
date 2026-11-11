@@ -12,6 +12,7 @@ export function TabResumen({ datos, ir }: { datos: DatosAdmin; ir: (tab: string)
   const porPagar = grupos.filter((g) => !g.liquidado).reduce((s, g) => s + g.paraCreador, 0);
   const porEnviar = grupos.filter((g) => (g.envioEstado ?? "preparando") === "preparando").length;
   const sinVerificar = datos.creadores.filter((c) => c.uid && !c.verificado).length;
+  const solicitudes = datos.creadores.filter((c) => c.estadoTienda === "revision").length;
   const ocultos = datos.productos.filter((p) => p.oculto).length;
   const sinPagar = datos.pedidos.filter((p) => p.estado === "pendiente_pago").length;
 
@@ -20,7 +21,7 @@ export function TabResumen({ datos, ir }: { datos: DatosAdmin; ir: (tab: string)
     { icono: Wallet, valor: precio(comisiones), texto: "Comisiones de XICO", nota: "15% de cada venta" },
     { icono: HandCoins, valor: precio(porPagar), texto: "Por pagar a creadores", nota: "Ver pagos", tab: "pagos", alerta: porPagar > 0 },
     { icono: Truck, valor: porEnviar, texto: "Paquetes por enviar", nota: "Ver pedidos", tab: "pedidos", alerta: porEnviar > 0 },
-    { icono: Store, valor: datos.creadores.length, texto: "Tiendas", nota: `${sinVerificar} por verificar`, tab: "creadores", alerta: sinVerificar > 0 },
+    { icono: Store, valor: datos.creadores.length, texto: "Tiendas", nota: solicitudes ? `${solicitudes} solicitudes nuevas` : `${sinVerificar} por verificar`, tab: "creadores", alerta: solicitudes + sinVerificar > 0 },
     { icono: Package, valor: datos.productos.length, texto: "Productos", nota: `${ocultos} ocultos`, tab: "productos" },
     { icono: AlertTriangle, valor: sinPagar, texto: "Pedidos sin pagar", nota: "Intentos abandonados", tab: "config" },
     { icono: BadgeCheck, valor: datos.creadores.filter((c) => c.verificado).length, texto: "Artistas verificados", nota: "", tab: "creadores" },

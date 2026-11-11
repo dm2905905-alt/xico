@@ -7,6 +7,7 @@ import { collection, onSnapshot } from "firebase/firestore";
 import type { Creador, Producto } from "@/lib/datos";
 import { obtenerDb } from "@/lib/firebase";
 import type { Pedido } from "@/lib/pedidos";
+import type { DatosPrivados } from "@/lib/panel";
 
 // Llama a una ruta del servidor con la sesión de la persona
 export async function llamar<T = Record<string, unknown>>(usuario: User, ruta: string, cuerpo: unknown): Promise<T> {
@@ -37,13 +38,15 @@ export function useEsAdmin(usuario: User | null) {
   return estado.uid === usuario.uid ? { admin: estado.admin, cargando: false } : { admin: false, cargando: true };
 }
 
-export type DatosAdmin = { creadores: Creador[]; productos: Producto[]; pedidos: Pedido[]; listo: boolean };
+// privados: cuenta de pago y dirección de cada tienda (por slug)
+export type DatosAdmin = { creadores: Creador[]; productos: Producto[]; pedidos: Pedido[]; privados: Record<string, DatosPrivados>; listo: boolean };
 
 // Todo en vivo (las reglas solo dejan leer pedidos a la cuenta administradora)
 export function useDatosAdmin(activo: boolean): DatosAdmin {
   const [creadores, setCreadores] = useState<Creador[] | null>(null);
   const [productos, setProductos] = useState<Producto[] | null>(null);
   const [pedidos, setPedidos] = useState<Pedido[] | null>(null);
+  const [privados, setPrivados] = useState<Record<string, DatosPrivados>>({});
 
   useEffect(() => {
     const db = obtenerDb();
@@ -56,6 +59,11 @@ export function useDatosAdmin(activo: boolean): DatosAdmin {
         (s) => setPedidos(s.docs.map((d) => d.data() as Pedido).sort((a, b) => b.creado - a.creado)),
         () => setPedidos([]),
       ),
+      onSnapshot(
+        collection(db, "tiendasPrivado"),
+        (s) => setPrivados(Object.fromEntries(s.docs.map((d) => [d.id, d.data() as DatosPrivados]))),
+        () => setPrivados({}),
+      ),
     ];
     return () => quitar.forEach((f) => f());
   }, [activo]);
@@ -64,6 +72,7 @@ export function useDatosAdmin(activo: boolean): DatosAdmin {
     creadores: creadores ?? [],
     productos: productos ?? [],
     pedidos: pedidos ?? [],
+    privados,
     listo: creadores !== null && productos !== null && pedidos !== null,
   };
 }
