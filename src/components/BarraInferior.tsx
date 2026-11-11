@@ -13,8 +13,8 @@ const botones = [
   { href: "/cuenta", texto: "Cuenta", icono: User, activo: (r: string) => r.startsWith("/cuenta") || r.startsWith("/panel") },
 ];
 
-// Pantallas con su propia barra abajo (escribir en el chat, pagar) o de trabajo: sin barra
-const sinBarra = (r: string) => /^\/mensajes\/.+/.test(r) || r.startsWith("/pagar") || r.startsWith("/admin") || r.startsWith("/panel/producto");
+// Pantallas con su propia barra abajo (chat, pagar, comprar un producto) o de trabajo: sin barra
+const sinBarra = (r: string) => /^\/mensajes\/.+/.test(r) || r.startsWith("/pagar") || r.startsWith("/producto/") || r.startsWith("/admin") || r.startsWith("/panel/producto");
 
 // Barra de botones fija abajo, solo en celular (como una app)
 export function BarraInferior() {

@@ -196,42 +196,44 @@ export function Personalizador({ producto }: { producto: Producto }) {
         </fieldset>
       )}
 
-      <div className="flex items-center gap-4">
-        <div className="flex h-12 items-center rounded-full border border-arena-oscura bg-white">
-          <button type="button" onClick={() => { setCantidad((c) => Math.max(1, c - 1)); setAgregado(false); }} className="size-12 rounded-full text-lg hover:bg-arena" aria-label="Quitar uno">−</button>
-          <span className="w-8 text-center font-semibold" aria-live="polite">{cantidad}</span>
-          <button type="button" onClick={() => { setCantidad((c) => Math.min(20, c + 1)); setAgregado(false); }} className="size-12 rounded-full text-lg hover:bg-arena" aria-label="Agregar uno">+</button>
-        </div>
-        <div>
-          <p className="text-xs text-cafe">Total</p>
-          <p className="text-2xl font-bold" aria-live="polite">{formatoPrecio(total)}</p>
+      {/* Compra: en celular queda fija abajo de la pantalla (como en una app) */}
+      <div className="h-24 md:hidden" aria-hidden />
+      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-arena-oscura/70 bg-crema/95 px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur md:static md:z-auto md:border-0 md:bg-transparent md:p-0 md:backdrop-blur-none">
+        {errores.length > 0 && (
+          <p className="mb-2 rounded-xl bg-rosa/10 px-4 py-2.5 text-sm text-rosa" role="alert">
+            Te falta llenar los campos marcados para que el creador pueda hacer tu pieza.
+          </p>
+        )}
+        {agregado && (
+          <div className="mb-2 flex items-center justify-between gap-3 rounded-xl bg-jade/10 px-4 py-2 text-sm text-jade" role="status">
+            <span className="flex items-center gap-2 font-medium">
+              <Check className="size-4" /> Agregado a tu carrito
+            </span>
+            <Link href="/carrito" className="rounded-full bg-jade px-4 py-1.5 font-semibold text-white hover:bg-jade/90">
+              Ver carrito
+            </Link>
+          </div>
+        )}
+        <div className="flex items-center gap-3 md:flex-wrap md:gap-4">
+          <div className="flex h-12 shrink-0 items-center rounded-full border border-arena-oscura bg-white">
+            <button type="button" onClick={() => { setCantidad((c) => Math.max(1, c - 1)); setAgregado(false); }} className="size-10 rounded-full text-lg hover:bg-arena md:size-12" aria-label="Quitar uno">−</button>
+            <span className="w-6 text-center font-semibold md:w-8" aria-live="polite">{cantidad}</span>
+            <button type="button" onClick={() => { setCantidad((c) => Math.min(20, c + 1)); setAgregado(false); }} className="size-10 rounded-full text-lg hover:bg-arena md:size-12" aria-label="Agregar uno">+</button>
+          </div>
+          <div className="min-w-0">
+            <p className="text-xs text-cafe">Total</p>
+            <p className="text-lg font-bold md:text-2xl" aria-live="polite">{formatoPrecio(total)}</p>
+          </div>
+          <button
+            type="button"
+            onClick={agregar}
+            disabled={!!procesando}
+            className="flex h-12 flex-1 items-center justify-center gap-2 rounded-full bg-terracota px-4 text-sm font-semibold text-crema transition hover:bg-terracota-oscura disabled:opacity-60 md:h-14 md:basis-full md:text-base"
+          >
+            <ShoppingBag className="size-5 shrink-0" /> <span className="truncate">Agregar al carrito</span>
+          </button>
         </div>
       </div>
-
-      <button
-        type="button"
-        onClick={agregar}
-        disabled={!!procesando}
-        className="flex h-14 items-center justify-center gap-2 rounded-full bg-terracota text-base font-semibold text-crema transition hover:bg-terracota-oscura disabled:opacity-60"
-      >
-        <ShoppingBag className="size-5" /> Agregar al carrito
-      </button>
-
-      {errores.length > 0 && (
-        <p className="rounded-xl bg-rosa/10 px-4 py-3 text-sm text-rosa" role="alert">
-          Te falta llenar los campos marcados para que el creador pueda hacer tu pieza.
-        </p>
-      )}
-      {agregado && (
-        <div className="flex items-center justify-between gap-3 rounded-xl bg-jade/10 px-4 py-3 text-sm text-jade" role="status">
-          <span className="flex items-center gap-2 font-medium">
-            <Check className="size-4" /> Agregado a tu carrito
-          </span>
-          <Link href="/carrito" className="rounded-full bg-jade px-4 py-1.5 font-semibold text-white hover:bg-jade/90">
-            Ver carrito
-          </Link>
-        </div>
-      )}
     </div>
   );
 }

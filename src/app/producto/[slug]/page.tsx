@@ -6,7 +6,7 @@ import { BotonFavorito } from "@/components/BotonFavorito";
 import { BotonEscribir } from "@/components/chat/BotonEscribir";
 import { GaleriaProducto } from "@/components/GaleriaProducto";
 import { Personalizador } from "@/components/Personalizador";
-import { Carrusel, Seccion } from "@/components/Seccion";
+import { Fila } from "@/components/Fila";
 import { TarjetaProducto } from "@/components/TarjetaProducto";
 import { RELLENO, conRelleno, consultas, obtenerCatalogo } from "@/lib/catalogo";
 import { aTarjeta, categoriaPorSlug, estadoPorSlug } from "@/lib/datos";
@@ -42,9 +42,11 @@ export default async function PaginaProducto({ params }: PageProps<"/producto/[s
   const delCreador = productosDeCreador(producto.creador).filter((p) => p.slug !== slug);
   const parecidos = productos.filter((p) => p.categoria === producto.categoria && p.slug !== slug && p.creador !== producto.creador);
 
+  const iniciales = creador?.nombre.split(" ").map((p) => p[0]).slice(0, 2).join("") || creador?.taller.slice(0, 1);
+
   return (
-    <div className="mx-auto max-w-7xl px-4 py-6">
-      <nav className="mb-6 flex flex-wrap items-center gap-1 text-sm text-cafe" aria-label="Ruta">
+    <div className="mx-auto max-w-7xl md:px-4 md:py-6">
+      <nav className="mb-6 hidden flex-wrap items-center gap-1 text-sm text-cafe md:flex" aria-label="Ruta">
         <Link href="/" className="hover:text-terracota">Inicio</Link>
         <ChevronRight className="size-4" />
         {categoria && (
@@ -56,119 +58,121 @@ export default async function PaginaProducto({ params }: PageProps<"/producto/[s
         <span className="line-clamp-1 text-tinta">{producto.nombre}</span>
       </nav>
 
-      <div className="grid gap-8 lg:grid-cols-2 lg:gap-12">
-        {/* Galería */}
-        <div className="lg:sticky lg:top-36 lg:self-start">
-          <div className="relative overflow-hidden rounded-3xl">
+      <div className="grid md:grid-cols-2 md:gap-10 lg:gap-12">
+        {/* Galería: de orilla a orilla en celular */}
+        <div className="md:sticky md:top-24 md:self-start">
+          <div className="relative overflow-hidden md:rounded-3xl">
             <GaleriaProducto producto={producto} />
             <BotonFavorito producto={aTarjeta(producto)} grande className="absolute top-4 right-4" />
           </div>
         </div>
 
         {/* Información y compra */}
-        <div>
-          <div className="flex flex-wrap gap-2">
+        <div className="-mt-5 rounded-t-3xl bg-crema px-4 pt-5 md:mt-0 md:rounded-none md:bg-transparent md:px-0 md:pt-0">
+          {/* Precio primero, como en una app */}
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+            <span className="text-3xl font-extrabold tracking-tight">{precio(producto.precio)}</span>
+            {producto.precioAntes && <span className="text-base text-cafe/70 line-through">{precio(producto.precioAntes)}</span>}
             {off > 0 && <span className="rounded-full bg-rosa px-2.5 py-0.5 text-xs font-bold text-white">-{off}%</span>}
             {producto.nuevo && <span className="rounded-full bg-maiz px-2.5 py-0.5 text-xs font-bold">Nuevo</span>}
-            <span className="rounded-full bg-jade/10 px-2.5 py-0.5 text-xs font-semibold text-jade">100% hecho por quien lo crea</span>
           </div>
 
-          <h1 className="mt-3 font-display text-3xl leading-tight font-semibold tracking-tight sm:text-4xl">{producto.nombre}</h1>
+          <h1 className="mt-2 font-display text-xl leading-snug font-semibold tracking-tight sm:text-3xl">{producto.nombre}</h1>
 
-          <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-cafe">
+          <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-cafe">
             {producto.resenas > 0 ? (
               <span className="flex items-center gap-1">
                 <Star className="size-4 fill-maiz text-maiz" />
-                <strong className="text-tinta">{producto.calificacion.toFixed(1)}</strong> ({producto.resenas} reseñas)
+                <strong className="text-tinta">{producto.calificacion.toFixed(1)}</strong> ({producto.resenas})
               </span>
             ) : (
-              <span>✨ Recién llegado: aún sin reseñas</span>
+              <span>✨ Recién llegado</span>
             )}
-            {producto.vendidos > 0 && <span>{producto.vendidos.toLocaleString("es-MX")} vendidos</span>}
+            {producto.vendidos > 0 && <span>· {producto.vendidos.toLocaleString("es-MX")} vendidos</span>}
+            <span className="text-jade">· 100% hecho a mano</span>
           </div>
 
-          <p className="mt-5 flex items-baseline gap-3">
-            <span className="text-3xl font-bold">{precio(producto.precio)}</span>
-            {producto.precioAntes && <span className="text-lg text-cafe/70 line-through">{precio(producto.precioAntes)}</span>}
-          </p>
+          {/* Creador: fila compacta */}
+          {creador && (
+            <div className="mt-4 flex items-center gap-3 rounded-2xl bg-white p-3 ring-1 ring-arena-oscura/60">
+              <Link href={`/creador/${creador.slug}`} className="flex min-w-0 flex-1 items-center gap-3">
+                <span
+                  className="grid size-11 shrink-0 place-items-center overflow-hidden rounded-full font-display font-bold text-white"
+                  style={{ background: `linear-gradient(135deg, ${creador.colores[0]}, ${creador.colores[1]})` }}
+                >
+                  {creador.foto ? (
+                    // eslint-disable-next-line @next/next/no-img-element -- miniatura ya reducida al subirla
+                    <img src={creador.foto.mini} alt="" className="size-full object-cover" />
+                  ) : (
+                    iniciales
+                  )}
+                </span>
+                <span className="min-w-0">
+                  <span className="flex items-center gap-1 text-sm font-semibold">
+                    <span className="truncate">{creador.taller}</span>
+                    {creador.verificado && <BadgeCheck className="size-4 shrink-0 text-jade" aria-label="Verificado" />}
+                  </span>
+                  <span className="flex items-center gap-1 text-xs text-cafe">
+                    <MapPin className="size-3.5 shrink-0" /> <span className="truncate">{[creador.ciudad, estado?.nombre].filter(Boolean).join(", ")}</span>
+                  </span>
+                </span>
+              </Link>
+              <Link href={`/creador/${creador.slug}`} className="shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold text-terracota ring-1 ring-terracota/40 hover:bg-terracota/10">
+                Ver tienda
+              </Link>
+            </div>
+          )}
 
-          <p className="mt-5 leading-relaxed text-tinta/85">{producto.descripcion}</p>
-
-          <div className="mt-6">
-            <Personalizador producto={producto} />
-          </div>
-
-          {/* Detalles */}
-          <ul className="mt-8 grid gap-3 rounded-2xl bg-arena/60 p-5 text-sm">
-            <li className="flex gap-3">
-              <Clock className="size-5 shrink-0 text-terracota" />
-              <span><strong>Tiempo de elaboración:</strong> {producto.diasElaboracion}</span>
+          {/* Detalles en cuadritos */}
+          <ul className="mt-4 grid grid-cols-2 gap-2 text-xs">
+            <li className="flex items-start gap-2 rounded-2xl bg-arena/60 p-3">
+              <Clock className="size-4 shrink-0 text-terracota" />
+              <span><strong className="block text-tinta">Se hace en</strong>{producto.diasElaboracion}</span>
             </li>
-            <li className="flex gap-3">
-              <Package className="size-5 shrink-0 text-terracota" />
-              <span><strong>Materiales:</strong> {producto.materiales}</span>
+            <li className="flex items-start gap-2 rounded-2xl bg-arena/60 p-3">
+              <Truck className="size-4 shrink-0 text-terracota" />
+              <span><strong className="block text-tinta">Envío</strong>A todo México con rastreo</span>
             </li>
-            <li className="flex gap-3">
-              <Truck className="size-5 shrink-0 text-terracota" />
-              <span><strong>Envío a todo México</strong> con número de guía para rastrear tu paquete.</span>
+            <li className="flex items-start gap-2 rounded-2xl bg-arena/60 p-3">
+              <Package className="size-4 shrink-0 text-terracota" />
+              <span className="min-w-0"><strong className="block text-tinta">Materiales</strong><span className="line-clamp-2">{producto.materiales}</span></span>
             </li>
-            <li className="flex gap-3">
-              <ShieldCheck className="size-5 shrink-0 text-terracota" />
-              <span><strong>Compra protegida:</strong> si tu pedido no llega o no es lo que pediste, te devolvemos tu dinero.</span>
+            <li className="flex items-start gap-2 rounded-2xl bg-arena/60 p-3">
+              <ShieldCheck className="size-4 shrink-0 text-terracota" />
+              <span><strong className="block text-tinta">Compra protegida</strong>Si no llega, te devolvemos</span>
             </li>
           </ul>
 
+          <div className="mt-5">
+            <h2 className="mb-1.5 text-sm font-semibold">Descripción</h2>
+            <p className="text-sm leading-relaxed text-tinta/85">{producto.descripcion}</p>
+          </div>
+
+          <div className="mt-5">
+            <Personalizador producto={producto} />
+          </div>
+
           {/* ¿Lo quiere diferente? Chat con el creador */}
           {creador?.uid && (
-            <BotonEscribir creador={creador} texto="💬 ¿Lo quieres diferente? Escribe al creador" className="mt-4" />
-          )}
-
-          {/* Creador */}
-          {creador && (
-            <Link
-              href={`/creador/${creador.slug}`}
-              className="mt-6 flex items-center gap-4 rounded-2xl bg-white p-4 ring-1 ring-arena-oscura/60 transition hover:shadow-md"
-            >
-              <span
-                className="grid size-14 shrink-0 place-items-center rounded-full font-display text-lg font-bold text-white"
-                style={{ background: `linear-gradient(135deg, ${creador.colores[0]}, ${creador.colores[1]})` }}
-              >
-                {creador.nombre.split(" ").map((p) => p[0]).slice(0, 2).join("")}
-              </span>
-              <span className="min-w-0 flex-1">
-                <span className="flex items-center gap-1 font-semibold">
-                  {creador.taller}
-                  {creador.verificado && <BadgeCheck className="size-4 text-jade" aria-label="Verificado" />}
-                </span>
-                <span className="flex items-center gap-1 text-xs text-cafe">
-                  <MapPin className="size-3.5" /> {creador.ciudad}, {estado?.nombre}
-                </span>
-                <span className="mt-1 line-clamp-1 text-sm text-tinta/75">{creador.historia}</span>
-              </span>
-              <ChevronRight className="size-5 shrink-0 text-cafe" />
-            </Link>
+            <BotonEscribir creador={creador} texto="¿Lo quieres diferente? Escribe al creador" className="mt-4" />
           )}
         </div>
       </div>
 
       {delCreador.length > 0 && (
-        <Seccion titulo={`Más de ${creador?.taller}`} verTodo={`/creador/${producto.creador}`}>
-          <Carrusel>
-            {delCreador.map((p) => (
-              <TarjetaProducto key={p.slug} producto={p} />
-            ))}
-          </Carrusel>
-        </Seccion>
+        <Fila titulo={`Más de ${creador?.taller}`} verTodo={`/creador/${producto.creador}`}>
+          {delCreador.map((p) => (
+            <TarjetaProducto key={p.slug} producto={p} />
+          ))}
+        </Fila>
       )}
 
       {parecidos.length > 0 && (
-        <Seccion titulo="También te puede gustar" verTodo={`/categoria/${producto.categoria}`}>
-          <Carrusel>
-            {parecidos.map((p) => (
-              <TarjetaProducto key={p.slug} producto={p} />
-            ))}
-          </Carrusel>
-        </Seccion>
+        <Fila titulo="También te puede gustar" verTodo={`/categoria/${producto.categoria}`}>
+          {parecidos.map((p) => (
+            <TarjetaProducto key={p.slug} producto={p} />
+          ))}
+        </Fila>
       )}
     </div>
   );
