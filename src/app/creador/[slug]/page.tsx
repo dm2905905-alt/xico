@@ -57,7 +57,7 @@ export default async function PaginaCreador({ params }: PageProps<"/creador/[slu
           {creador.top && (
             <span className="rounded-full bg-maiz/20 px-3 py-1 font-semibold text-terracota-oscura">⭐ Top vendedor</span>
           )}
-          <span className="rounded-full bg-white px-3 py-1 ring-1 ring-arena-oscura">100% hecho por el artista</span>
+          <span className="rounded-full bg-white px-3 py-1 ring-1 ring-arena-oscura">100% hecho por quien lo crea</span>
         </div>
 
         <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_320px]">

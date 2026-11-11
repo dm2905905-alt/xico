@@ -18,7 +18,7 @@ const motivos = [
   "Otro motivo",
 ];
 
-// Moderación: ocultar productos que no cumplen la regla "100% hecho por el artista"
+// Moderación: ocultar productos que no cumplen la regla "100% hecho por quien lo crea"
 export function TabProductos({ datos }: { datos: DatosAdmin }) {
   const [q, setQ] = useState("");
   const [soloOcultos, setSoloOcultos] = useState(false);

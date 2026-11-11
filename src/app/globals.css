@@ -1,20 +1,31 @@
 @import "tailwindcss";
 
-/* Paleta XICO: cálida, artesanal, mexicana */
+/* Paleta XICO: creativa, vibrante y luminosa (blanco, morado y rosa).
+   Los nombres de los colores se conservan de la primera versión para no tocar cada pantalla;
+   lo que importa es su valor:
+     crema        → blanco de fondo
+     arena        → lila muy claro (fondos suaves)
+     arena-oscura → lila para bordes
+     tinta        → morado casi negro (texto)
+     cafe         → morado grisáceo (texto secundario)
+     terracota    → MORADO principal (botones, enlaces)
+     rosa         → ROSA intenso (ofertas, acentos)
+     maiz         → amarillo sol (destellos)
+     jade         → turquesa (confirmaciones, verificado) */
 @theme {
-  --color-crema: #fbf6ef;
-  --color-arena: #f1e7d9;
-  --color-arena-oscura: #e2d3bf;
-  --color-tinta: #2b1d14;
-  --color-cafe: #6f5442;
-  --color-terracota: #c4511f;
-  --color-terracota-oscura: #9e3d14;
-  --color-rosa: #d6246e;
-  --color-maiz: #e9a824;
-  --color-jade: #2f7d6b;
+  --color-crema: #ffffff;
+  --color-arena: #f6f0ff;
+  --color-arena-oscura: #e6d9ff;
+  --color-tinta: #1d0b36;
+  --color-cafe: #6b5a86;
+  --color-terracota: #7c2df0;
+  --color-terracota-oscura: #5f17c9;
+  --color-rosa: #ff2d87;
+  --color-maiz: #ffc634;
+  --color-jade: #0fb5a6;
 
   --font-sans: var(--font-geist-sans);
-  --font-display: var(--font-fraunces);
+  --font-display: var(--font-bricolage);
 }
 
 html {
@@ -26,12 +37,25 @@ body {
   color: var(--color-tinta);
 }
 
-/* Patrón sutil tipo papel picado para fondos de imagen pendiente */
+/* Degradado de marca: rosa → fucsia → morado */
+.degradado-xico {
+  background-image: linear-gradient(120deg, #ff2d87 0%, #d63af0 45%, #7c2df0 100%);
+}
+
+/* Texto con el degradado de marca */
+.texto-degradado {
+  background-image: linear-gradient(100deg, #ff2d87, #b23cf0 55%, #7c2df0);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Confeti de puntos sutil sobre fondos de color */
 .patron-picado {
   background-image:
-    radial-gradient(circle at 25% 25%, rgb(255 255 255 / 0.18) 2px, transparent 2.5px),
-    radial-gradient(circle at 75% 75%, rgb(255 255 255 / 0.12) 2px, transparent 2.5px);
-  background-size: 22px 22px;
+    radial-gradient(circle at 25% 25%, rgb(255 255 255 / 0.22) 2px, transparent 2.5px),
+    radial-gradient(circle at 75% 75%, rgb(255 255 255 / 0.14) 1.5px, transparent 2px);
+  background-size: 24px 24px;
 }
 
 /* Barra de desplazamiento horizontal oculta en carruseles */

@@ -16,7 +16,7 @@ export function generateStaticParams() {
 export async function generateMetadata({ params }: PageProps<"/estado/[slug]">): Promise<Metadata> {
   const estado = estadoPorSlug((await params).slug);
   return estado
-    ? { title: `Hecho a mano en ${estado.nombre}`, description: `${estado.especialidad} y más, directo de artesanos de ${estado.nombre}.` }
+    ? { title: `Hecho a mano en ${estado.nombre}`, description: `${estado.especialidad} y más, directo de creadores de ${estado.nombre}.` }
     : {};
 }
 

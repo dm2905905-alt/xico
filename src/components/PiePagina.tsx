@@ -9,7 +9,7 @@ export function PiePagina() {
         <div className="lg:col-span-2">
           <Logo claro />
           <p className="mt-4 max-w-sm text-sm leading-relaxed">
-            El marketplace de creadores, artesanos y emprendedores mexicanos. Cada pieza está hecha a mano por quien la
+            El marketplace de la gente creativa de México: diseñadores, ilustradores, artesanos y emprendedores. Cada pieza está hecha a mano por quien la
             vende, sin reventa ni importados.
           </p>
         </div>

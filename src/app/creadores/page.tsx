@@ -3,8 +3,8 @@ import { TarjetaCreador } from "@/components/TarjetaCreador";
 import { obtenerCatalogo } from "@/lib/catalogo";
 
 export const metadata: Metadata = {
-  title: "Creadores y artesanos",
-  description: "Conoce a los creadores y artesanos mexicanos que venden en XICO.",
+  title: "Creadores",
+  description: "Conoce a la gente creativa que hace a mano lo que vende en XICO.",
 };
 
 export default async function Creadores() {

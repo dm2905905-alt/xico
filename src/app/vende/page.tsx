@@ -22,7 +22,7 @@ const beneficios = [
 export default function Vende() {
   return (
     <>
-      <section className="relative overflow-hidden bg-terracota text-crema">
+      <section className="degradado-xico relative overflow-hidden text-white">
         <div className="patron-picado absolute inset-0 opacity-50" aria-hidden />
         <div className="relative mx-auto max-w-4xl px-4 py-16 text-center sm:py-24">
           <h1 className="font-display text-4xl leading-tight font-semibold tracking-tight text-balance sm:text-6xl">

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Fraunces, Geist } from "next/font/google";
+import { Bricolage_Grotesque, Geist } from "next/font/google";
 import { Encabezado } from "@/components/Encabezado";
 import { PiePagina } from "@/components/PiePagina";
 import { ProveedorSesion } from "@/components/Sesion";
@@ -11,13 +11,13 @@ const geistSans = Geist({
   subsets: ["latin"],
 });
 
-const fraunces = Fraunces({
-  variable: "--font-fraunces",
+const bricolage = Bricolage_Grotesque({
+  variable: "--font-bricolage",
   subsets: ["latin"],
 });
 
 const descripcion =
-  "Compra directo a creadores y artesanos mexicanos: fundas pintadas, ropa intervenida, cuadros, joyería, velas y regalos personalizados. 100% hecho por el artista.";
+  "Cosas únicas hechas a mano por creadores mexicanos: fundas pintadas, ropa intervenida, arte, joyería, velas y regalos personalizados. 100% hecho por quien lo crea.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(urlSitio()),
@@ -39,7 +39,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="es-MX" data-scroll-behavior="smooth" className={`${geistSans.variable} ${fraunces.variable} h-full antialiased`}>
+    <html lang="es-MX" data-scroll-behavior="smooth" className={`${geistSans.variable} ${bricolage.variable} h-full antialiased`}>
       <body className="flex min-h-full flex-col font-sans">
         <ProveedorSesion>
           <Encabezado />

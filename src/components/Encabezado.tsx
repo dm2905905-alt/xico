@@ -11,7 +11,7 @@ export function Encabezado() {
     <header className="sticky top-0 z-40 border-b border-arena-oscura/70 bg-crema/95 backdrop-blur">
       {/* Franja superior */}
       <div className="bg-tinta px-4 py-1.5 text-center text-xs text-crema/90">
-        Envíos a todo México · <span className="font-semibold text-maiz">100% hecho por el artista</span>
+        Envíos a todo México · <span className="font-semibold text-maiz">100% hecho por quien lo crea</span>
       </div>
 
       {/* Fila principal */}

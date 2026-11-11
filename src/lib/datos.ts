@@ -107,19 +107,19 @@ export const categorias: Categoria[] = [
   { slug: "joyeria", nombre: "Joyería" },
   { slug: "velas", nombre: "Velas y aromas" },
   { slug: "regalos", nombre: "Regalos personalizados" },
-  { slug: "artesania", nombre: "Artesanía tradicional" },
+  { slug: "artesania", nombre: "Artesanía" },
   { slug: "decoracion", nombre: "Decoración" },
 ];
 
 export const estados: Estado[] = [
-  { slug: "oaxaca", nombre: "Oaxaca", especialidad: "Barro negro y textiles", colores: ["#3b2a20", "#8a5a3c"] },
-  { slug: "michoacan", nombre: "Michoacán", especialidad: "Cobre y laca", colores: ["#b4532a", "#e08a3c"] },
-  { slug: "jalisco", nombre: "Jalisco", especialidad: "Vidrio soplado y piteado", colores: ["#1f5f73", "#3fa3a8"] },
-  { slug: "puebla", nombre: "Puebla", especialidad: "Talavera", colores: ["#1e3a8a", "#4f7cd6"] },
-  { slug: "chiapas", nombre: "Chiapas", especialidad: "Bordados y ámbar", colores: ["#7c2d5b", "#c2417f"] },
-  { slug: "yucatan", nombre: "Yucatán", especialidad: "Hamacas y henequén", colores: ["#2f7d6b", "#6bb39a"] },
-  { slug: "guanajuato", nombre: "Guanajuato", especialidad: "Cerámica mayólica", colores: ["#a33a3a", "#d9705b"] },
-  { slug: "cdmx", nombre: "Ciudad de México", especialidad: "Arte urbano y diseño", colores: ["#4a2c6b", "#8b5cc6"] },
+  { slug: "oaxaca", nombre: "Oaxaca", especialidad: "Textiles, barro y color", colores: ["#ff2d87", "#ff8a3d"] },
+  { slug: "michoacan", nombre: "Michoacán", especialidad: "Cobre, laca y diseño", colores: ["#7c2df0", "#ff2d87"] },
+  { slug: "jalisco", nombre: "Jalisco", especialidad: "Vidrio, moda y decoración", colores: ["#0fb5a6", "#7c2df0"] },
+  { slug: "puebla", nombre: "Puebla", especialidad: "Talavera y regalos", colores: ["#3b5bff", "#b23cf0"] },
+  { slug: "chiapas", nombre: "Chiapas", especialidad: "Bordados y joyería", colores: ["#d63af0", "#ffc634"] },
+  { slug: "yucatan", nombre: "Yucatán", especialidad: "Hamacas y accesorios", colores: ["#0fb5a6", "#ffc634"] },
+  { slug: "guanajuato", nombre: "Guanajuato", especialidad: "Cerámica e ilustración", colores: ["#ff5c5c", "#d63af0"] },
+  { slug: "cdmx", nombre: "Ciudad de México", especialidad: "Arte urbano y diseño", colores: ["#1d0b36", "#7c2df0"] },
 ];
 
 // Colores que el comprador puede elegir en la personalización

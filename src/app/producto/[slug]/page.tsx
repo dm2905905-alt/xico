@@ -70,7 +70,7 @@ export default async function PaginaProducto({ params }: PageProps<"/producto/[s
           <div className="flex flex-wrap gap-2">
             {off > 0 && <span className="rounded-full bg-rosa px-2.5 py-0.5 text-xs font-bold text-white">-{off}%</span>}
             {producto.nuevo && <span className="rounded-full bg-maiz px-2.5 py-0.5 text-xs font-bold">Nuevo</span>}
-            <span className="rounded-full bg-jade/10 px-2.5 py-0.5 text-xs font-semibold text-jade">100% hecho por el artista</span>
+            <span className="rounded-full bg-jade/10 px-2.5 py-0.5 text-xs font-semibold text-jade">100% hecho por quien lo crea</span>
           </div>
 
           <h1 className="mt-3 font-display text-3xl leading-tight font-semibold tracking-tight sm:text-4xl">{producto.nombre}</h1>

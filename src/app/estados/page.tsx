@@ -6,7 +6,7 @@ import { estados } from "@/lib/datos";
 
 export const metadata: Metadata = {
   title: "Explora México: compra por estado",
-  description: "Descubre artesanía y productos hechos a mano de cada estado de México.",
+  description: "Descubre productos hechos a mano por creadores de cada estado de México.",
 };
 
 export default async function Estados() {

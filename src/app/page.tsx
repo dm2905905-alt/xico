@@ -16,28 +16,31 @@ export default async function Inicio() {
   return (
     <>
       {/* Portada */}
-      <section className="relative overflow-hidden bg-arena">
-        <div className="patron-picado absolute inset-0 opacity-60" aria-hidden />
+      <section className="degradado-xico relative overflow-hidden text-white">
+        <div className="patron-picado absolute inset-0 opacity-70" aria-hidden />
+        {/* Destellos de color */}
+        <div className="absolute -top-24 -left-20 size-72 rounded-full bg-maiz/30 blur-3xl" aria-hidden />
+        <div className="absolute -right-16 -bottom-28 size-80 rounded-full bg-white/20 blur-3xl" aria-hidden />
         <div className="relative mx-auto grid max-w-7xl items-center gap-10 px-4 py-14 lg:grid-cols-[1.1fr_1fr] lg:py-20">
           <div>
-            <p className="mb-4 inline-flex items-center gap-2 rounded-full bg-white/80 px-3 py-1 text-xs font-semibold text-terracota">
-              <Sparkles className="size-3.5" /> 100% hecho por el artista
+            <p className="mb-4 inline-flex items-center gap-2 rounded-full bg-white/20 px-3 py-1 text-xs font-semibold backdrop-blur">
+              <Sparkles className="size-3.5 text-maiz" /> 100% hecho por quien lo crea
             </p>
-            <h1 className="font-display text-4xl leading-[1.05] font-semibold tracking-tight text-balance sm:text-5xl lg:text-6xl">
-              Lo hecho a mano en México, <span className="text-terracota italic">directo de quien lo crea</span>
+            <h1 className="font-display text-4xl leading-[1.02] font-extrabold tracking-tight text-balance sm:text-5xl lg:text-6xl">
+              Cosas únicas, hechas a mano por <span className="text-maiz">gente creativa</span> de todo México
             </h1>
-            <p className="mt-5 max-w-xl text-lg text-cafe">
-              Fundas pintadas, ropa intervenida, cuadros, joyería y regalos personalizados de artesanos de todo el país.
+            <p className="mt-5 max-w-xl text-lg text-white/90">
+              Fundas pintadas, ropa intervenida, arte, joyería, velas y regalos personalizados. Si alguien lo crea, aquí lo encuentras.
             </p>
-            <div className="mt-8 max-w-xl">
+            <div className="mt-8 max-w-xl text-tinta">
               <Buscador grande />
               <div className="mt-3 flex flex-wrap items-center gap-2 text-sm">
-                <span className="text-cafe">Populares:</span>
+                <span className="text-white/85">Populares:</span>
                 {busquedasPopulares.map((b) => (
                   <Link
                     key={b}
                     href={`/buscar?q=${encodeURIComponent(b)}`}
-                    className="rounded-full bg-white/70 px-3 py-1 text-tinta ring-1 ring-arena-oscura hover:bg-white"
+                    className="rounded-full bg-white/20 px-3 py-1 text-white ring-1 ring-white/30 backdrop-blur transition hover:bg-white hover:text-terracota"
                   >
                     {b}
                   </Link>
@@ -46,15 +49,19 @@ export default async function Inicio() {
             </div>
           </div>
 
-          {/* Collage tipo mosaico */}
-          <div className="hidden grid-cols-3 gap-3 lg:grid" aria-hidden>
+          {/* Collage juguetón: tarjetas blancas ligeramente inclinadas */}
+          <div className="hidden grid-cols-3 gap-4 lg:grid" aria-hidden>
             {productos.slice(0, 6).map((p, i) => (
               <div
                 key={p.slug}
-                className={`patron-picado grid place-items-center rounded-2xl shadow-sm ${i % 2 ? "mt-8 h-44" : "h-52"}`}
-                style={{ background: `linear-gradient(135deg, ${p.colores[0]}, ${p.colores[1]})` }}
+                className={`rounded-3xl bg-white p-2 shadow-xl shadow-tinta/20 ${i % 2 ? "mt-10 rotate-3" : "-rotate-2"}`}
               >
-                <IconoCategoria slug={p.categoria} className="size-12 text-white/85" strokeWidth={1.25} />
+                <div
+                  className={`patron-picado grid place-items-center rounded-2xl ${i % 2 ? "h-40" : "h-48"}`}
+                  style={{ background: `linear-gradient(135deg, ${p.colores[0]}, ${p.colores[1]})` }}
+                >
+                  <IconoCategoria slug={p.categoria} className="size-12 text-white/90" strokeWidth={1.25} />
+                </div>
               </div>
             ))}
           </div>
@@ -207,7 +214,7 @@ export default async function Inicio() {
 
       {/* Llamado a creadores */}
       <section className="mx-auto mt-16 max-w-7xl px-4">
-        <div className="relative overflow-hidden rounded-3xl bg-terracota px-6 py-12 text-center text-crema sm:px-12">
+        <div className="degradado-xico relative overflow-hidden rounded-3xl px-6 py-12 text-center text-white sm:px-12">
           <div className="patron-picado absolute inset-0 opacity-50" aria-hidden />
           <div className="relative mx-auto max-w-2xl">
             <h2 className="font-display text-3xl font-semibold sm:text-4xl">¿Haces cosas increíbles con tus manos?</h2>

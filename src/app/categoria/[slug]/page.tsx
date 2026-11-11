@@ -15,7 +15,7 @@ export function generateStaticParams() {
 export async function generateMetadata({ params }: PageProps<"/categoria/[slug]">): Promise<Metadata> {
   const cat = categoriaPorSlug((await params).slug);
   return cat
-    ? { title: `${cat.nombre} hechos a mano`, description: `${cat.nombre} hechos por artesanos y creadores mexicanos.` }
+    ? { title: `${cat.nombre} hechos a mano`, description: `${cat.nombre} hechos a mano por creadores mexicanos.` }
     : {};
 }
 
