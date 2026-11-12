@@ -20,7 +20,7 @@ export async function Catalogo({
 
   return (
     <div className="grid grid-cols-[minmax(0,1fr)] gap-4 lg:grid-cols-[240px_minmax(0,1fr)] lg:gap-8">
-      <aside className="lg:sticky lg:top-24 lg:self-start">
+      <aside className="lg:sticky lg:top-24 lg:self-start lg:rounded-3xl lg:bg-white lg:p-4 lg:ring-1 lg:ring-arena-oscura">
         <PanelFiltros valores={filtros} ruta={ruta} fijos={fijos} />
       </aside>
 

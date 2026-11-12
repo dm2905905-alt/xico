@@ -56,7 +56,7 @@ export default function Vende() {
       </section>
 
       <section className="mx-auto mt-8 max-w-3xl px-4 sm:mt-14">
-        <ul className="grid gap-3">
+        <ul className="grid gap-3 rounded-3xl bg-white p-5 ring-1 ring-arena-oscura">
           {beneficios.map((b) => (
             <li key={b.texto} className="flex items-start gap-3 rounded-2xl bg-arena/60 p-4">
               <b.icono className="size-6 shrink-0 text-jade" />
@@ -64,7 +64,7 @@ export default function Vende() {
             </li>
           ))}
         </ul>
-        <p className="mt-8 rounded-2xl border-2 border-dashed border-terracota/40 p-5 text-center text-sm text-cafe">
+        <p className="mt-8 rounded-2xl border-2 border-dashed border-terracota/40 bg-papel p-5 text-center text-sm text-cafe">
           <strong className="text-tinta">Regla de oro:</strong> en XICO solo se vende lo que tú haces. Los productos importados o
           de reventa se retiran de la tienda.
         </p>

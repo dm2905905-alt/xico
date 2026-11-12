@@ -35,7 +35,8 @@ export default function Ayuda() {
     { p: "¿Cómo puedo pagar?", r: "Con Mercado Pago: tarjeta de crédito o débito, OXXO, saldo de Mercado Pago y otros medios. XICO nunca ve los datos de tu tarjeta." },
     { p: "Pagué en OXXO, ¿cuándo se confirma?", r: "Cuando Mercado Pago recibe el pago. Puedes revisar el estado en Mi cuenta → Mis pedidos." },
     { p: "¿Por qué me llegan varios paquetes?", r: "Cada creador hace y envía sus piezas desde su taller. Si compraste a varios, recibirás un paquete de cada uno." },
-    { p: "¿Cómo rastreo mi pedido?", r: "En Mi cuenta → Mis pedidos, abre tu pedido. Cuando el creador lo envíe verás la paquetería, el número de guía y el botón “Rastrear paquete”." },
+    { p: "¿Cuánto cuesta el envío?", r: "Al pagar escribes tu código postal y ves el precio real de varias paqueterías, con los días de entrega. Tú eliges la que prefieras." },
+    { p: "¿Cómo rastreo mi pedido?", r: "En Mi cuenta → Mis pedidos, abre tu pedido. Verás la paquetería, el número de guía y el botón “Rastrear”; el estado se actualiza solo." },
     { p: "¿Cuánto tarda?", r: "El tiempo de elaboración (lo dice cada producto) más el envío, normalmente de 2 a 7 días hábiles según tu zona." },
     {
       p: "Mi pedido llegó mal o no llegó",
@@ -55,8 +56,27 @@ export default function Ayuda() {
     { p: "¿Qué pasa si no pago la mensualidad?", r: `Tienes ${n.diasTolerancia} días de tolerancia. Si no pagas, tu tienda se pausa: tus productos dejan de mostrarse, pero no se borra nada. En cuanto pagas, vuelve a aparecer.` },
     { p: "¿Cómo abro mi tienda?", r: "Entra a Vende en XICO y llena la solicitud: los datos de tu tienda, tu CLABE para cobrar y tu dirección. La revisamos y, al aprobarla, tus productos aparecen en XICO." },
     { p: "¿Cómo subo un producto?", r: "Entra a Mi tienda → Nuevo producto. Puedes usar el asistente con IA: le cuentas tu producto y te propone título, descripción y un precio justo." },
-    { p: "¿Cómo y cuándo me pagan?", r: "Recibes el precio de tus productos menos la comisión, más el envío cobrado por tu paquete. Cada semana te transferimos a tu CLABE lo de tus pedidos ya entregados. Puedes cambiar tu cuenta en Mi tienda → Cobros." },
-    { p: "¿Cómo envío un pedido?", r: "En Mi tienda → Pedidos abre el pedido, empaca con cuidado, envíalo y registra la paquetería y el número de guía. El cliente podrá rastrearlo." },
+    { p: "¿Cómo y cuándo me pagan?", r: "Recibes el precio de tus productos menos la comisión. El envío lo paga el cliente y XICO compra la guía. Cada semana te transferimos a tu CLABE lo de tus pedidos ya entregados. Puedes cambiar tu cuenta en Mi tienda → Cobros." },
+    { p: "¿Cómo envío un pedido?", r: "Cuando te pagan un pedido, XICO genera la guía. Abre el pedido en Mi tienda, descarga la guía, empaca bien, pega la guía en la caja y llévala a la paquetería. Luego presiona “Ya lo entregué a la paquetería”." },
+    {
+      p: "¿Qué no puedo enviar?",
+      r: (
+        <>
+          Alimentos, plantas, animales, líquidos peligrosos o inflamables, aerosoles, medicamentos, armas y vapes, entre otros. Los
+          frágiles, la joyería y el arte sí se envían, pero sin seguro. Lista completa en las <Link href="/envios">Reglas de envío y empaque</Link>.
+        </>
+      ),
+    },
+    {
+      p: "¿Qué pasa si un pedido llega roto?",
+      r: (
+        <>
+          Si llegó dañado por un empaque inadecuado, el reembolso al cliente se descuenta de tu pago. Por eso es muy importante empacar
+          bien: caja rígida, relleno por todos lados y doble caja para lo frágil. Te recomendamos tomar una foto del paquete antes de
+          cerrarlo. Consejos en las <Link href="/envios">Reglas de envío y empaque</Link>.
+        </>
+      ),
+    },
     { p: "¿Cómo obtengo la insignia de Artista verificado?", r: `El equipo de ${n.marca} revisa tu tienda y tu trabajo. Completa tu perfil e historia y sube productos con buenas descripciones.` },
   ];
 

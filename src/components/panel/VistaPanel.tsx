@@ -135,6 +135,22 @@ function Tablero({ creador }: { creador: Creador }) {
         </Link>
       )}
 
+      {/* Recordatorio de empaque */}
+      {creador.estadoTienda !== "revision" && (
+        <Link href="/envios" className="flex items-start gap-3 rounded-3xl bg-white p-4 text-sm ring-1 ring-arena-oscura hover:ring-terracota">
+          <span className="text-2xl" aria-hidden>
+            📦
+          </span>
+          <span>
+            <span className="block font-semibold">Empaca bien: tú respondes si llega dañado</span>
+            <span className="block text-cafe">
+              Si un pedido llega roto por mal empaque, el reembolso se descuenta de tu pago. Revisa qué no se puede enviar y cómo empacar.{" "}
+              <span className="font-semibold text-terracota">Ver reglas de envío →</span>
+            </span>
+          </span>
+        </Link>
+      )}
+
       {/* Números */}
       <div className="grid grid-cols-4 gap-2">
         {[

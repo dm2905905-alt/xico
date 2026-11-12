@@ -61,6 +61,7 @@ export function PiePagina() {
           <ul className="grid gap-2 text-sm">
             <li><Link href="/vende" className="hover:text-maiz">Vende en XICO</Link></li>
             <li><Link href="/ayuda" className="hover:text-maiz">Centro de ayuda</Link></li>
+            <li><Link href="/envios" className="hover:text-maiz">Reglas de envío</Link></li>
             <li><Link href="/terminos" className="hover:text-maiz">Términos y condiciones</Link></li>
             <li><Link href="/privacidad" className="hover:text-maiz">Aviso de privacidad</Link></li>
           </ul>

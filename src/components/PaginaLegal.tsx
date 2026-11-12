@@ -4,7 +4,7 @@ import { negocio, pendiente } from "@/lib/negocio";
 export function PaginaLegal({ titulo, subtitulo, children }: { titulo: string; subtitulo?: string; children: React.ReactNode }) {
   const faltan = Object.values(negocio).some((v) => typeof v === "string" && pendiente(v));
   return (
-    <article className="mx-auto max-w-3xl px-4 py-6 sm:py-10">
+    <article className="mx-auto my-4 max-w-3xl rounded-3xl bg-white px-5 py-6 ring-1 ring-arena-oscura sm:my-8 sm:px-10 sm:py-10">
       <h1 className="font-display text-3xl font-bold tracking-tight sm:text-4xl">{titulo}</h1>
       {subtitulo && <p className="mt-2 text-cafe">{subtitulo}</p>}
       <p className="mt-2 text-sm text-cafe">Última actualización: {negocio.actualizado}</p>

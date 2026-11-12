@@ -121,7 +121,14 @@ export function EnvioPaquete({ pedido, grupo, rol }: { pedido: Pedido; grupo: Gr
                 <p className="font-semibold">Tu guía está lista</p>
                 <ol className="list-decimal pl-5 text-xs text-cafe">
                   <li>Descarga e imprime la guía.</li>
-                  <li>Pégala en la caja bien empacada.</li>
+                  <li>
+                    Empaca bien: caja rígida, relleno por todos lados y doble caja si es frágil. Si llega dañado por mal empaque, el reembolso se
+                    descuenta de tu pago.{" "}
+                    <a href="/envios" target="_blank" className="font-semibold text-terracota underline">
+                      Cómo empacar
+                    </a>
+                  </li>
+                  <li>Toma una foto del paquete antes de cerrarlo y pega la guía.</li>
                   <li>Llévala a una sucursal de {grupo.envia.descripcion.split(" · ")[0]} (o espera la recolección si la programaste).</li>
                 </ol>
                 <div className="flex flex-wrap gap-2">

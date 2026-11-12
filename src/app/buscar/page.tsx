@@ -38,7 +38,7 @@ async function Resultados({ searchParams }: { searchParams: PageProps<"/buscar">
         <ul className="mb-4 grid grid-cols-4 gap-2 sm:grid-cols-5 lg:grid-cols-10">
           {categorias.map((c) => (
             <li key={c.slug}>
-              <Link href={`/categoria/${c.slug}`} className="flex flex-col items-center gap-1.5 rounded-2xl p-1.5 text-center text-[11px] leading-tight font-medium hover:bg-arena sm:text-xs">
+              <Link href={`/categoria/${c.slug}`} className="flex h-full flex-col items-center gap-1.5 rounded-2xl bg-papel/90 p-1.5 text-center text-[11px] leading-tight font-medium hover:bg-arena sm:text-xs">
                 <span className="grid size-14 place-items-center rounded-2xl bg-white ring-1 ring-arena-oscura">
                   <IconoCategoria slug={c.slug} className="size-6 text-terracota" strokeWidth={1.6} />
                 </span>

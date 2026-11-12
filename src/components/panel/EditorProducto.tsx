@@ -257,6 +257,13 @@ function Formulario({ creador, existente }: { creador: Creador; existente?: Prod
           <p className="mt-1 mb-4 text-sm text-cafe">
             Peso y medidas <strong>ya empacado</strong>. Con esto se calculará el costo real del envío a cada parte de México.
           </p>
+          <p className="-mt-2 mb-4 rounded-xl bg-maiz/20 px-3 py-2 text-xs">
+            ⚠️ Pon el peso y las medidas reales: si el paquete pesa o mide más, la paquetería cobra la diferencia y se descuenta de tu pago.
+            Recuerda que no se pueden enviar alimentos, plantas, líquidos peligrosos ni aerosoles.{" "}
+            <Link href="/envios" target="_blank" className="font-semibold text-terracota underline">
+              Ver reglas de envío
+            </Link>
+          </p>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             {(
               [

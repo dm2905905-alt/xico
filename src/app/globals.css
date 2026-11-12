@@ -176,8 +176,8 @@ textarea {
 
 /* Textos que van directo sobre el dibujo: etiqueta de papel (como un sticker) para que se lean.
    Dentro de tarjetas casi no se nota, porque la etiqueta es del mismo color que el papel. */
-main :is(h1, h2):not([class*="text-white"], [class*="text-crema"], .sr-only),
-main h1 + p,
+main :is(h1, h2):not([class*="text-white"], [class*="text-crema"], .sr-only, [class*="text-white"] *, [class*="text-crema"] *, .degradado-xico *, .patron-picado *),
+main h1:not([class*="text-white"] *, [class*="text-crema"] *, .degradado-xico *, .patron-picado *) + p,
 main a[class*="rounded-full"][class*="text-terracota"][class*="hover:bg-terracota"] {
   width: fit-content;
   max-width: 100%;

@@ -96,7 +96,11 @@ export function SolicitudVendedor({ uid }: { uid: string }) {
               <Link href="/privacidad" target="_blank" className="font-semibold text-terracota underline">
                 Aviso de privacidad
               </Link>{" "}
-              y autorizo que XICO use mis datos bancarios para pagarme mis ventas.
+              y autorizo que XICO use mis datos bancarios para pagarme mis ventas. Me comprometo a respetar las{" "}
+              <Link href="/envios" target="_blank" className="font-semibold text-terracota underline">
+                Reglas de envío
+              </Link>{" "}
+              y a empacar bien: si un pedido llega dañado por mal empaque, el reembolso se descuenta de mi pago.
             </span>
           </label>
 

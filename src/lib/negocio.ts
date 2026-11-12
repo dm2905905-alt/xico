@@ -18,7 +18,7 @@ export const negocio = {
   mesesGratis: 3,
   diasTolerancia: 7,
   diasParaReportar: 7, // días después de recibir el pedido para reportar un problema
-  actualizado: "11 de noviembre de 2026",
+  actualizado: "12 de noviembre de 2026",
 };
 
 export const pendiente = (texto: string) => texto.startsWith("[Pendiente");

@@ -55,8 +55,11 @@ export default function Terminos() {
 
       <h2>5. Envíos</h2>
       <ul>
-        <li>Enviamos a todo México con paqueterías externas. En algunas zonas puede haber un costo adicional o más días de entrega.</li>
-        <li>Cuando tu paquete salga, verás la paquetería y el número de guía en tu pedido para rastrearlo.</li>
+        <li>
+          Enviamos a todo México con paqueterías externas a través de Envia.com. Al pagar ves el <strong>costo real del envío</strong> según tu código
+          postal y eliges la paquetería; cada tienda envía su propio paquete.
+        </li>
+        <li>Cuando tu paquete salga, verás la paquetería y el número de guía en tu pedido para rastrearlo; el rastreo se actualiza solo.</li>
         <li>Verifica que tu dirección y teléfono estén correctos; un dato equivocado puede retrasar o impedir la entrega.</li>
       </ul>
 
@@ -113,9 +116,12 @@ export default function Terminos() {
         </li>
         <li>
           Además, {n.marca} cobra una <strong>comisión del {n.comision}</strong> sobre el precio de tus productos vendidos. Recibes el precio de
-          tus productos menos la comisión, más el costo de envío cobrado al cliente para tu paquete.
+          tus productos menos la comisión. El envío lo paga el cliente y con ese dinero {n.marca} compra la guía de tu paquete.
         </li>
-        <li>Debes elaborar y enviar los pedidos en el tiempo indicado y registrar la guía de envío en tu panel.</li>
+        <li>
+          Debes elaborar y enviar los pedidos en el tiempo indicado. Cuando se paga un pedido, {n.marca} genera la guía: la descargas
+          en tu panel, la pegas en la caja y entregas el paquete a la paquetería.
+        </li>
         <li>
           Los pagos a creadores se hacen <strong>cada semana por transferencia</strong> a la CLABE que registraste, e incluyen los
           pedidos que ya fueron <strong>entregados</strong>. Los pedidos en camino se pagan en el corte siguiente a su entrega. Si hay
@@ -129,6 +135,31 @@ export default function Terminos() {
         <li>
           {n.marca} puede ocultar productos o suspender tiendas que incumplan estas reglas. La insignia &quot;Artista verificado&quot; la
           otorga el equipo de {n.marca} después de revisar tu trabajo.
+        </li>
+      </ul>
+
+      <h3>Envíos y empaque</h3>
+      <ul>
+        <li>
+          No puedes vender ni enviar artículos que las paqueterías prohíben (alimentos, plantas, animales, líquidos peligrosos o
+          inflamables, aerosoles, medicamentos, armas, vapes, entre otros). Consulta la lista completa en las{" "}
+          <Link href="/envios">Reglas de envío y empaque</Link>.
+        </li>
+        <li>
+          <strong>Eres responsable de empacar correctamente tus productos.</strong> Si un pedido llega roto, dañado o incompleto por un
+          empaque inadecuado, el reembolso o reemplazo al cliente corre por tu cuenta y se descuenta de tus pagos.
+        </li>
+        <li>
+          Los artículos frágiles (vidrio, cerámica, barro), la joyería, el arte y los líquidos permitidos viajan sin seguro de la
+          paquetería: empácalos con protección extra.
+        </li>
+        <li>
+          Debes registrar el peso y las medidas reales de tus productos empacados. Si la paquetería cobra una diferencia porque el paquete
+          pesa o mide más de lo registrado, se descontará de tus pagos.
+        </li>
+        <li>
+          Si envías un artículo prohibido, la paquetería puede retenerlo o destruirlo; los costos y el reembolso al cliente corren por tu
+          cuenta, y {n.marca} puede suspender tu tienda.
         </li>
       </ul>
 
