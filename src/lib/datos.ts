@@ -53,6 +53,7 @@ export type Creador = {
   resenas: number;
   verificado: boolean;
   top: boolean;
+  destacado?: boolean; // la administración lo eligió como "Creador destacado" del inicio
   colores: [string, string];
   uid?: string; // cuenta dueña de la tienda (los creadores de ejemplo no tienen)
   foto?: Foto; // foto de perfil

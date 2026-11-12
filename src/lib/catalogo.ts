@@ -60,7 +60,17 @@ export function consultas({ productos, vendidos, creadores }: Catalogo) {
     creadoresDeEstado: (estado: string) => creadores.filter((c) => c.estado === estado),
     ofertas: () => productos.filter((p) => p.precioAntes),
     nuevos: () => productos.filter((p) => p.nuevo),
-    masVendidos: () => [...productos].sort((a, b) => b.vendidos - a.vendidos).slice(0, 8),
+    masVendidos: (cuantos = 8) => [...productos].sort((a, b) => b.vendidos - a.vendidos || b.calificacion - a.calificacion).slice(0, cuantos),
+    // Tiendas ordenadas por piezas vendidas y calificación (la elegida por la administración va primero)
+    creadoresDestacados: (cuantos = 10) => {
+      const piezas = new Map<string, number>();
+      for (const p of [...productos, ...vendidos]) piezas.set(p.creador, (piezas.get(p.creador) ?? 0) + p.vendidos);
+      const puntos = (c: Creador) => (piezas.get(c.slug) ?? 0) + (c.resenas ? c.calificacion * Math.min(c.resenas, 20) : 0);
+      return creadores
+        .map((c) => ({ creador: c, piezas: piezas.get(c.slug) ?? 0, productos: productos.filter((p) => p.creador === c.slug).length }))
+        .sort((a, b) => Number(!!b.creador.destacado) - Number(!!a.creador.destacado) || puntos(b.creador) - puntos(a.creador))
+        .slice(0, cuantos);
+    },
     desde99: () => productos.filter((p) => p.precio <= 99),
   };
 }

@@ -23,5 +23,6 @@ export const LIMITES = {
   mensualidad: 10, // ligas de pago de mensualidad
   envio: 60, // marcar enviado / entregado
   ia: 30, // asistente de IA
+  resena: 30, // escribir o borrar reseñas
 } as const;
 export const HORA = 3600_000;

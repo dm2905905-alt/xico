@@ -1,6 +1,7 @@
 // Firebase con permisos de administrador. SOLO se usa en el servidor:
 // la "cuenta de servicio" es secreta y nunca llega al navegador.
 import { cert, getApps, initializeApp, type App } from "firebase-admin/app";
+import { getAuth } from "firebase-admin/auth";
 import { getFirestore } from "firebase-admin/firestore";
 import { createRemoteJWKSet, jwtVerify } from "jose";
 
@@ -27,6 +28,7 @@ function app(): App {
 }
 
 export const adminDb = () => getFirestore(app());
+export const adminAuth = () => getAuth(app());
 
 // Persona con sesión, ya verificada por el servidor
 export type UsuarioVerificado = { uid: string; email?: string; email_verified?: boolean };

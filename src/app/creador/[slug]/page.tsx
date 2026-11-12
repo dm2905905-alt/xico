@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { BadgeCheck, MapPin, Package, Star } from "lucide-react";
 import { BotonEscribir } from "@/components/chat/BotonEscribir";
+import { Resenas } from "@/components/Resenas";
 import { TarjetaProducto } from "@/components/TarjetaProducto";
 import { RELLENO, conRelleno, consultas, obtenerCatalogo } from "@/lib/catalogo";
 import { estadoPorSlug } from "@/lib/datos";
@@ -130,6 +131,8 @@ export default async function PaginaCreador({ params }: PageProps<"/creador/[slu
             </div>
           </section>
         )}
+
+        <Resenas tipo="tienda" objetivo={creador.slug} creadorUid={creador.uid} />
       </div>
     </>
   );

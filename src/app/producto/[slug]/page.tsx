@@ -7,6 +7,7 @@ import { BotonEscribir } from "@/components/chat/BotonEscribir";
 import { GaleriaProducto } from "@/components/GaleriaProducto";
 import { Personalizador } from "@/components/Personalizador";
 import { Fila } from "@/components/Fila";
+import { Resenas } from "@/components/Resenas";
 import { TarjetaProducto } from "@/components/TarjetaProducto";
 import { RELLENO, conRelleno, consultas, obtenerCatalogo, obtenerVideos } from "@/lib/catalogo";
 import { aTarjeta, categoriaPorSlug, estadoPorSlug, subcategoriaDe } from "@/lib/datos";
@@ -105,10 +106,10 @@ export default async function PaginaProducto({ params }: PageProps<"/producto/[s
 
           <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-cafe">
             {producto.resenas > 0 ? (
-              <span className="flex items-center gap-1">
+              <a href="#resenas" className="flex items-center gap-1 hover:underline">
                 <Star className="size-4 fill-maiz text-maiz" />
-                <strong className="text-tinta">{producto.calificacion.toFixed(1)}</strong> ({producto.resenas})
-              </span>
+                <strong className="text-tinta">{producto.calificacion.toFixed(1)}</strong> ({producto.resenas} {producto.resenas === 1 ? "opinión" : "opiniones"})
+              </a>
             ) : (
               <span>✨ Recién llegado</span>
             )}
@@ -196,6 +197,8 @@ export default async function PaginaProducto({ params }: PageProps<"/producto/[s
           )}
         </div>
       </div>
+
+      <Resenas tipo="producto" objetivo={producto.slug} creadorUid={creador?.uid} className="mt-8 px-4 md:px-0" />
 
       {delCreador.length > 0 && (
         <Fila titulo={`Más de ${creador?.taller}`} verTodo={`/creador/${producto.creador}`}>

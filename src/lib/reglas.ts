@@ -55,7 +55,8 @@ service cloud.firestore {
         // Los 3 meses gratis cuentan desde ahora: la fecha la pone el navegador, pero debe ser la de hoy
         && request.resource.data.solicitada is int
         && math.abs(request.resource.data.solicitada - request.time.toMillis()) < 600000
-        && !('suscripcion' in request.resource.data));
+        && !('suscripcion' in request.resource.data)
+        && !('destacado' in request.resource.data));
       allow update: if esAdmin() || (conSesion()
         && resource.data.uid == request.auth.uid
         && textoValido(request.resource.data.taller, 2, 60)
@@ -130,6 +131,12 @@ service cloud.firestore {
       allow read: if esAdmin() || (conSesion() && resource.data.uid == request.auth.uid);
       allow create: if esAdmin() && request.resource.data.metodo == 'manual';
       allow update, delete: if false;
+    }
+
+    // Reseñas: cualquiera las lee; solo el servidor las escribe (comprueba que la persona compró)
+    match /resenas/{resena} {
+      allow read: if true;
+      allow write: if false;
     }
 
     // Eventos y retos para vendedores: los ve cualquiera con sesión, solo la administración los crea y premia

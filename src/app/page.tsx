@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { BadgeCheck, Clock, Gift, MapPin, Play, ShieldCheck, Sparkles, Store, Truck } from "lucide-react";
+import { BadgeCheck, Clock, Gift, MapPin, Play, ShieldCheck, Sparkles, Store, Trophy, Truck } from "lucide-react";
+import { CreadorDestacado } from "@/components/CreadorDestacado";
 import { Fila } from "@/components/Fila";
 import { IconoCategoria } from "@/components/IconoCategoria";
 import { TarjetaProducto } from "@/components/TarjetaProducto";
@@ -8,7 +9,7 @@ import { categorias, estados } from "@/lib/datos";
 
 // Inicio estilo app: categorías como botones, banners que se deslizan y filas de productos
 export default async function Inicio() {
-  const { productos, creadores, ofertas, nuevos, masVendidos, desde99 } = consultas(await obtenerCatalogo());
+  const { productos, creadores, ofertas, nuevos, masVendidos, desde99, creadoresDestacados, productosDeCreador } = consultas(await obtenerCatalogo());
   // Estados con creadores primero
   const conCreadores = new Set(creadores.map((c) => c.estado));
   const estadosFila = [...estados].sort((a, b) => Number(conCreadores.has(b.slug)) - Number(conCreadores.has(a.slug))).slice(0, 12);
@@ -16,9 +17,11 @@ export default async function Inicio() {
   const listaOfertas = ofertas();
   const listaNuevos = nuevos();
   const listaBaratos = desde99();
+  const destacado = creadoresDestacados(1)[0];
 
   const banners = [
     { href: "/descubre", titulo: "Descubre: así se hace", texto: "Videos de creadores haciendo sus piezas", icono: Play, fondo: "bg-tinta" },
+    { href: "/destacados", titulo: "Lo más vendido", texto: "Los favoritos y los mejores creadores", icono: Trophy, fondo: "bg-terracota-oscura" },
     { href: "/regalos", titulo: "Encuentra un regalo", texto: "Dinos para quién y tu presupuesto", icono: Gift, fondo: "bg-rosa" },
     { href: "/estados", titulo: "Explora el mapa", texto: "Creadores de cada estado de México", icono: MapPin, fondo: "bg-jade" },
     { href: "/buscar?ofertas=1", titulo: "Ofertas del día", texto: "Precios especiales por tiempo limitado", icono: Clock, fondo: "bg-terracota" },
@@ -79,11 +82,24 @@ export default async function Inicio() {
       )}
 
       {productos.length > 0 && (
-        <Fila titulo="Lo más vendido" verTodo="/buscar?orden=vendidos">
+        <Fila titulo="Lo más vendido" verTodo="/destacados">
           {masVendidos().map((p) => (
             <TarjetaProducto key={p.slug} producto={p} />
           ))}
         </Fila>
+      )}
+
+      {/* Creador destacado */}
+      {destacado && (
+        <section className="mx-auto mt-7 max-w-7xl px-4 md:mt-10">
+          <div className="mb-3 flex items-center justify-between">
+            <h2 className="font-display text-lg font-bold tracking-tight sm:text-2xl">Creador destacado</h2>
+            <Link href="/destacados" className="rounded-full px-2 py-1 text-sm font-semibold text-terracota hover:bg-terracota/10">
+              Ver ranking →
+            </Link>
+          </div>
+          <CreadorDestacado creador={destacado.creador} piezas={destacado.piezas} productos={productosDeCreador(destacado.creador.slug)} />
+        </section>
       )}
 
       {/* Creadores: círculos tipo "historias" */}

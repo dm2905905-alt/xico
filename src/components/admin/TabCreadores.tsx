@@ -83,6 +83,21 @@ export function TabCreadores({ datos }: { datos: DatosAdmin }) {
     );
   }
 
+  // Solo una tienda a la vez es el "Creador destacado" del inicio
+  async function destacar(c: Creador, valor: boolean) {
+    const db = obtenerDb();
+    if (!db) return;
+    setError("");
+    try {
+      const lote = writeBatch(db);
+      for (const x of datos.creadores) if (x.destacado && x.slug !== c.slug) lote.update(doc(db, "creadores", x.slug), { destacado: false });
+      lote.update(doc(db, "creadores", c.slug), { destacado: valor });
+      await lote.commit();
+    } catch (e) {
+      setError(mensajeError(e));
+    }
+  }
+
   const lista = datos.creadores
     .filter((c) =>
       filtro === "solicitudes"
@@ -135,6 +150,7 @@ export function TabCreadores({ datos }: { datos: DatosAdmin }) {
             cambiar={cambiar}
             pagoManual={pagoManual}
             exentar={exentar}
+            destacar={destacar}
             regalarMes={regalarMes}
           />
         ))}
@@ -153,6 +169,7 @@ function Tienda({
   pagoManual,
   exentar,
   regalarMes,
+  destacar,
 }: {
   c: Creador;
   privado?: DatosPrivados;
@@ -162,6 +179,7 @@ function Tienda({
   pagoManual: (c: Creador) => void;
   exentar: (c: Creador, exenta: boolean) => void;
   regalarMes: (c: Creador) => void;
+  destacar: (c: Creador, valor: boolean) => void;
 }) {
   const [ahora] = useState(() => Date.now());
   const sus = estadoSuscripcion(c, ahora);
@@ -292,6 +310,10 @@ function Tienda({
         <label className="flex cursor-pointer items-center gap-2 rounded-full px-3 py-1.5 text-sm ring-1 ring-arena-oscura has-checked:bg-maiz/20 has-checked:ring-maiz">
           <input type="checkbox" className="accent-maiz" checked={c.top} onChange={(e) => cambiar(c, { top: e.target.checked })} />
           <Star className="size-4 text-maiz" /> Top vendedor
+        </label>
+        <label className="flex cursor-pointer items-center gap-2 rounded-full px-3 py-1.5 text-sm ring-1 ring-arena-oscura has-checked:bg-terracota/10 has-checked:ring-terracota">
+          <input type="checkbox" className="accent-terracota" checked={!!c.destacado} onChange={(e) => destacar(c, e.target.checked)} />
+          🏅 Creador destacado
         </label>
       </div>
     </li>
