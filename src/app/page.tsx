@@ -49,10 +49,17 @@ export default async function Inicio() {
 
       {/* Tienda recién creada: aún no hay productos en la base de datos */}
       {productos.length === 0 && (
-        <p className="mx-4 mt-4 rounded-2xl bg-maiz/20 px-5 py-4 text-sm">
-          <strong>La tienda todavía no tiene productos.</strong> Si eres el administrador, entra a{" "}
-          <Link href="/admin" className="font-semibold text-terracota underline">/admin</Link> para importar los datos de ejemplo.
-        </p>
+        <div className="mx-auto mt-4 max-w-7xl px-4">
+          <div className="degradado-xico patron-picado rounded-3xl px-6 py-8 text-center text-white">
+            <p className="font-display text-2xl font-extrabold sm:text-3xl">¡Muy pronto! ✨</p>
+            <p className="mx-auto mt-2 max-w-md text-sm text-white/90">
+              Los primeros creadores están preparando sus piezas hechas a mano. Vuelve pronto para conocerlas.
+            </p>
+            <Link href="/vende" className="mt-4 inline-block rounded-full bg-white px-5 py-2.5 text-sm font-semibold text-terracota">
+              ¿Haces cosas a mano? Abre tu tienda
+            </Link>
+          </div>
+        </div>
       )}
 
       {/* Banners */}
