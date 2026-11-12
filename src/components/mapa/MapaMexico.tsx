@@ -35,6 +35,12 @@ const formas = geo.features
   .map((f) => ({ estado: porCodigo.get(f.properties.codigo)!, d: camino(f) ?? "", limites: camino.bounds(f) }))
   .filter((f) => f.estado);
 
+
+// Colores del dibujo de XICO para iluminar el mapa (cada estado toma uno, en orden)
+const PALETA_MAPA = ["#e0364f", "#f07a1c", "#f6b31b", "#2547a6", "#13865c", "#d9468f", "#6b2d8c", "#1f8fb3"];
+const colorPorCodigo = new Map(estados.map((e, i) => [e.codigo, PALETA_MAPA[(i * 3) % PALETA_MAPA.length]]));
+const colorDe = (codigo?: string) => (codigo && colorPorCodigo.get(codigo)) || "#2547a6";
+
 export function MapaMexico({ creadores }: { creadores: CreadorMapa[] }) {
   const svgRef = useRef<SVGSVGElement>(null);
   const zoomRef = useRef<ZoomBehavior<SVGSVGElement, unknown> | null>(null);
@@ -166,7 +172,7 @@ export function MapaMexico({ creadores }: { creadores: CreadorMapa[] }) {
   return (
     <div className="grid gap-5 lg:grid-cols-[1fr_380px]">
       {/* Mapa */}
-      <div className="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-[#e9f6ff] via-[#f3ecff] to-[#ffeef7] shadow-xl shadow-terracota/10 ring-1 ring-white">
+      <div className="relative overflow-hidden rounded-[2rem] bg-[#fffbf2] ring-1 ring-arena-oscura">
         <div className="fondo-garabatos pointer-events-none absolute inset-0 opacity-15" aria-hidden />
 
         {/* Etiqueta del estado bajo el puntero */}
@@ -224,7 +230,7 @@ export function MapaMexico({ creadores }: { creadores: CreadorMapa[] }) {
               </linearGradient>
             ))}
             <filter id="sombra" x="-10%" y="-10%" width="120%" height="120%">
-              <feDropShadow dx="0" dy="6" stdDeviation="8" floodColor="#2547a6" floodOpacity="0.18" />
+              <feDropShadow dx="3" dy="4" stdDeviation="0" floodColor="#2a1d16" floodOpacity="0.22" />
             </filter>
           </defs>
 
@@ -242,10 +248,10 @@ export function MapaMexico({ creadores }: { creadores: CreadorMapa[] }) {
                     role="button"
                     tabIndex={0}
                     aria-label={`${estado.nombre}${conCreadores ? `, ${cuantos.get(estado.slug)} creadores` : ""}`}
-                    fill={conCreadores || activo ? `url(#g-${estado.codigo})` : estado.colores[0]}
-                    fillOpacity={conCreadores || activo ? (resaltado ? 1 : 0.85) : resaltado ? 0.45 : 0.2}
-                    stroke="#ffffff"
-                    strokeWidth={(activo ? 3 : 1.4) * inv}
+                    fill={colorDe(estado.codigo)}
+                    fillOpacity={conCreadores || activo ? (resaltado ? 1 : 0.88) : resaltado ? 0.7 : 0.45}
+                    stroke="#2a1d16"
+                    strokeWidth={(activo ? 2.6 : 1.2) * inv}
                     strokeLinejoin="round"
                     className="cursor-pointer outline-none transition-[fill-opacity] duration-200"
                     onMouseEnter={() => setEncima(estado)}
@@ -312,8 +318,8 @@ export function MapaMexico({ creadores }: { creadores: CreadorMapa[] }) {
                   {/* Pin */}
                   <path
                     d="M0 0 C -14 -16 -16 -22 -16 -30 A 16 16 0 1 1 16 -30 C 16 -22 14 -16 0 0 Z"
-                    fill={`url(#g-${estadoPorSlug(creador.estado)?.codigo})`}
-                    stroke="#ffffff"
+                    fill={colorDe(estadoPorSlug(creador.estado)?.codigo)}
+                    stroke="#2a1d16"
                     strokeWidth="2.5"
                   />
                   <circle cx="0" cy="-30" r="12" fill="#ffffff" />

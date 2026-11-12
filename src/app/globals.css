@@ -34,11 +34,8 @@ html {
   scroll-behavior: smooth;
 }
 
-/* Hoja de libreta: papel crema con renglones azules muy suaves */
 body {
   background-color: var(--color-crema);
-  background-image: repeating-linear-gradient(to bottom, transparent 0, transparent 31px, rgb(37 71 166 / 0.09) 31px, rgb(37 71 166 / 0.09) 32px);
-  background-attachment: fixed;
   color: var(--color-tinta);
 }
 
@@ -175,4 +172,21 @@ textarea {
   background-repeat: repeat-x;
   background-position: bottom;
   background-size: 120px 6px;
+}
+
+/* Textos que van directo sobre el dibujo: etiqueta de papel (como un sticker) para que se lean.
+   Dentro de tarjetas casi no se nota, porque la etiqueta es del mismo color que el papel. */
+main :is(h1, h2):not([class*="text-white"], [class*="text-crema"], .sr-only),
+main h1 + p,
+main a[class*="rounded-full"][class*="text-terracota"][class*="hover:bg-terracota"] {
+  width: fit-content;
+  max-width: 100%;
+  background-color: rgb(255 251 242 / 0.94);
+  border-radius: 14px 10px 13px 9px / 9px 13px 10px 14px;
+  padding: 0.05em 0.45em;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+main h1 + p {
+  padding: 0.25em 0.6em;
 }
