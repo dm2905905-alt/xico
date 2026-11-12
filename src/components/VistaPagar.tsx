@@ -8,6 +8,7 @@ import { crearAlmacen, useEnNavegador } from "@/lib/almacen";
 import { resumirCarrito, useCarrito } from "@/lib/carrito";
 import { precio } from "@/lib/formato";
 import { camposDireccion, problemaDireccion, type ArticuloSolicitado, type Direccion } from "@/lib/pedidos";
+import { Cotizando, OpcionesEnvio, precioElegido, useCotizacion, type Eleccion } from "./ElegirEnvio";
 import { FormularioEntrar } from "./FormularioEntrar";
 import { useSesion } from "./Sesion";
 
@@ -19,10 +20,19 @@ export function VistaPagar() {
   const listo = useEnNavegador();
   const { usuario, cargando } = useSesion();
   const carrito = useCarrito();
-  const { grupos, productos, envio, total, piezas } = resumirCarrito(carrito);
+  const { grupos, productos, envio: envioFijo, piezas } = resumirCarrito(carrito);
   const direccion = almacenDireccion.useValor();
   const [error, setError] = useState("");
   const [pagando, setPagando] = useState(false);
+  const [elegidas, setElegidas] = useState<Record<string, Eleccion>>({});
+
+  // Envío real con Envia según el código postal (si Envia no está configurado, se usa el fijo)
+  const articulosCotizar = carrito.map((a) => ({ slug: a.producto.slug, cantidad: a.cantidad }));
+  const cotizacion = useCotizacion(usuario, direccion.cp, articulosCotizar.length ? { articulos: articulosCotizar } : null);
+  const fijo = cotizacion.estado === "fijo";
+  const envio = fijo ? envioFijo : cotizacion.tiendas.reduce((s, t) => s + precioElegido(t, elegidas[t.creador]), 0);
+  const total = productos + envio;
+  const envioListo = fijo || (cotizacion.estado === "listo" && cotizacion.tiendas.every((t) => !t.error && t.opciones.length));
 
   // Sin productos no hay nada que pagar
   useEffect(() => {
@@ -37,6 +47,7 @@ export function VistaPagar() {
     const problema = problemaDireccion(direccion);
     if (problema) return setError(problema);
     if (!usuario) return setError("Primero entra a tu cuenta.");
+    if (!envioListo) return setError(cotizacion.estado === "cotizando" ? "Espera a que calculemos el envío." : "Revisa el envío antes de pagar.");
     setError("");
     setPagando(true);
     try {
@@ -50,7 +61,7 @@ export function VistaPagar() {
       const r = await fetch("/api/pagos/crear", {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${await usuario.getIdToken()}` },
-        body: JSON.stringify({ articulos, direccion }),
+        body: JSON.stringify({ articulos, direccion, envios: fijo ? undefined : Object.fromEntries(cotizacion.tiendas.map((t) => [t.creador, elegidas[t.creador] ?? t.opciones[0]])) }),
       });
       const datos = await r.json();
       if (!r.ok || !datos.url) throw new Error(datos.error ?? "No se pudo iniciar el pago.");
@@ -121,10 +132,36 @@ export function VistaPagar() {
           </div>
         </section>
 
-        {/* Paso 3: pago */}
+        {/* Paso 3: envío (precio real de la paquetería) */}
+        {!fijo && (
+          <section className={`rounded-3xl bg-white p-5 ring-1 ring-arena-oscura/60 sm:p-6 ${usuario ? "" : "opacity-50"}`}>
+            <h2 className="flex items-center gap-2 font-display text-xl font-semibold">
+              <span className={`grid size-7 place-items-center rounded-full text-sm ${usuario ? "bg-terracota text-crema" : "bg-arena-oscura"}`}>3</span>
+              Envío
+            </h2>
+            <div className="mt-4 grid gap-4">
+              {cotizacion.estado === "sin-cp" && <p className="text-sm text-cafe">Escribe tu código postal para ver el precio del envío.</p>}
+              {cotizacion.estado === "cotizando" && <Cotizando />}
+              {cotizacion.estado === "error" && <p className="rounded-xl bg-rosa/10 px-3 py-2 text-sm text-rosa">{cotizacion.error}</p>}
+              {cotizacion.estado === "listo" &&
+                cotizacion.tiendas.map((t) => (
+                  <OpcionesEnvio
+                    key={t.creador}
+                    taller={grupos.length > 1 ? grupos.find((g) => g.creador === t.creador)?.taller : undefined}
+                    tienda={t}
+                    elegida={elegidas[t.creador]}
+                    elegir={(e) => setElegidas((x) => ({ ...x, [t.creador]: e }))}
+                  />
+                ))}
+              {cotizacion.estado === "listo" && <p className="text-xs text-cafe">Cada tienda envía su paquete. Recibirás el número de guía para rastrearlo.</p>}
+            </div>
+          </section>
+        )}
+
+        {/* Paso 4: pago */}
         <section className={`rounded-3xl bg-white p-5 ring-1 ring-arena-oscura/60 sm:p-6 ${usuario ? "" : "opacity-50"}`}>
           <h2 className="flex items-center gap-2 font-display text-xl font-semibold">
-            <span className={`grid size-7 place-items-center rounded-full text-sm ${usuario ? "bg-terracota text-crema" : "bg-arena-oscura"}`}>3</span>
+            <span className={`grid size-7 place-items-center rounded-full text-sm ${usuario ? "bg-terracota text-crema" : "bg-arena-oscura"}`}>{fijo ? 3 : 4}</span>
             Pago con Mercado Pago
           </h2>
           <p className="mt-3 text-sm text-cafe">
@@ -137,7 +174,7 @@ export function VistaPagar() {
           )}
           <button
             onClick={pagar}
-            disabled={!usuario || pagando}
+            disabled={!usuario || pagando || !envioListo}
             className="mt-5 hidden h-14 w-auto items-center justify-center gap-2 rounded-full bg-[#009ee3] px-10 text-base font-semibold text-white transition hover:bg-[#0089c7] disabled:opacity-60 md:flex"
           >
             {pagando ? <Loader2 className="size-5 animate-spin" /> : <Lock className="size-5" />}
@@ -155,7 +192,7 @@ export function VistaPagar() {
           )}
           <button
             onClick={pagar}
-            disabled={!usuario || pagando}
+            disabled={!usuario || pagando || !envioListo}
             className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#009ee3] font-semibold text-white disabled:opacity-60"
           >
             {pagando ? <Loader2 className="size-5 animate-spin" /> : <Lock className="size-5" />}
@@ -183,7 +220,7 @@ export function VistaPagar() {
           </div>
           <div className="flex justify-between">
             <dt className="text-cafe">Envío</dt>
-            <dd>{envio === 0 ? "Gratis" : precio(envio)}</dd>
+            <dd>{!fijo && cotizacion.estado !== "listo" ? "Con tu código postal" : envio === 0 ? "Gratis" : precio(envio)}</dd>
           </div>
           <div className="mt-1 flex justify-between text-lg font-bold">
             <dt>Total</dt>

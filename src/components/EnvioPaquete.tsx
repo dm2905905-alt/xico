@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Check, Copy, ExternalLink, Loader2, PackageCheck, Truck } from "lucide-react";
+import { Check, Copy, Download, ExternalLink, Loader2, PackageCheck, Truck } from "lucide-react";
 import { paqueteriaPorId, paqueterias } from "@/lib/envios";
 import type { GrupoPedido, Pedido } from "@/lib/pedidos";
 import { useSesion } from "./Sesion";
@@ -42,13 +42,15 @@ export function EnvioPaquete({ pedido, grupo, rol }: { pedido: Pedido; grupo: Gr
   }
 
   const empresa = paqueteriaPorId(grupo.paqueteria);
-  const ligaRastreo = empresa && grupo.guia ? empresa.rastreo(grupo.guia) : "";
+  const ligaRastreo = grupo.rastreoUrl || (empresa && grupo.guia ? empresa.rastreo(grupo.guia) : "");
+  // Guía hecha por XICO con Envia: la tienda solo imprime y entrega el paquete
+  const conEnvia = !!grupo.envia;
   const pasos = [
     { clave: "pagado", texto: "Pagado", hecho: true, cuando: fecha(pedido.pagado) },
     { clave: "enviado", texto: "Enviado", hecho: estado !== "preparando", cuando: fecha(grupo.enviadoEn) },
     { clave: "entregado", texto: "Entregado", hecho: estado === "entregado", cuando: fecha(grupo.entregadoEn) },
   ];
-  const mostrarFormulario = rol === "tienda" && (estado === "preparando" || editando);
+  const mostrarFormulario = !conEnvia && rol === "tienda" && (estado === "preparando" || editando);
 
   return (
     <div className="border-t border-arena-oscura/60 bg-arena/20 px-5 py-4 text-sm">
@@ -96,8 +98,84 @@ export function EnvioPaquete({ pedido, grupo, rol }: { pedido: Pedido; grupo: Gr
         </div>
       )}
 
+      {/* Envío con Envia: guía automática */}
+      {conEnvia && grupo.envia && (
+        <div className="mt-3 grid gap-2">
+          <p className="flex items-center gap-1.5 text-cafe">
+            <Truck className="size-4 text-terracota" /> {grupo.envia.descripcion}
+            {grupo.rastreoEstado && <span className="rounded-full bg-arena px-2 py-0.5 text-[11px]">{grupo.rastreoEstado}</span>}
+          </p>
+          {estado === "preparando" && grupo.guia && (
+            <p className="flex flex-wrap items-center gap-2">
+              <span className="rounded-full bg-white px-3 py-1 font-mono text-xs ring-1 ring-arena-oscura">Guía {grupo.guia}</span>
+              {ligaRastreo && rol === "comprador" && (
+                <a href={ligaRastreo} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 font-semibold text-terracota hover:underline">
+                  Rastrear <ExternalLink className="size-3.5" />
+                </a>
+              )}
+            </p>
+          )}
+          {rol === "tienda" && estado === "preparando" && (
+            grupo.guia ? (
+              <div className="grid gap-2 rounded-2xl bg-white p-3 ring-1 ring-terracota/30">
+                <p className="font-semibold">Tu guía está lista</p>
+                <ol className="list-decimal pl-5 text-xs text-cafe">
+                  <li>Descarga e imprime la guía.</li>
+                  <li>Pégala en la caja bien empacada.</li>
+                  <li>Llévala a una sucursal de {grupo.envia.descripcion.split(" · ")[0]} (o espera la recolección si la programaste).</li>
+                </ol>
+                <div className="flex flex-wrap gap-2">
+                  {grupo.etiqueta && (
+                    <a href={grupo.etiqueta} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 rounded-full bg-terracota px-4 py-2 text-sm font-semibold text-crema">
+                      <Download className="size-4" /> Descargar guía (PDF)
+                    </a>
+                  )}
+                  <button
+                    onClick={() => enviarCambio({ accion: "enviar" })}
+                    disabled={ocupado}
+                    className="flex items-center gap-1.5 rounded-full px-4 py-2 text-sm ring-1 ring-arena-oscura hover:bg-arena disabled:opacity-60"
+                  >
+                    {ocupado ? <Loader2 className="size-4 animate-spin" /> : <Truck className="size-4" />} Ya lo entregué a la paquetería
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="rounded-xl bg-maiz/20 px-3 py-2 text-xs">
+                {grupo.guiaError ? "No se pudo generar tu guía todavía. Puedes intentarlo de nuevo; si sigue fallando, XICO te ayuda." : "Generando tu guía…"}
+                {grupo.guiaError && (
+                  <button
+                    onClick={async () => {
+                      if (!usuario) return;
+                      setOcupado(true);
+                      setError("");
+                      try {
+                        const r = await fetch("/api/envios/guia", {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json", Authorization: `Bearer ${await usuario.getIdToken()}` },
+                          body: JSON.stringify({ pedidoId: pedido.id, creador: grupo.creador }),
+                        });
+                        if (!r.ok) throw new Error((await r.json()).error ?? "No se pudo.");
+                      } catch (e) {
+                        setError((e as Error).message);
+                      } finally {
+                        setOcupado(false);
+                      }
+                    }}
+                    disabled={ocupado}
+                    className="mt-2 flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-xs font-semibold ring-1 ring-arena-oscura"
+                  >
+                    {ocupado && <Loader2 className="size-3.5 animate-spin" />} Generar mi guía
+                  </button>
+                )}
+              </div>
+            )
+          )}
+          {rol === "comprador" && estado === "preparando" && !grupo.guia && <p className="text-cafe">{grupo.taller} está preparando tu paquete.</p>}
+        </div>
+      )}
+
       {/* Comprador: confirmar que llegó */}
-      {rol === "comprador" && estado === "preparando" && <p className="mt-3 text-cafe">{grupo.taller} está preparando tu paquete.</p>}
+      {rol === "comprador" && estado === "preparando" && !conEnvia && <p className="mt-3 text-cafe">{grupo.taller} está preparando tu paquete.</p>}
       {rol === "comprador" && estado === "enviado" && (
         <button
           onClick={() => enviarCambio({ accion: "entregar" })}
@@ -144,13 +222,13 @@ export function EnvioPaquete({ pedido, grupo, rol }: { pedido: Pedido; grupo: Gr
       )}
       {rol === "tienda" && estado === "enviado" && !editando && (
         <div className="mt-3 flex flex-wrap gap-2">
-          <button onClick={() => setEditando(true)} className="rounded-full border border-arena-oscura px-3 py-1.5 text-xs hover:bg-arena">Corregir guía</button>
+          {!conEnvia && <button onClick={() => setEditando(true)} className="rounded-full border border-arena-oscura px-3 py-1.5 text-xs hover:bg-arena">Corregir guía</button>}
           <button onClick={() => enviarCambio({ accion: "entregar" })} disabled={ocupado} className="rounded-full border border-arena-oscura px-3 py-1.5 text-xs hover:bg-arena disabled:opacity-60">
             Marcar como entregado
           </button>
         </div>
       )}
-      {rol === "tienda" && estado === "preparando" && (
+      {rol === "tienda" && estado === "preparando" && !conEnvia && (
         <p className="mt-2 text-xs text-cafe">Empaca con cuidado y envía a la dirección del pedido. Después registra aquí la guía para que el cliente pueda rastrearlo.</p>
       )}
 

@@ -7,8 +7,8 @@ export async function POST(peticion: Request) {
   try {
     const usuario = await usuarioDePeticion(peticion);
     await limitar(usuario.uid, "pedido", LIMITES.pedido, HORA);
-    const { propuestaId, direccion } = await peticion.json();
-    return Response.json(await crearPedidoPropuesta(usuario, String(propuestaId ?? ""), direccion));
+    const { propuestaId, direccion, envio } = await peticion.json();
+    return Response.json(await crearPedidoPropuesta(usuario, String(propuestaId ?? ""), direccion, envio && typeof envio === "object" ? envio : undefined));
   } catch (e) {
     return respuestaError(e);
   }

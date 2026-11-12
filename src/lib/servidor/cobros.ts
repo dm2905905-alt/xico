@@ -7,6 +7,7 @@ import type { Creador, Producto } from "../datos";
 import { tiendaVisible } from "../suscripcion";
 import { confirmarPagoSuscripcion } from "./suscripcion";
 import { avisarPago } from "./avisos";
+import { enviaConfigurado, envioReal, generarGuiasDePedido, type EleccionEnvio } from "./guias";
 import {
   COMISION_XICO,
   problemaDireccion,
@@ -19,14 +20,14 @@ import { urlSitio } from "../sitio";
 import { adminDb, ErrorXico } from "./admin";
 import { buscarPagosDePedido, crearPreferencia, obtenerPago } from "./mercadopago";
 
-// Mismas reglas de envío que muestra el carrito (en la Fase 7 se cotiza con la paquetería)
+// Envío fijo de respaldo, solo si Envia no está configurado. Con Envia se cobra el costo real.
 const ENVIO_POR_CREADOR = 99;
 const ENVIO_GRATIS_DESDE = 999;
 
 const sitio = urlSitio;
 const recorta = (t: unknown, max: number) => String(t ?? "").trim().slice(0, max);
 
-export async function crearPedido(usuario: UsuarioVerificado, solicitados: ArticuloSolicitado[], direccionCruda: Direccion) {
+export async function crearPedido(usuario: UsuarioVerificado, solicitados: ArticuloSolicitado[], direccionCruda: Direccion, envios?: Record<string, EleccionEnvio>) {
   if (!Array.isArray(solicitados) || solicitados.length === 0) throw new ErrorXico("Tu carrito está vacío.");
   if (solicitados.length > 50) throw new ErrorXico("Demasiados artículos en un solo pedido.");
 
@@ -98,11 +99,20 @@ export async function crearPedido(usuario: UsuarioVerificado, solicitados: Artic
     grupos.set(p.creador, g);
   }
 
-  const listaGrupos = [...grupos.values()].map((g) => {
-    const envio = g.subtotal >= ENVIO_GRATIS_DESDE ? 0 : ENVIO_POR_CREADOR;
-    const comision = Math.round(g.subtotal * COMISION_XICO);
-    return { ...g, envio, comision, paraCreador: g.subtotal - comision + envio };
-  });
+  // Envío: con Envia, el costo real de la paquetería que eligió el comprador (XICO compra la guía y
+  // la tienda recibe sus ventas menos la comisión). Sin Envia, el envío fijo lo recibe la tienda.
+  const listaGrupos = await Promise.all(
+    [...grupos.values()].map(async (g) => {
+      const comision = Math.round(g.subtotal * COMISION_XICO);
+      if (enviaConfigurado()) {
+        const piezas = g.articulos.map((a) => ({ paquete: productos.get(a.slug)?.paquete, cantidad: a.cantidad }));
+        const real = await envioReal(g.creador, g.taller, piezas, g.subtotal, direccion, envios?.[g.creador]);
+        return { ...g, envio: real.envio, envia: real.envia, paquete: real.paquete, comision, paraCreador: g.subtotal - comision };
+      }
+      const envio = g.subtotal >= ENVIO_GRATIS_DESDE ? 0 : ENVIO_POR_CREADOR;
+      return { ...g, envio, comision, paraCreador: g.subtotal - comision + envio };
+    }),
+  );
   const totalProductos = listaGrupos.reduce((s, g) => s + g.subtotal, 0);
   const totalEnvio = listaGrupos.reduce((s, g) => s + g.envio, 0);
 
@@ -228,7 +238,10 @@ export async function confirmarPago(pagoId: string, pedidoEsperado?: string) {
     tx.update(ref, base); // pendiente (por ejemplo, pago en OXXO aún no realizado)
     return pedido.estado;
   });
-  if (recienPagado) await avisarPago(pedidoId);
+  if (recienPagado) {
+    await avisarPago(pedidoId);
+    await generarGuiasDePedido(pedidoId).catch((e) => console.error("[XICO] Guías:", (e as Error).message));
+  }
   return estado;
 }
 
@@ -243,7 +256,7 @@ export async function verificarPedido(pedidoId: string) {
 
 // Pedido a partir de una propuesta personalizada del chat.
 // El precio sale de la propuesta guardada (la escribió el vendedor y nadie la puede cambiar).
-export async function crearPedidoPropuesta(usuario: UsuarioVerificado, propuestaId: string, direccionCruda: Direccion) {
+export async function crearPedidoPropuesta(usuario: UsuarioVerificado, propuestaId: string, direccionCruda: Direccion, eleccion?: EleccionEnvio) {
   const problema = problemaDireccion(direccionCruda ?? {});
   if (problema) throw new ErrorXico(problema);
   const direccion: Direccion = {
@@ -269,8 +282,9 @@ export async function crearPedidoPropuesta(usuario: UsuarioVerificado, propuesta
   const tienda = (await db.collection("creadores").doc(p.creador).get()).data() as Creador | undefined;
   if (!tienda?.uid || !tiendaVisible(tienda, Date.now())) throw new ErrorXico("La tienda ya no está disponible.");
 
-  const envio = p.precio >= ENVIO_GRATIS_DESDE ? 0 : ENVIO_POR_CREADOR;
   const comision = Math.round(p.precio * COMISION_XICO);
+  const real = enviaConfigurado() ? await envioReal(p.creador, p.taller, [{ cantidad: 1 }], p.precio, direccion, eleccion) : null;
+  const envio = real ? real.envio : p.precio >= ENVIO_GRATIS_DESDE ? 0 : ENVIO_POR_CREADOR;
   const grupo: GrupoPedido = {
     creador: p.creador,
     taller: p.taller,
@@ -290,7 +304,8 @@ export async function crearPedidoPropuesta(usuario: UsuarioVerificado, propuesta
     subtotal: p.precio,
     envio,
     comision,
-    paraCreador: p.precio - comision + envio,
+    paraCreador: real ? p.precio - comision : p.precio - comision + envio,
+    ...(real ? { envia: real.envia, paquete: real.paquete } : {}),
   };
 
   const ref = db.collection("pedidos").doc();

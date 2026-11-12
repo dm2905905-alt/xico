@@ -1,5 +1,6 @@
 // POST /api/envios/cotizar — costo real del envío con Envia, por tienda, al código postal del comprador.
 // Cuerpo: { cp: "58000", articulos: [{ slug, cantidad }] }
+import type { Propuesta } from "@/lib/chat";
 import type { Producto } from "@/lib/datos";
 import type { DatosPrivados } from "@/lib/panel";
 import { adminDb, esAdmin, ErrorXico, respuestaError, usuarioDePeticion } from "@/lib/servidor/admin";
@@ -10,11 +11,21 @@ export async function POST(peticion: Request) {
   try {
     const usuario = await usuarioDePeticion(peticion);
     await limitar(usuario.uid, "cotizar", 120, HORA);
-    const { cp, articulos } = await peticion.json().catch(() => ({}));
+    const { cp, articulos, propuesta } = await peticion.json().catch(() => ({}));
     if (!/^\d{5}$/.test(String(cp ?? ""))) throw new ErrorXico("Escribe un código postal de 5 números.");
+    const db = adminDb();
+    // Propuesta del chat: una pieza, caja estándar
+    if (propuesta) {
+      const p = (await db.collection("propuestas").doc(String(propuesta)).get()).data() as Propuesta | undefined;
+      if (!p || p.compradorUid !== usuario.uid) throw new ErrorXico("Propuesta no encontrada.", 404);
+      const origen = (await db.collection("tiendasPrivado").doc(p.creador).get()).data() as DatosPrivados | undefined;
+      if (!origen?.direccion?.cp) return Response.json({ modo: enviaModo(), tiendas: [{ creador: p.creador, opciones: [], error: "La tienda aún no registró su dirección de envío." }] });
+      const destino = { nombre: "Cliente", telefono: "0000000000", calle: "Conocida", numero: "1", colonia: "", cp: String(cp), ciudad: "" };
+      const { opciones } = await cotizar({ nombre: "", telefono: "", calle: "", numero: "", colonia: "", ciudad: "", estado: "", ...origen.direccion, cp: origen.direccion.cp }, destino, juntarPaquetes([{ cantidad: 1 }]), p.precio);
+      return Response.json({ modo: enviaModo(), tiendas: [{ creador: p.creador, opciones: opciones.slice(0, 6) }] });
+    }
     if (!Array.isArray(articulos) || !articulos.length || articulos.length > 50) throw new ErrorXico("No hay productos para cotizar.");
 
-    const db = adminDb();
     const docs = await db.getAll(...articulos.map((a: { slug: unknown }) => db.collection("productos").doc(String(a.slug))));
     const porTienda = new Map<string, { paquete?: Producto["paquete"]; cantidad: number; precio: number }[]>();
     docs.forEach((d, i) => {

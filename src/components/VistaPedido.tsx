@@ -48,6 +48,21 @@ export function VistaPedido({ id, pagoId }: { id: string; pagoId?: string }) {
     })();
   }, [usuario, pagoId, id, esComprador, pendiente]);
 
+  // Rastreo automático: al abrir el pedido se consulta a la paquetería (una vez por visita)
+  const yaRastreado = useRef(false);
+  const porRastrear = !!pedido?.grupos.some((g) => g.envia && g.guia && g.envioEstado !== "entregado");
+  useEffect(() => {
+    if (!usuario || !porRastrear || yaRastreado.current) return;
+    yaRastreado.current = true;
+    (async () => {
+      await fetch("/api/envios/rastrear", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${await usuario.getIdToken()}` },
+        body: JSON.stringify({ pedidoId: id }),
+      }).catch(() => {});
+    })();
+  }, [usuario, porRastrear, id]);
+
   // Pagado: se vacía el carrito (una sola vez)
   useEffect(() => {
     if (pedido?.estado === "pagado" && !yaVaciado.current) {
@@ -175,7 +190,11 @@ export function VistaPedido({ id, pagoId }: { id: string; pagoId?: string }) {
               <dl className="mt-3 grid gap-2 text-sm">
                 <div className="flex justify-between"><dt className="text-cafe">Tus productos</dt><dd>{precio(miParte.subtotal)}</dd></div>
                 <div className="flex justify-between"><dt className="text-cafe">Comisión XICO (15%)</dt><dd>−{precio(miParte.comision)}</dd></div>
-                <div className="flex justify-between"><dt className="text-cafe">Envío</dt><dd>{precio(miParte.envio)}</dd></div>
+                {miParte.envia ? (
+                  <div className="flex justify-between"><dt className="text-cafe">Envío</dt><dd className="text-xs text-cafe">Lo paga el cliente; XICO compra la guía</dd></div>
+                ) : (
+                  <div className="flex justify-between"><dt className="text-cafe">Envío</dt><dd>{precio(miParte.envio)}</dd></div>
+                )}
                 <div className="flex justify-between border-t border-arena-oscura/60 pt-2 text-lg font-bold"><dt>Recibes</dt><dd>{precio(miParte.paraCreador)}</dd></div>
               </dl>
             ) : (

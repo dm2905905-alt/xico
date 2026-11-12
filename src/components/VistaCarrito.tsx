@@ -7,10 +7,13 @@ import { ENVIO_GRATIS_DESDE, cambiarCantidad, quitarDelCarrito, resumirCarrito, 
 import { precio } from "@/lib/formato";
 import { FotoProducto } from "./FotoProducto";
 
-export function VistaCarrito() {
+// enviaActivo: el envío se cotiza con la paquetería al pagar (con tu código postal)
+export function VistaCarrito({ enviaActivo = false }: { enviaActivo?: boolean }) {
   const lista = useCarrito();
   const listo = useEnNavegador();
-  const { grupos, productos, envio, total, piezas } = resumirCarrito(lista);
+  const { grupos, productos, envio: envioFijo, piezas } = resumirCarrito(lista);
+  const envio = enviaActivo ? 0 : envioFijo;
+  const total = productos + envio;
 
   if (!listo) return <div className="h-64 animate-pulse rounded-3xl bg-arena" />;
 
@@ -40,7 +43,9 @@ export function VistaCarrito() {
                 </Link>
                 <span className="flex items-center gap-1.5 text-xs text-cafe">
                   <Truck className="size-4" />
-                  {g.envio === 0 ? (
+                  {enviaActivo ? (
+                    <>Envío con paquetería, se calcula al pagar</>
+                  ) : g.envio === 0 ? (
                     <span className="font-semibold text-jade">Envío gratis</span>
                   ) : (
                     <>Te faltan {precio(faltaEnvioGratis)} para envío gratis</>
@@ -113,11 +118,11 @@ export function VistaCarrito() {
             <dd>{precio(productos)}</dd>
           </div>
           <div className="flex justify-between">
-            <dt className="text-cafe">Envío estimado ({grupos.length} {grupos.length === 1 ? "paquete" : "paquetes"})</dt>
-            <dd>{envio === 0 ? <span className="font-semibold text-jade">Gratis</span> : precio(envio)}</dd>
+            <dt className="text-cafe">{enviaActivo ? "Envío" : "Envío estimado"} ({grupos.length} {grupos.length === 1 ? "paquete" : "paquetes"})</dt>
+            <dd>{enviaActivo ? <span className="text-cafe">Al pagar, con tu código postal</span> : envio === 0 ? <span className="font-semibold text-jade">Gratis</span> : precio(envio)}</dd>
           </div>
           <div className="mt-2 flex justify-between border-t border-arena-oscura/60 pt-3 text-lg font-bold">
-            <dt>Total</dt>
+            <dt>{enviaActivo ? "Total sin envío" : "Total"}</dt>
             <dd>{precio(total)}</dd>
           </div>
         </dl>

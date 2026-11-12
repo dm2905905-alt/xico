@@ -117,3 +117,68 @@ export async function cotizar(origen: Direccion, destino: Pick<Direccion, "nombr
   }
   return { opciones, errores };
 }
+
+type DireccionEnvia = Pick<Direccion, "nombre" | "telefono" | "calle" | "numero" | "colonia" | "cp" | "ciudad">;
+
+async function llamarEnvia(ruta: string, cuerpo: unknown, url = base()) {
+  const token = process.env.ENVIA_TOKEN;
+  if (!token) throw new ErrorXico("Los envíos con Envia todavía no están configurados.", 503);
+  const r = await fetch(`${url}${ruta}`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+    body: JSON.stringify(cuerpo),
+    signal: AbortSignal.timeout(30000),
+  });
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok || j?.meta === "error") {
+    const mensaje = j?.error?.message ?? j?.error?.description ?? j?.message ?? `Envia respondió ${r.status}`;
+    throw new ErrorXico(String(mensaje).slice(0, 200), 502);
+  }
+  return j;
+}
+
+// Compra la guía (se descuenta del saldo de Envia) y regresa el número de guía y el PDF
+export async function generarGuia(origen: DireccionEnvia, destino: DireccionEnvia & { correo?: string }, paquete: Paquete, valor: number, paqueteria: string, servicio: string, contenido = "Artesanía hecha a mano") {
+  const [o, d] = await Promise.all([direccionEnvia(origen), direccionEnvia(destino)]);
+  const j = await llamarEnvia("/ship/generate/", {
+    origin: o,
+    destination: { ...d, ...(destino.correo ? { email: destino.correo } : {}) },
+    packages: [
+      {
+        type: "box",
+        content: contenido.slice(0, 60),
+        amount: 1,
+        declaredValue: Math.round(valor),
+        weight: paquete.pesoKg,
+        weightUnit: "KG",
+        lengthUnit: "CM",
+        dimensions: { length: paquete.largoCm, width: paquete.anchoCm, height: paquete.altoCm },
+      },
+    ],
+    shipment: { type: 1, carrier: paqueteria, service: servicio },
+    settings: { printFormat: "PDF", printSize: "PAPER_LETTER", currency: "MXN" },
+  });
+  const g = (Array.isArray(j.data) ? j.data[0] : null) as { trackingNumber?: string; label?: string; trackUrl?: string; totalPrice?: number } | null;
+  if (!g?.trackingNumber) throw new ErrorXico("Envia no regresó número de guía.", 502);
+  return { guia: String(g.trackingNumber), etiqueta: g.label ?? "", rastreoUrl: g.trackUrl ?? "", costo: Number(g.totalPrice ?? 0) };
+}
+
+// Estado de varias guías: { guia → estado en inglés, como lo da Envia ("Delivered", "Shipped"…) }
+export async function rastrear(guias: string[]) {
+  if (!guias.length) return new Map<string, string>();
+  const j = await llamarEnvia("/ship/generaltrack/", { trackingNumbers: guias });
+  const lista = (Array.isArray(j.data) ? j.data : []) as Record<string, unknown>[];
+  const estados = new Map<string, string>();
+  for (const x of lista) {
+    const guia = String(x.trackingNumber ?? x.tracking_number ?? "");
+    const estado = String(x.status ?? x.statusName ?? x.status_name ?? "");
+    if (guia && estado) estados.set(guia, estado);
+  }
+  return estados;
+}
+
+// Registra la dirección de XICO para que Envia avise cada cambio de rastreo
+export async function registrarAvisoRastreo(url: string) {
+  const queries = enviaModo() === "real" ? "https://queries.envia.com" : "https://queries.test.envia.com";
+  return llamarEnvia("/webhooks", { type_id: 3, url, active: 1 }, queries);
+}

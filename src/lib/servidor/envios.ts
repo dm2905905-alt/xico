@@ -41,6 +41,14 @@ export async function actualizarEnvio(usuario: UsuarioVerificado, pedidoId: stri
     if (cambio.accion === "enviar") {
       if (!esDueno) throw new ErrorXico("Solo la tienda que vende este paquete puede marcarlo como enviado.", 403);
       if (grupo.envioEstado === "entregado") throw new ErrorXico("Este paquete ya se entregó.");
+      // Guía hecha por XICO con Envia: se usa la guardada (no se puede cambiar)
+      if (grupo.envia && grupo.guia) {
+        Object.assign(grupo, { envioEstado: "enviado", enviadoEn: grupo.enviadoEn ?? Date.now() });
+        const grupos = pedido.grupos.map((g, j) => (j === i ? grupo : g));
+        const estado = estadoGeneral(grupos, pedido.estado);
+        tx.update(ref, { grupos, estado });
+        return { estado, grupo, pedido: { id: pedido.id, uid: pedido.uid }, taller: grupo.taller, antes: pedido.grupos[i].envioEstado };
+      }
       if (!paqueteriaPorId(cambio.paqueteria)) throw new ErrorXico("Elige una paquetería.");
       const guia = String(cambio.guia ?? "").trim().slice(0, 40);
       const sinGuia = cambio.paqueteria === "local";

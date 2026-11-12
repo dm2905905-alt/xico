@@ -44,6 +44,13 @@ export type GrupoPedido = {
   entregadoEn?: number;
   // Cuándo XICO le transfirió su parte al creador (mientras no haya reparto automático)
   liquidado?: number;
+  // Envío con Envia.com: el cliente paga el costo real y XICO compra la guía
+  envia?: { paqueteria: string; servicio: string; descripcion: string; costo: number };
+  paquete?: { pesoKg: number; largoCm: number; anchoCm: number; altoCm: number };
+  etiqueta?: string; // PDF de la guía para imprimir
+  rastreoUrl?: string;
+  guiaError?: string; // si no se pudo generar la guía (por ejemplo, sin saldo)
+  rastreoEstado?: string; // último estado que dio la paquetería
 };
 
 export type EstadoPedido = "pendiente_pago" | "pagado" | "rechazado" | "enviado" | "entregado" | "cancelado";
@@ -64,6 +71,7 @@ export type Pedido = {
   pagado?: number;
   mp?: { preferencia?: string; pago?: string; estadoPago?: string };
   propuestaId?: string; // si viene de una propuesta personalizada del chat
+  guias?: string[]; // números de guía de Envia (para encontrar el pedido cuando llega un aviso de rastreo)
 };
 
 // Lo que el navegador manda al servidor para pagar (sin precios: el servidor los calcula)

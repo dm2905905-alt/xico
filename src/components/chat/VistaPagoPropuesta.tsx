@@ -7,6 +7,7 @@ import { crearAlmacen } from "@/lib/almacen";
 import { usePropuesta } from "@/lib/chat";
 import { precio } from "@/lib/formato";
 import { camposDireccion, problemaDireccion, type Direccion } from "@/lib/pedidos";
+import { Cotizando, OpcionesEnvio, precioElegido, useCotizacion, type Eleccion } from "../ElegirEnvio";
 import { FormularioEntrar } from "../FormularioEntrar";
 import { useSesion } from "../Sesion";
 
@@ -19,6 +20,8 @@ export function VistaPagoPropuesta({ id }: { id: string }) {
   const direccion = almacenDireccion.useValor();
   const [pagando, setPagando] = useState(false);
   const [error, setError] = useState("");
+  const [elegida, setElegida] = useState<Eleccion>();
+  const cotizacion = useCotizacion(usuario, direccion.cp, p && p.estado === "pendiente" && p.compradorUid === usuario?.uid ? { propuesta: id } : null);
 
   if (cargandoSesion) return <div className="h-96 animate-pulse rounded-3xl bg-arena" />;
   if (!usuario) {
@@ -44,19 +47,23 @@ export function VistaPagoPropuesta({ id }: { id: string }) {
     );
   }
 
-  const envio = p.precio >= 999 ? 0 : 99;
+  const fijo = cotizacion.estado === "fijo";
+  const tiendaEnvio = cotizacion.tiendas[0];
+  const envio = fijo ? (p.precio >= 999 ? 0 : 99) : tiendaEnvio ? precioElegido(tiendaEnvio, elegida) : 0;
+  const envioListo = fijo || (cotizacion.estado === "listo" && !!tiendaEnvio && !tiendaEnvio.error && tiendaEnvio.opciones.length > 0);
   const poner = (k: keyof Direccion, v: string) => almacenDireccion.escribir((d) => ({ ...d, [k]: v }));
 
   async function pagar() {
     const problema = problemaDireccion(direccion);
     if (problema) return setError(problema);
+    if (!envioListo) return setError(cotizacion.estado === "cotizando" ? "Espera a que calculemos el envío." : "Escribe tu código postal para calcular el envío.");
     setError("");
     setPagando(true);
     try {
       const r = await fetch("/api/pagos/propuesta", {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${await usuario!.getIdToken()}` },
-        body: JSON.stringify({ propuestaId: id, direccion }),
+        body: JSON.stringify({ propuestaId: id, direccion, envio: fijo ? undefined : (elegida ?? tiendaEnvio?.opciones[0]) }),
       });
       const datos = await r.json();
       if (!r.ok || !datos.url) throw new Error(datos.error ?? "No se pudo iniciar el pago.");
@@ -110,13 +117,22 @@ export function VistaPagoPropuesta({ id }: { id: string }) {
             <dd className="font-medium">{p.diasElaboracion}</dd>
           </div>
         </dl>
+        {!fijo && (
+          <div className="mt-4 grid gap-2 border-t border-arena-oscura pt-3">
+            <p className="text-sm font-semibold">Envío</p>
+            {cotizacion.estado === "sin-cp" && <p className="text-sm text-cafe">Escribe tu código postal para ver el precio del envío.</p>}
+            {cotizacion.estado === "cotizando" && <Cotizando />}
+            {cotizacion.estado === "error" && <p className="rounded-xl bg-rosa/10 px-3 py-2 text-sm text-rosa">{cotizacion.error}</p>}
+            {cotizacion.estado === "listo" && tiendaEnvio && <OpcionesEnvio tienda={tiendaEnvio} elegida={elegida} elegir={setElegida} />}
+          </div>
+        )}
         <dl className="mt-4 grid gap-1 border-t border-arena-oscura pt-3 text-sm">
           <div className="flex justify-between"><dt className="text-cafe">Precio</dt><dd>{precio(p.precio)}</dd></div>
-          <div className="flex justify-between"><dt className="text-cafe">Envío</dt><dd>{envio ? precio(envio) : "Gratis"}</dd></div>
+          <div className="flex justify-between"><dt className="text-cafe">Envío</dt><dd>{!fijo && !envioListo ? "Con tu código postal" : envio ? precio(envio) : "Gratis"}</dd></div>
           <div className="mt-1 flex justify-between text-lg font-bold"><dt>Total</dt><dd>{precio(p.precio + envio)}</dd></div>
         </dl>
         {error && <p role="alert" className="mt-3 rounded-xl bg-rosa/10 px-3 py-2 text-sm text-rosa">{error}</p>}
-        <button onClick={pagar} disabled={pagando} className="mt-4 flex h-13 w-full items-center justify-center gap-2 rounded-full bg-[#009ee3] py-3 font-semibold text-white hover:bg-[#0089c7] disabled:opacity-60">
+        <button onClick={pagar} disabled={pagando || !envioListo} className="mt-4 flex h-13 w-full items-center justify-center gap-2 rounded-full bg-[#009ee3] py-3 font-semibold text-white hover:bg-[#0089c7] disabled:opacity-60">
           {pagando ? <Loader2 className="size-5 animate-spin" /> : <Lock className="size-5" />} {pagando ? "Preparando tu pago…" : `Pagar ${precio(p.precio + envio)}`}
         </button>
         <p className="mt-3 flex items-start gap-2 text-xs text-cafe">
