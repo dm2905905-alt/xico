@@ -3,7 +3,7 @@ import type { Creador, Producto } from "../datos";
 import type { Pedido } from "../pedidos";
 import { ocultarContacto } from "../contacto";
 import { MAX_TEXTO_RESENA, idResena, nombreCorto, promedio, type Resena, type TipoResena } from "../resenas";
-import { adminAuth, adminDb, esAdmin, ErrorXico, type UsuarioVerificado } from "./admin";
+import { adminDb, esAdmin, ErrorXico, type UsuarioVerificado } from "./admin";
 
 const cobrado = (p: Pedido) => ["pagado", "enviado", "entregado"].includes(p.estado);
 
@@ -56,7 +56,6 @@ export async function guardarResena(usuario: UsuarioVerificado, cuerpo: Record<s
   const id = idResena(tipo as TipoResena, objetivo, usuario.uid);
   const ref = db.collection("resenas").doc(id);
   const anterior = await ref.get();
-  const persona = await adminAuth().getUser(usuario.uid).catch(() => null);
   const resena: Resena = {
     id,
     tipo,
@@ -64,7 +63,7 @@ export async function guardarResena(usuario: UsuarioVerificado, cuerpo: Record<s
     creador,
     ...(nombreProducto ? { producto: nombreProducto } : {}),
     uid: usuario.uid,
-    nombre: nombreCorto(persona?.displayName),
+    nombre: nombreCorto(usuario.nombre),
     estrellas,
     texto,
     fecha: Date.now(),
