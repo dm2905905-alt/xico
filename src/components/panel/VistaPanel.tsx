@@ -13,6 +13,7 @@ import { useSesion } from "../Sesion";
 import { FotoProducto } from "../FotoProducto";
 import { ConTienda } from "./ConTienda";
 import { AvisoSuscripcion } from "./VistaSuscripcion";
+import { EventosVendedor } from "./EventosVendedor";
 
 export function VistaPanel() {
   return <ConTienda volver="/panel">{(creador) => <Tablero creador={creador} />}</ConTienda>;
@@ -108,6 +109,9 @@ function Tablero({ creador }: { creador: Creador }) {
 
       {/* Mensualidad: periodo gratis, al corriente, vencida o pausada */}
       {creador.estadoTienda !== "revision" && <AvisoSuscripcion creador={creador} />}
+
+      {/* Eventos y retos de XICO */}
+      {creador.estadoTienda !== "revision" && <EventosVendedor creador={creador} pedidos={pedidos} />}
 
       {/* Avisos de la solicitud y de la cuenta */}
       {creador.estadoTienda === "revision" && (

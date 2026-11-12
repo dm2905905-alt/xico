@@ -9,6 +9,7 @@ import { obtenerDb } from "@/lib/firebase";
 import type { Pedido } from "@/lib/pedidos";
 import type { DatosPrivados } from "@/lib/panel";
 import type { PagoSuscripcion } from "@/lib/suscripcion";
+import type { Evento } from "@/lib/eventos";
 
 // Llama a una ruta del servidor con la sesión de la persona
 export async function llamar<T = Record<string, unknown>>(usuario: User, ruta: string, cuerpo: unknown): Promise<T> {
@@ -40,7 +41,7 @@ export function useEsAdmin(usuario: User | null) {
 }
 
 // privados: cuenta de pago y dirección de cada tienda (por slug)
-export type DatosAdmin = { creadores: Creador[]; productos: Producto[]; pedidos: Pedido[]; privados: Record<string, DatosPrivados>; pagosSuscripcion: PagoSuscripcion[]; listo: boolean };
+export type DatosAdmin = { creadores: Creador[]; productos: Producto[]; pedidos: Pedido[]; privados: Record<string, DatosPrivados>; pagosSuscripcion: PagoSuscripcion[]; eventos: Evento[]; listo: boolean };
 
 // Todo en vivo (las reglas solo dejan leer pedidos a la cuenta administradora)
 export function useDatosAdmin(activo: boolean): DatosAdmin {
@@ -49,6 +50,7 @@ export function useDatosAdmin(activo: boolean): DatosAdmin {
   const [pedidos, setPedidos] = useState<Pedido[] | null>(null);
   const [privados, setPrivados] = useState<Record<string, DatosPrivados>>({});
   const [pagosSuscripcion, setPagosSuscripcion] = useState<PagoSuscripcion[]>([]);
+  const [eventos, setEventos] = useState<Evento[]>([]);
 
   useEffect(() => {
     const db = obtenerDb();
@@ -71,6 +73,11 @@ export function useDatosAdmin(activo: boolean): DatosAdmin {
         (s) => setPagosSuscripcion(s.docs.map((d) => d.data() as PagoSuscripcion)),
         () => setPagosSuscripcion([]),
       ),
+      onSnapshot(
+        collection(db, "eventos"),
+        (s) => setEventos(s.docs.map((d) => d.data() as Evento).sort((a, b) => b.creado - a.creado)),
+        () => setEventos([]),
+      ),
     ];
     return () => quitar.forEach((f) => f());
   }, [activo]);
@@ -81,6 +88,7 @@ export function useDatosAdmin(activo: boolean): DatosAdmin {
     pedidos: pedidos ?? [],
     privados,
     pagosSuscripcion,
+    eventos,
     listo: creadores !== null && productos !== null && pedidos !== null,
   };
 }

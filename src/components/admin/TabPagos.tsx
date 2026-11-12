@@ -1,8 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import { doc, updateDoc } from "firebase/firestore";
 import { Check, Copy, Download, Loader2 } from "lucide-react";
 import { clabeLegible } from "@/lib/clabe";
+import { bonos, momentoActual, type BonoPendiente } from "@/lib/eventos";
+import { mensajeError, obtenerDb } from "@/lib/firebase";
 import { precio } from "@/lib/formato";
 import type { DatosCobro } from "@/lib/panel";
 import { useSesion } from "../Sesion";
@@ -143,6 +146,8 @@ export function TabPagos({ datos }: { datos: DatosAdmin }) {
         </button>
       </div>
 
+      <BonosPorPagar datos={datos} copiar={copiar} copiado={copiado} />
+
       {sinCuenta.length > 0 && (
         <p className="rounded-xl bg-rosa/10 px-4 py-3 text-sm text-rosa">
           ⚠️ {sinCuenta.map((f) => f.taller).join(", ")} no tiene(n) cuenta de pago registrada. Aparecerá en su panel un aviso para agregarla.
@@ -209,5 +214,66 @@ export function TabPagos({ datos }: { datos: DatosAdmin }) {
         {!filas.length && <li className="text-sm text-cafe">No le debes nada a ningún creador. 🎉</li>}
       </ul>
     </div>
+  );
+}
+
+// Premios en dinero de los eventos (se pagan aparte de las ventas)
+function BonosPorPagar({ datos, copiar, copiado }: { datos: DatosAdmin; copiar: (t: string, id: string) => void; copiado: string }) {
+  const [error, setError] = useState("");
+  const pendientes = bonos(datos.eventos).filter((b) => !b.pagado);
+  if (!pendientes.length) return null;
+  const total = pendientes.reduce((s, b) => s + b.monto, 0);
+
+  async function pagado(b: BonoPendiente) {
+    const db = obtenerDb();
+    const evento = datos.eventos.find((e) => e.id === b.evento);
+    if (!db || !evento || !window.confirm(`¿Ya le transferiste ${precio(b.monto)} a ${b.taller} por el premio "${b.titulo}"?`)) return;
+    setError("");
+    try {
+      const momento = momentoActual();
+      await updateDoc(doc(db, "eventos", evento.id), {
+        ganadores: (evento.ganadores ?? []).map((g) => (g.creador === b.creador ? { ...g, pagado: momento } : g)),
+      });
+    } catch (e) {
+      setError(mensajeError(e));
+    }
+  }
+
+  return (
+    <section className="rounded-2xl bg-white p-4 ring-1 ring-terracota/40">
+      <div className="flex flex-wrap items-baseline justify-between gap-2">
+        <p className="font-semibold">🏆 Premios de eventos por pagar</p>
+        <p className="text-xl font-bold">{precio(total)}</p>
+      </div>
+      {error && <p role="alert" className="mt-2 text-sm text-rosa">{error}</p>}
+      <ul className="mt-2 grid gap-2">
+        {pendientes.map((b) => {
+          const pago = datos.privados[b.creador]?.pago;
+          const id = `bono-${b.evento}-${b.creador}`;
+          return (
+            <li key={id} className="flex flex-wrap items-center gap-3 rounded-xl bg-arena/50 p-3 text-sm">
+              <div className="min-w-0 flex-1">
+                <p className="font-semibold">{b.taller}</p>
+                <p className="text-xs text-cafe">{b.titulo}</p>
+                {pago ? (
+                  <p className="mt-0.5 flex flex-wrap items-center gap-2 text-xs text-cafe">
+                    {pago.titular} · {pago.banco} ·<span className="font-mono text-tinta">{clabeLegible(pago.clabe)}</span>
+                    <button onClick={() => copiar(pago.clabe, id)} className="flex items-center gap-1 rounded-full bg-white px-2 py-0.5 text-terracota">
+                      {copiado === id ? <Check className="size-3" /> : <Copy className="size-3" />} {copiado === id ? "Copiada" : "Copiar"}
+                    </button>
+                  </p>
+                ) : (
+                  <p className="mt-0.5 text-xs text-rosa">Sin cuenta de pago</p>
+                )}
+              </div>
+              <p className="font-bold">{precio(b.monto)}</p>
+              <button onClick={() => pagado(b)} className="flex items-center gap-1.5 rounded-full bg-jade px-4 py-2 text-sm font-semibold text-white">
+                <Check className="size-4" /> Ya le pagué
+              </button>
+            </li>
+          );
+        })}
+      </ul>
+    </section>
   );
 }

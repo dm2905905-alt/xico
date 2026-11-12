@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { ChevronDown, Download, Printer } from "lucide-react";
 import { precio } from "@/lib/formato";
+import { bonos } from "@/lib/eventos";
 import { periodos, reporteCsv, resumir, type Periodo, type Resumen, type TipoPeriodo } from "@/lib/finanzas";
 import { estadoSuscripcion } from "@/lib/suscripcion";
 import type { DatosAdmin } from "./datos";
@@ -27,15 +28,21 @@ export function TabFinanzas({ datos }: { datos: DatosAdmin }) {
     todo: null,
   };
   const p = actual[rango];
-  const r = resumir(datos.pedidos, datos.pagosSuscripcion, p?.desde ?? 0, p?.hasta ?? Infinity);
-  const deuda = resumir(datos.pedidos, datos.pagosSuscripcion); // todo lo pendiente, sin importar la fecha
+  const premios = bonos(datos.eventos);
+  const r = resumir(datos.pedidos, datos.pagosSuscripcion, p?.desde ?? 0, p?.hasta ?? Infinity, premios);
+  const deuda = resumir(datos.pedidos, datos.pagosSuscripcion, 0, Infinity, premios); // todo lo pendiente, sin importar la fecha
 
   return (
     <div className="grid gap-6">
       {/* Lo que se debe hoy */}
       <section className="grid gap-3 sm:grid-cols-3">
-        <Cifra titulo="Debes pagar a tiendas" valor={deuda.pendienteTiendas} nota="Todo lo pendiente (ver Pagos a creadores)" fuerte />
-        <Cifra titulo="Ganancia total de XICO" valor={deuda.gananciaXico} nota={`${precio(deuda.comisiones)} comisiones + ${precio(deuda.suscripciones)} mensualidades`} />
+        <Cifra
+          titulo="Debes pagar a tiendas"
+          valor={deuda.pendienteTiendas + deuda.premiosPendientes}
+          nota={deuda.premiosPendientes ? `Ventas ${precio(deuda.pendienteTiendas)} + premios ${precio(deuda.premiosPendientes)}` : "Todo lo pendiente (ver Pagos a creadores)"}
+          fuerte
+        />
+        <Cifra titulo="Ganancia total de XICO" valor={deuda.gananciaXico} nota={`${precio(deuda.comisiones)} comisiones + ${precio(deuda.suscripciones)} mensualidades${deuda.premios ? ` − ${precio(deuda.premios)} premios` : ""}`} />
         <Cifra titulo="Total cobrado desde el inicio" valor={deuda.totalCobrado} nota={`${deuda.pedidos} pedidos pagados`} />
       </section>
 
@@ -74,7 +81,7 @@ export function TabFinanzas({ datos }: { datos: DatosAdmin }) {
         </p>
         <ul className="grid gap-2">
           {periodos(tipo, ahora, tipo === "dia" ? 31 : 12).map((per) => (
-            <Reporte key={per.desde} periodo={per} r={resumir(datos.pedidos, datos.pagosSuscripcion, per.desde, per.hasta)} />
+            <Reporte key={per.desde} periodo={per} r={resumir(datos.pedidos, datos.pagosSuscripcion, per.desde, per.hasta, premios)} />
           ))}
         </ul>
       </section>
@@ -131,7 +138,8 @@ function Detalle({ r, titulo }: { r: Resumen; titulo: string }) {
     ["Envíos cobrados", r.envios],
     ["Comisiones de XICO (15%)", r.comisiones],
     ["Mensualidades", r.suscripciones],
-    ["Ganancia de XICO", r.gananciaXico, "Comisiones + mensualidades"],
+    ["Premios de eventos", r.premios, "Dinero que regalaste en eventos"],
+    ["Ganancia de XICO", r.gananciaXico, "Comisiones + mensualidades − premios"],
     ["Para las tiendas", r.paraTiendas, "Ventas − comisión + envío"],
     ["Ya pagado a tiendas", r.pagadoTiendas],
     ["Pendiente de pagar", r.pendienteTiendas],
@@ -215,7 +223,7 @@ function Reporte({ periodo, r }: { periodo: Periodo; r: Resumen }) {
     v.document.write(`<!doctype html><meta charset="utf-8"><title>${archivo}</title>
       <style>body{font-family:system-ui,sans-serif;padding:24px;color:#1d0b36}table{border-collapse:collapse;width:100%;margin:12px 0}td,th{border-bottom:1px solid #ddd;padding:6px;font-size:13px;text-align:left}h1{font-size:20px}</style>
       <h1>Reporte XICO · ${periodo.nombre}</h1>
-      <table>${fila("Total cobrado", r.totalCobrado)}${fila("Ventas de productos", r.ventas)}${fila("Envíos", r.envios)}${fila("Comisiones XICO", r.comisiones)}${fila("Mensualidades", r.suscripciones)}${fila("Ganancia XICO", r.gananciaXico)}${fila("Para las tiendas", r.paraTiendas)}${fila("Pendiente de pagar", r.pendienteTiendas)}</table>
+      <table>${fila("Total cobrado", r.totalCobrado)}${fila("Ventas de productos", r.ventas)}${fila("Envíos", r.envios)}${fila("Comisiones XICO", r.comisiones)}${fila("Mensualidades", r.suscripciones)}${fila("Premios de eventos", r.premios)}${fila("Ganancia XICO", r.gananciaXico)}${fila("Para las tiendas", r.paraTiendas)}${fila("Pendiente de pagar", r.pendienteTiendas)}</table>
       <table><tr><th>Tienda</th><th>Pedidos</th><th>Ventas</th><th>Comisión</th><th>Envío</th><th>Le toca</th><th>Pendiente</th><th>Mensualidad</th></tr>
       ${r.porTienda.map((f) => `<tr><td>${f.taller.replace(/</g, "&lt;")}</td><td>${f.pedidos}</td><td>${precio(f.ventas)}</td><td>${precio(f.comision)}</td><td>${precio(f.envio)}</td><td>${precio(f.paraTienda)}</td><td>${precio(f.pendiente)}</td><td>${precio(f.suscripciones)}</td></tr>`).join("")}</table>
       <script>print()</script>`);

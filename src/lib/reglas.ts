@@ -132,6 +132,12 @@ service cloud.firestore {
       allow update, delete: if false;
     }
 
+    // Eventos y retos para vendedores: los ve cualquiera con sesión, solo la administración los crea y premia
+    match /eventos/{evento} {
+      allow read: if conSesion();
+      allow write: if esAdmin();
+    }
+
     match /pedidos/{pedido} {
       allow read: if esAdmin() || (conSesion() && request.auth.uid in resource.data.participantes);
       allow write: if false;

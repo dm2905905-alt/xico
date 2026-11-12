@@ -1,12 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { ChartLine, Film, HandCoins, LayoutDashboard, Package, Settings, ShieldAlert, ShoppingBag, Store } from "lucide-react";
+import { ChartLine, Film, Trophy, HandCoins, LayoutDashboard, Package, Settings, ShieldAlert, ShoppingBag, Store } from "lucide-react";
 import { FormularioEntrar } from "../FormularioEntrar";
 import { useSesion } from "../Sesion";
 import { useDatosAdmin, useEsAdmin } from "./datos";
 import { TabConfiguracion } from "./TabConfiguracion";
 import { TabCreadores } from "./TabCreadores";
+import { TabEventos } from "./TabEventos";
 import { TabFinanzas } from "./TabFinanzas";
 import { TabPagos } from "./TabPagos";
 import { TabPedidos } from "./TabPedidos";
@@ -18,6 +19,7 @@ const tabs = [
   { id: "resumen", texto: "Resumen", icono: LayoutDashboard },
   { id: "finanzas", texto: "Finanzas", icono: ChartLine },
   { id: "creadores", texto: "Creadores", icono: Store },
+  { id: "eventos", texto: "Eventos", icono: Trophy },
   { id: "productos", texto: "Productos", icono: Package },
   { id: "videos", texto: "Videos", icono: Film },
   { id: "pedidos", texto: "Pedidos", icono: ShoppingBag },
@@ -77,6 +79,7 @@ export function PanelAdmin() {
           {tab === "resumen" && <TabResumen datos={datos} ir={setTab} />}
           {tab === "finanzas" && <TabFinanzas datos={datos} />}
           {tab === "creadores" && <TabCreadores datos={datos} />}
+          {tab === "eventos" && <TabEventos datos={datos} />}
           {tab === "productos" && <TabProductos datos={datos} />}
           {tab === "videos" && <TabVideos />}
           {tab === "pedidos" && <TabPedidos datos={datos} />}

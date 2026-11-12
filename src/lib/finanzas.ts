@@ -1,6 +1,7 @@
 // Cuentas de XICO: cuánto se cobró, cuánto ganó XICO y cuánto le toca a cada tienda en un periodo.
 import type { Pedido } from "./pedidos";
 import type { PagoSuscripcion } from "./suscripcion";
+import type { BonoPendiente } from "./eventos";
 
 export type FilaTienda = {
   creador: string;
@@ -13,6 +14,7 @@ export type FilaTienda = {
   pagado: number; // ya transferido
   pendiente: number; // aún no transferido
   suscripciones: number; // mensualidades que pagó en el periodo
+  premios: number; // premios de eventos que ganó en el periodo
 };
 
 export type Resumen = {
@@ -22,7 +24,9 @@ export type Resumen = {
   envios: number;
   comisiones: number;
   suscripciones: number;
-  gananciaXico: number; // comisiones + mensualidades
+  premios: number; // dinero de premios de eventos (gasto de XICO)
+  premiosPendientes: number; // premios aún no transferidos
+  gananciaXico: number; // comisiones + mensualidades - premios
   paraTiendas: number;
   pagadoTiendas: number;
   pendienteTiendas: number;
@@ -32,11 +36,11 @@ export type Resumen = {
 const cobrado = (p: Pedido) => ["pagado", "enviado", "entregado"].includes(p.estado);
 export const fechaPedido = (p: Pedido) => p.pagado ?? p.creado;
 
-export function resumir(pedidos: Pedido[], pagos: PagoSuscripcion[], desde = 0, hasta = Infinity): Resumen {
+export function resumir(pedidos: Pedido[], pagos: PagoSuscripcion[], desde = 0, hasta = Infinity, premiosEventos: BonoPendiente[] = []): Resumen {
   const enRango = (t: number) => t >= desde && t < hasta;
   const filas = new Map<string, FilaTienda>();
   const fila = (creador: string, taller: string) => {
-    const f = filas.get(creador) ?? { creador, taller, pedidos: 0, ventas: 0, comision: 0, envio: 0, paraTienda: 0, pagado: 0, pendiente: 0, suscripciones: 0 };
+    const f = filas.get(creador) ?? { creador, taller, pedidos: 0, ventas: 0, comision: 0, envio: 0, paraTienda: 0, pagado: 0, pendiente: 0, suscripciones: 0, premios: 0 };
     filas.set(creador, f);
     return f;
   };
@@ -56,12 +60,15 @@ export function resumir(pedidos: Pedido[], pagos: PagoSuscripcion[], desde = 0, 
   }
   const mensualidades = pagos.filter((s) => s.estado === "pagado" && enRango(s.pagado ?? s.creado));
   for (const s of mensualidades) fila(s.creador, s.taller).suscripciones += s.monto;
+  const premiosRango = premiosEventos.filter((b) => enRango(b.fecha));
+  for (const b of premiosRango) fila(b.creador, b.taller).premios += b.monto;
 
   const porTienda = [...filas.values()].sort((a, b) => b.paraTienda - a.paraTienda || b.suscripciones - a.suscripciones);
   const suma = (k: keyof FilaTienda) => porTienda.reduce((t, f) => t + (f[k] as number), 0);
   const ventasCobradas = lista.reduce((t, p) => t + p.total, 0);
   const suscripciones = suma("suscripciones");
   const comisiones = suma("comision");
+  const premios = suma("premios");
   return {
     pedidos: lista.length,
     totalCobrado: ventasCobradas + suscripciones,
@@ -69,7 +76,9 @@ export function resumir(pedidos: Pedido[], pagos: PagoSuscripcion[], desde = 0, 
     envios: suma("envio"),
     comisiones,
     suscripciones,
-    gananciaXico: comisiones + suscripciones,
+    premios,
+    premiosPendientes: premiosRango.filter((b) => !b.pagado).reduce((t, b) => t + b.monto, 0),
+    gananciaXico: comisiones + suscripciones - premios,
     paraTiendas: suma("paraTienda"),
     pagadoTiendas: suma("pagado"),
     pendienteTiendas: suma("pendiente"),
@@ -139,14 +148,15 @@ export function reporteCsv(titulo: string, r: Resumen) {
     linea("Envíos cobrados", r.envios.toFixed(2)),
     linea("Comisiones XICO", r.comisiones.toFixed(2)),
     linea("Mensualidades", r.suscripciones.toFixed(2)),
-    linea("Ganancia XICO", r.gananciaXico.toFixed(2)),
+    linea("Premios de eventos", r.premios.toFixed(2)),
+    linea("Ganancia XICO (comisiones + mensualidades - premios)", r.gananciaXico.toFixed(2)),
     linea("Para las tiendas", r.paraTiendas.toFixed(2)),
     linea("Ya pagado a tiendas", r.pagadoTiendas.toFixed(2)),
     linea("Pendiente de pagar a tiendas", r.pendienteTiendas.toFixed(2)),
     "",
-    linea("Tienda", "Pedidos", "Ventas", "Comisión XICO", "Envío", "Le toca", "Ya pagado", "Pendiente", "Mensualidades pagadas"),
+    linea("Tienda", "Pedidos", "Ventas", "Comisión XICO", "Envío", "Le toca", "Ya pagado", "Pendiente", "Mensualidades pagadas", "Premios"),
     ...r.porTienda.map((f) =>
-      linea(f.taller, f.pedidos, f.ventas.toFixed(2), f.comision.toFixed(2), f.envio.toFixed(2), f.paraTienda.toFixed(2), f.pagado.toFixed(2), f.pendiente.toFixed(2), f.suscripciones.toFixed(2)),
+      linea(f.taller, f.pedidos, f.ventas.toFixed(2), f.comision.toFixed(2), f.envio.toFixed(2), f.paraTienda.toFixed(2), f.pagado.toFixed(2), f.pendiente.toFixed(2), f.suscripciones.toFixed(2), f.premios.toFixed(2)),
     ),
   ].join("\r\n");
 }
