@@ -2,7 +2,8 @@
 // La clave vive en Vercel: ENVIA_TOKEN, y ENVIA_MODO = "prueba" (guías de mentira) o "real".
 import type { Paquete } from "../datos";
 import type { Direccion } from "../pedidos";
-import { ErrorXico } from "./admin";
+import { FieldValue } from "firebase-admin/firestore";
+import { adminDb, ErrorXico } from "./admin";
 
 export const enviaConfigurado = () => !!process.env.ENVIA_TOKEN;
 export const enviaModo = () => (process.env.ENVIA_MODO === "real" ? "real" : "prueba");
@@ -15,6 +16,22 @@ const PAQUETERIAS = ["estafeta", "fedex", "dhl", "paquetexpress", "redpack", "jt
 const PAQUETE_BASE: Paquete = { pesoKg: 1, largoCm: 20, anchoCm: 15, altoCm: 10 };
 
 export type OpcionEnvio = { paqueteria: string; servicio: string; descripcion: string; dias: string; precio: number };
+
+// Servicios que Envia deja cotizar pero no comprar (por ejemplo, "SERVICE_QUOTE_ONLY"): se dejan de ofrecer.
+// Se guardan en config/enviaBloqueados para que valga en todos los servidores.
+let bloqueados: { hasta: number; lista: Set<string> } | null = null;
+async function serviciosBloqueados() {
+  if (bloqueados && bloqueados.hasta > Date.now()) return bloqueados.lista;
+  const d = await adminDb().collection("config").doc("enviaBloqueados").get().catch(() => null);
+  const lista = new Set<string>(((d?.data()?.[enviaModo()] as string[] | undefined) ?? []));
+  bloqueados = { hasta: Date.now() + 5 * 60_000, lista };
+  return lista;
+}
+export async function bloquearServicio(paqueteria: string, servicio: string) {
+  const clave = `${paqueteria}:${servicio}`;
+  await adminDb().collection("config").doc("enviaBloqueados").set({ [enviaModo()]: FieldValue.arrayUnion(clave) }, { merge: true });
+  bloqueados?.lista.add(clave);
+}
 
 // Estado y ciudad a partir del código postal (servicio público de Envia)
 const estados = new Map<string, { estado: string; ciudad: string } | null>();
@@ -95,16 +112,17 @@ export async function cotizar(origen: Direccion, destino: Pick<Direccion, "nombr
         serviceDescription?: string;
         deliveryEstimate?: string;
         totalPrice: number | string;
+        dropOff?: number;
         currency?: string;
       }[];
     }),
   );
-  // Solo en modo prueba: muestra cruda de las opciones (para revisar campos de Envia)
-  const muestra = enviaModo() === "prueba" ? respuestas.flatMap((x) => (x.status === "fulfilled" ? x.value : [])).slice(0, 8) : [];
+  const sinComprar = await serviciosBloqueados();
   const errores = respuestas.filter((x): x is PromiseRejectedResult => x.status === "rejected").map((x) => String(x.reason?.message ?? x.reason));
   const opciones: OpcionEnvio[] = respuestas
     .flatMap((x) => (x.status === "fulfilled" ? x.value : []))
-    .filter((t) => Number(t.totalPrice) > 0 && (!t.currency || t.currency === "MXN"))
+    // Solo puerta a puerta (los de "sucursal" piden datos extra) y que se puedan comprar
+    .filter((t) => Number(t.totalPrice) > 0 && (!t.currency || t.currency === "MXN") && !t.dropOff && !sinComprar.has(`${t.carrier}:${t.service}`))
     .map((t) => ({
       paqueteria: t.carrier,
       servicio: t.service,
@@ -117,7 +135,7 @@ export async function cotizar(origen: Direccion, destino: Pick<Direccion, "nombr
     console.error("[XICO] Envia no dio opciones:", errores.join(" | "));
     throw new ErrorXico("No pudimos cotizar el envío en este momento. Inténtalo de nuevo.", 502);
   }
-  return { opciones, errores, muestra };
+  return { opciones, errores };
 }
 
 type DireccionEnvia = Pick<Direccion, "nombre" | "telefono" | "calle" | "numero" | "colonia" | "cp" | "ciudad">;

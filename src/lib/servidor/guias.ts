@@ -4,7 +4,7 @@ import type { DatosPrivados } from "../panel";
 import type { Direccion, EstadoPedido, GrupoPedido, Pedido } from "../pedidos";
 import { adminDb, ErrorXico } from "./admin";
 import { avisar, avisarEnvio } from "./avisos";
-import { cotizar, enviaConfigurado, generarGuia, juntarPaquetes, rastrear } from "./envia";
+import { bloquearServicio, cotizar, enviaConfigurado, generarGuia, juntarPaquetes, rastrear } from "./envia";
 
 export { enviaConfigurado };
 export type EleccionEnvio = { paqueteria: string; servicio: string };
@@ -50,16 +50,26 @@ export async function generarGuiasDePedido(pedidoId: string, soloCreador?: strin
       const origen = await direccionTienda(g.creador);
       if (!origen) throw new ErrorXico("La tienda no tiene dirección de envío registrada.");
       const tienda = (await db.collection("creadores").doc(g.creador).get()).data() as Creador | undefined;
-      const nueva = await generarGuia(
-        { ...origen, nombre: origen.nombre || tienda?.taller || g.taller },
-        { ...pedido.direccion, correo: pedido.email || undefined },
-        g.paquete ?? juntarPaquetes([{ cantidad: 1 }]),
-        g.subtotal,
-        g.envia.paqueteria,
-        g.envia.servicio,
-        g.articulos.map((a) => a.nombre).join(", "),
-      );
-      cambio = { guia: nueva.guia, etiqueta: nueva.etiqueta, rastreoUrl: nueva.rastreoUrl, paqueteria: paqueteriaXico(g.envia.paqueteria), guiaError: "" };
+      const o = { ...origen, nombre: origen.nombre || tienda?.taller || g.taller };
+      const d = { ...pedido.direccion, correo: pedido.email || undefined };
+      const paquete = g.paquete ?? juntarPaquetes([{ cantidad: 1 }]);
+      const contenido = g.articulos.map((a) => a.nombre).join(", ");
+      let envia = g.envia;
+      let nueva;
+      try {
+        nueva = await generarGuia(o, d, paquete, g.subtotal, envia.paqueteria, envia.servicio, contenido);
+      } catch (e) {
+        // Servicio que solo se puede cotizar: se deja de ofrecer y se usa la siguiente opción más barata.
+        // La diferencia de precio (si la hay) la absorbe XICO; queda anotada en el pedido.
+        if (!/QUOTE_ONLY|branch code/i.test((e as Error).message)) throw e;
+        await bloquearServicio(envia.paqueteria, envia.servicio);
+        const { opciones } = await cotizar(o, d, paquete, g.subtotal);
+        const otra = opciones.find((x) => !(x.paqueteria === envia!.paqueteria && x.servicio === envia!.servicio));
+        if (!otra) throw e;
+        nueva = await generarGuia(o, d, paquete, g.subtotal, otra.paqueteria, otra.servicio, contenido);
+        envia = { paqueteria: otra.paqueteria, servicio: otra.servicio, descripcion: `${otra.descripcion}${otra.dias ? ` (${otra.dias})` : ""}`, costo: otra.precio, cobrado: g.envio };
+      }
+      cambio = { guia: nueva.guia, etiqueta: nueva.etiqueta, rastreoUrl: nueva.rastreoUrl, paqueteria: paqueteriaXico(envia.paqueteria), guiaError: "", envia };
       resultados.push({ creador: g.creador, ok: true });
       if (tienda?.uid) {
         await avisar([{ uid: tienda.uid, tipo: "venta", titulo: "Tu guía está lista 📦", texto: `Imprime la guía del pedido #${pedido.id.slice(0, 8).toUpperCase()} y lleva el paquete a ${g.envia.descripcion.split(" · ")[0]}.`, enlace: `/pedido/${pedido.id}` }]);

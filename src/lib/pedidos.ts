@@ -45,7 +45,7 @@ export type GrupoPedido = {
   // Cuándo XICO le transfirió su parte al creador (mientras no haya reparto automático)
   liquidado?: number;
   // Envío con Envia.com: el cliente paga el costo real y XICO compra la guía
-  envia?: { paqueteria: string; servicio: string; descripcion: string; costo: number };
+  envia?: { paqueteria: string; servicio: string; descripcion: string; costo: number; cobrado?: number }; // cobrado: si se cambió de paquetería, lo que pagó el cliente
   paquete?: { pesoKg: number; largoCm: number; anchoCm: number; altoCm: number };
   etiqueta?: string; // PDF de la guía para imprimir
   rastreoUrl?: string;
