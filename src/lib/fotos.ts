@@ -1,13 +1,12 @@
 "use client";
 
 // Subir y borrar fotos en Firebase Storage (las reglas de Storage solo dejan al dueño de la tienda)
-import { getApp, getApps, initializeApp } from "firebase/app";
 import { deleteObject, getDownloadURL, getStorage, ref, uploadBytes } from "firebase/storage";
 import type { Foto } from "./datos";
-import { firebaseConfig } from "./firebase-config";
+import { appFirebase } from "./firebase";
 import { comprimirABlob } from "./imagen";
 
-const storage = () => getStorage(getApps().length ? getApp() : initializeApp(firebaseConfig));
+const storage = () => getStorage(appFirebase());
 
 export const MAX_MB = 15; // del archivo original (después se reduce mucho)
 

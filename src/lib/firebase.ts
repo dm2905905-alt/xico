@@ -1,13 +1,31 @@
 "use client";
 
-import { getApp, getApps, initializeApp } from "firebase/app";
+import { getApp, getApps, initializeApp, type FirebaseApp } from "firebase/app";
+import { initializeAppCheck, ReCaptchaEnterpriseProvider } from "firebase/app-check";
 import { getAuth, type Auth } from "firebase/auth";
 import { initializeFirestore, type Firestore } from "firebase/firestore";
 import { firebaseConfig, firebaseConfigurado } from "./firebase-config";
 
 export { firebaseConfigurado };
 
-const app = () => (getApps().length ? getApp() : initializeApp(firebaseConfig));
+// App Check: comprueba que quien habla con Firebase es la página real de XICO y no un script de afuera.
+// Se activa solo cuando existe la clave de reCAPTCHA en Vercel (NEXT_PUBLIC_RECAPTCHA_KEY).
+const claveRecaptcha = process.env.NEXT_PUBLIC_RECAPTCHA_KEY;
+
+// La app de Firebase del navegador (todas las partes deben usar esta para que App Check aplique)
+export function appFirebase(): FirebaseApp {
+  if (getApps().some((a) => a.name === "[DEFAULT]")) return getApp();
+  const nueva = initializeApp(firebaseConfig);
+  if (typeof window !== "undefined" && claveRecaptcha) {
+    try {
+      initializeAppCheck(nueva, { provider: new ReCaptchaEnterpriseProvider(claveRecaptcha), isTokenAutoRefreshEnabled: true });
+    } catch (e) {
+      console.warn("[XICO] App Check no se pudo activar:", e);
+    }
+  }
+  return nueva;
+}
+const app = appFirebase;
 
 let auth: Auth | null = null;
 let db: Firestore | null = null;

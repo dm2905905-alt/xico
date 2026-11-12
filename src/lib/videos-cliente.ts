@@ -2,14 +2,12 @@
 
 // Subir, guardar y borrar videos de "Descubre" desde el panel del creador (protegido por las reglas)
 import { useEffect, useState } from "react";
-import { getApp, getApps, initializeApp } from "firebase/app";
 import { collection, deleteDoc, doc, onSnapshot, query, setDoc, where } from "firebase/firestore";
 import { deleteObject, getDownloadURL, getStorage, ref, uploadBytes, uploadBytesResumable } from "firebase/storage";
-import { obtenerDb } from "./firebase";
-import { firebaseConfig } from "./firebase-config";
+import { appFirebase, obtenerDb } from "./firebase";
 import { MAX_MB_VIDEO, MAX_SEGUNDOS, type Video } from "./videos";
 
-const storage = () => getStorage(getApps().length ? getApp() : initializeApp(firebaseConfig));
+const storage = () => getStorage(appFirebase());
 
 // Lee duración y saca una imagen del segundo 1 para usarla de portada
 function revisarVideo(archivo: File): Promise<{ segundos: number; portada: Blob | null }> {

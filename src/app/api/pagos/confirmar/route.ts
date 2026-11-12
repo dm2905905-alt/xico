@@ -3,10 +3,12 @@
 import { ErrorXico, adminDb, respuestaError, usuarioDePeticion } from "@/lib/servidor/admin";
 import { confirmarPago, verificarPedido } from "@/lib/servidor/cobros";
 import type { Pedido } from "@/lib/pedidos";
+import { HORA, LIMITES, limitar } from "@/lib/servidor/limite";
 
 export async function POST(peticion: Request) {
   try {
     const usuario = await usuarioDePeticion(peticion);
+    await limitar(usuario.uid, "confirmar", LIMITES.confirmar, HORA);
     const { pedidoId, pagoId } = await peticion.json();
     const snap = await adminDb().collection("pedidos").doc(String(pedidoId)).get();
     if (!snap.exists || (snap.data() as Pedido).uid !== usuario.uid) throw new ErrorXico("Pedido no encontrado.", 404);
