@@ -36,7 +36,7 @@ export async function POST(peticion: Request) {
     });
 
     const destino = { nombre: "Cliente", telefono: "0000000000", calle: "Conocida", numero: "1", colonia: "", cp: String(cp), ciudad: "" };
-    const resultado: { creador: string; opciones: OpcionEnvio[]; error?: string }[] = [];
+    const resultado: { creador: string; opciones: OpcionEnvio[]; error?: string; muestra?: unknown[] }[] = [];
     const diagnostico: string[] = [];
     for (const [creador, piezas] of porTienda) {
       const privado = (await db.collection("tiendasPrivado").doc(creador).get()).data() as DatosPrivados | undefined;
@@ -46,8 +46,8 @@ export async function POST(peticion: Request) {
       }
       try {
         const valor = piezas.reduce((s, x) => s + x.precio, 0);
-        const { opciones, errores } = await cotizar({ nombre: "", telefono: "", calle: "", numero: "", colonia: "", ciudad: "", estado: "", ...privado.direccion, cp: privado.direccion.cp }, destino, juntarPaquetes(piezas), valor);
-        resultado.push({ creador, opciones: opciones.slice(0, 6) });
+        const { opciones, errores, muestra } = await cotizar({ nombre: "", telefono: "", calle: "", numero: "", colonia: "", ciudad: "", estado: "", ...privado.direccion, cp: privado.direccion.cp }, destino, juntarPaquetes(piezas), valor);
+        resultado.push({ creador, opciones: opciones.slice(0, 6), ...(enviaModo() === "prueba" ? { muestra } : {}) });
         diagnostico.push(...errores);
       } catch (e) {
         resultado.push({ creador, opciones: [], error: (e as Error).message });

@@ -99,6 +99,8 @@ export async function cotizar(origen: Direccion, destino: Pick<Direccion, "nombr
       }[];
     }),
   );
+  // Solo en modo prueba: muestra cruda de las opciones (para revisar campos de Envia)
+  const muestra = enviaModo() === "prueba" ? respuestas.flatMap((x) => (x.status === "fulfilled" ? x.value : [])).slice(0, 8) : [];
   const errores = respuestas.filter((x): x is PromiseRejectedResult => x.status === "rejected").map((x) => String(x.reason?.message ?? x.reason));
   const opciones: OpcionEnvio[] = respuestas
     .flatMap((x) => (x.status === "fulfilled" ? x.value : []))
@@ -115,7 +117,7 @@ export async function cotizar(origen: Direccion, destino: Pick<Direccion, "nombr
     console.error("[XICO] Envia no dio opciones:", errores.join(" | "));
     throw new ErrorXico("No pudimos cotizar el envío en este momento. Inténtalo de nuevo.", 502);
   }
-  return { opciones, errores };
+  return { opciones, errores, muestra };
 }
 
 type DireccionEnvia = Pick<Direccion, "nombre" | "telefono" | "calle" | "numero" | "colonia" | "cp" | "ciudad">;
