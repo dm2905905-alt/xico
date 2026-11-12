@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import { Bricolage_Grotesque, Geist } from "next/font/google";
+import { Geist, Kalam } from "next/font/google";
 import { BarraInferior } from "@/components/BarraInferior";
 import { Encabezado } from "@/components/Encabezado";
 import { FondoCreativo } from "@/components/FondoCreativo";
@@ -14,9 +14,11 @@ const geistSans = Geist({
   subsets: ["latin"],
 });
 
-const bricolage = Bricolage_Grotesque({
+// Títulos con letra de plumón, como escritos a mano en una libreta
+const bricolage = Kalam({
   variable: "--font-bricolage",
   subsets: ["latin"],
+  weight: ["400", "700"],
 });
 
 const descripcion =

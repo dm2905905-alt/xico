@@ -1,28 +1,30 @@
 @import "tailwindcss";
 
-/* Paleta XICO: creativa, vibrante y luminosa (blanco, morado y rosa).
-   Los nombres de los colores se conservan de la primera versión para no tocar cada pantalla;
-   lo que importa es su valor:
-     crema        → blanco de fondo
-     arena        → lila muy claro (fondos suaves)
-     arena-oscura → lila para bordes
-     tinta        → morado casi negro (texto)
-     cafe         → morado grisáceo (texto secundario)
-     terracota    → MORADO principal (botones, enlaces)
-     rosa         → ROSA intenso (ofertas, acentos)
-     maiz         → amarillo sol (destellos)
-     jade         → turquesa (confirmaciones, verificado) */
+/* Paleta XICO "libreta mexicana": sale del dibujo de fondo (papel crema, tinta, rojo, naranja,
+   cempasúchil, azul talavera y verde). Los nombres se conservan de versiones anteriores para no tocar
+   cada pantalla; lo que importa es su valor:
+     crema        → papel (fondo)
+     arena        → papel un poco más oscuro (fondos suaves)
+     arena-oscura → trazo de lápiz claro (bordes suaves)
+     tinta        → tinta café-negra (texto y contornos)
+     cafe         → lápiz (texto secundario)
+     terracota    → AZUL TALAVERA principal (botones, enlaces)
+     rosa         → ROJO-ROSA (ofertas, acentos, corazones)
+     maiz         → CEMPASÚCHIL (destellos, estrellas)
+     jade         → VERDE hoja (confirmaciones, verificado) */
 @theme {
-  --color-crema: #ffffff;
-  --color-arena: #f6f0ff;
-  --color-arena-oscura: #e6d9ff;
-  --color-tinta: #1d0b36;
-  --color-cafe: #6b5a86;
-  --color-terracota: #7c2df0;
-  --color-terracota-oscura: #5f17c9;
-  --color-rosa: #ff2d87;
-  --color-maiz: #ffc634;
-  --color-jade: #0fb5a6;
+  --color-crema: #fdf6e8;
+  --color-arena: #f6ead3;
+  --color-arena-oscura: #e2cfab;
+  --color-tinta: #2a1d16;
+  --color-cafe: #6e5847;
+  --color-terracota: #2547a6;
+  --color-terracota-oscura: #1a3480;
+  --color-rosa: #e0364f;
+  --color-maiz: #f6b31b;
+  --color-jade: #13865c;
+  --color-naranja: #f07a1c;
+  --color-papel: #fffbf2;
 
   --font-sans: var(--font-geist-sans);
   --font-display: var(--font-bricolage);
@@ -32,15 +34,83 @@ html {
   scroll-behavior: smooth;
 }
 
-/* Fondo creativo: degradado pastel (rosa → lila → durazno) en lugar de blanco liso */
+/* Hoja de libreta: papel crema con renglones azules muy suaves */
 body {
-  background: linear-gradient(170deg, #fff1f8 0%, #f6efff 45%, #fff6ec 100%) fixed;
+  background-color: var(--color-crema);
+  background-image: repeating-linear-gradient(to bottom, transparent 0, transparent 31px, rgb(37 71 166 / 0.09) 31px, rgb(37 71 166 / 0.09) 32px);
+  background-attachment: fixed;
   color: var(--color-tinta);
+}
+
+/* ---- Estilo "dibujado a mano" ----
+   Las tarjetas, botones y campos de toda la página toman bordes de lápiz un poco chuecos y una sombra
+   plana como de caricatura. Se hace aquí (fuera de las capas de Tailwind) para no tocar cada pantalla. */
+.bg-white {
+  background-color: var(--color-papel);
+}
+:where([class*="rounded-3xl"], [class*="rounded-2xl"]):where(.bg-white, [class*="ring-1"]) {
+  border-radius: 26px 14px 24px 16px / 16px 26px 14px 24px;
+}
+:where([class*="rounded-3xl"], [class*="rounded-2xl"]).bg-white:where([class*="ring-1"], [class*="ring-2"]) {
+  box-shadow:
+    0 0 0 1.5px rgb(42 29 22 / 0.75),
+    3px 4px 0 rgb(42 29 22 / 0.18) !important;
+}
+:where([class*="rounded-full"]):where(.bg-terracota, .bg-rosa, .bg-jade, .bg-tinta, .bg-maiz, [class*="bg-[#009ee3]"]) {
+  border-radius: 999px 900px 999px 950px / 950px 999px 900px 999px;
+  box-shadow:
+    0 0 0 1.5px var(--color-tinta),
+    2px 3px 0 var(--color-tinta);
+  transition:
+    transform 0.12s,
+    box-shadow 0.12s;
+}
+:where([class*="rounded-full"]):where(.bg-terracota, .bg-rosa, .bg-jade, .bg-tinta, .bg-maiz, [class*="bg-[#009ee3]"]):active {
+  transform: translate(2px, 3px);
+  box-shadow: 0 0 0 1.5px var(--color-tinta);
+}
+/* Tarjetas de color (banners, estados): contorno de tinta y sombra plana de caricatura */
+.patron-picado:where([class*="rounded-3xl"]),
+a:where([class*="rounded-2xl"])[style*="gradient"] {
+  border-radius: 28px 16px 26px 18px / 18px 28px 16px 26px;
+  box-shadow:
+    0 0 0 2px var(--color-tinta),
+    4px 5px 0 var(--color-tinta);
+}
+a:where([class*="rounded-2xl"])[style*="gradient"] {
+  border-radius: 18px 12px 17px 11px / 11px 17px 12px 18px;
+  box-shadow:
+    0 0 0 1.5px var(--color-tinta),
+    2px 3px 0 var(--color-tinta);
+}
+
+/* Contornos de lápiz: los bordes claros se ven como trazo de lápiz */
+[class*="ring-arena-oscura"] {
+  --tw-ring-color: rgb(42 29 22 / 0.42);
+}
+[class*="border-arena-oscura"] {
+  border-color: rgb(42 29 22 / 0.35);
+}
+
+input:not([type="checkbox"], [type="radio"], [type="range"]),
+select,
+textarea {
+  border-radius: 14px 10px 13px 9px / 9px 13px 10px 14px;
+}
+
+/* Títulos con letra de plumón */
+.font-display {
+  letter-spacing: 0.01em;
+}
+
+/* Subrayado de plumón (para resaltar palabras) */
+.subrayado-plumon {
+  background-image: linear-gradient(transparent 62%, rgb(246 179 27 / 0.55) 62%, rgb(246 179 27 / 0.55) 90%, transparent 90%);
 }
 
 /* Garabatos de marca repetidos (estrellas, círculos, cruces y ondas) muy sutiles */
 .fondo-garabatos {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260' viewBox='0 0 260 260'%3E%3Cg fill='none' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M30 40l6 14 15 2-11 10 3 15-13-8-13 8 3-15-11-10 15-2z' stroke='%23ff2d87'/%3E%3Ccircle cx='190' cy='50' r='10' stroke='%237c2df0'/%3E%3Cpath d='M120 120h20M130 110v20' stroke='%23ffc634'/%3E%3Cpath d='M20 190q15-15 30 0t30 0 30 0' stroke='%230fb5a6'/%3E%3Cpath d='M200 170l5 11 12 2-9 8 2 12-10-6-10 6 2-12-9-8 12-2z' stroke='%23d63af0'/%3E%3Ccircle cx='100' cy='230' r='5' fill='%23ff2d87' stroke='none'/%3E%3Ccircle cx='235' cy='120' r='4' fill='%237c2df0' stroke='none'/%3E%3Cpath d='M70 95l10 10M80 95l-10 10' stroke='%237c2df0'/%3E%3C/g%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260' viewBox='0 0 260 260'%3E%3Cg fill='none' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M30 40l6 14 15 2-11 10 3 15-13-8-13 8 3-15-11-10 15-2z' stroke='%23e0364f'/%3E%3Ccircle cx='190' cy='50' r='10' stroke='%232547a6'/%3E%3Cpath d='M120 120h20M130 110v20' stroke='%23f6b31b'/%3E%3Cpath d='M20 190q15-15 30 0t30 0 30 0' stroke='%2313865c'/%3E%3Cpath d='M200 170l5 11 12 2-9 8 2 12-10-6-10 6 2-12-9-8 12-2z' stroke='%23f07a1c'/%3E%3Ccircle cx='100' cy='230' r='5' fill='%23e0364f' stroke='none'/%3E%3Ccircle cx='235' cy='120' r='4' fill='%232547a6' stroke='none'/%3E%3Cpath d='M70 95l10 10M80 95l-10 10' stroke='%232547a6'/%3E%3C/g%3E%3C/svg%3E");
   background-size: 260px 260px;
 }
 
@@ -65,12 +135,12 @@ body {
 
 /* Degradado de marca: rosa → fucsia → morado */
 .degradado-xico {
-  background-image: linear-gradient(120deg, #ff2d87 0%, #d63af0 45%, #7c2df0 100%);
+  background-image: linear-gradient(120deg, #e0364f 0%, #f07a1c 55%, #f6b31b 100%);
 }
 
 /* Texto con el degradado de marca */
 .texto-degradado {
-  background-image: linear-gradient(100deg, #ff2d87, #b23cf0 55%, #7c2df0);
+  background-image: linear-gradient(100deg, #e0364f, #f07a1c 55%, #2547a6);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -83,6 +153,13 @@ body {
     radial-gradient(circle at 75% 75%, rgb(255 255 255 / 0.14) 1.5px, transparent 2px);
   background-size: 24px 24px;
 }
+.degradado-xico.patron-picado {
+  background-image:
+    radial-gradient(circle at 25% 25%, rgb(255 255 255 / 0.22) 2px, transparent 2.5px),
+    radial-gradient(circle at 75% 75%, rgb(255 255 255 / 0.14) 1.5px, transparent 2px),
+    linear-gradient(120deg, #e0364f 0%, #f07a1c 55%, #f6b31b 100%);
+  background-size: 24px 24px, 24px 24px, 100% 100%;
+}
 
 /* Barra de desplazamiento horizontal oculta en carruseles */
 .sin-barra {
@@ -90,4 +167,12 @@ body {
 }
 .sin-barra::-webkit-scrollbar {
   display: none;
+}
+
+/* Encabezado: línea de lápiz ondulada abajo, como trazada a mano */
+.encabezado-libreta {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='6' viewBox='0 0 120 6'%3E%3Cpath d='M0 3 Q15 0.5 30 3 T60 3 T90 3 T120 3' fill='none' stroke='%232a1d16' stroke-opacity='0.55' stroke-width='1.6' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: repeat-x;
+  background-position: bottom;
+  background-size: 120px 6px;
 }

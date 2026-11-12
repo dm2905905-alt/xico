@@ -9,7 +9,7 @@ import { MenuMovil } from "./MenuMovil";
 // En celular el buscador va abajo del logo y la navegación vive en la barra inferior.
 export function Encabezado() {
   return (
-    <header className="sticky top-0 z-40 border-b border-arena-oscura/70 bg-crema/95 backdrop-blur">
+    <header className="encabezado-libreta sticky top-0 z-40 bg-crema/95 backdrop-blur">
       <div className="mx-auto flex max-w-7xl items-center gap-2 px-4 pt-3 pb-2 md:gap-5 md:py-3">
         <MenuMovil />
         <Logo />

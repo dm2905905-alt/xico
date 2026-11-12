@@ -224,7 +224,7 @@ export function MapaMexico({ creadores }: { creadores: CreadorMapa[] }) {
               </linearGradient>
             ))}
             <filter id="sombra" x="-10%" y="-10%" width="120%" height="120%">
-              <feDropShadow dx="0" dy="6" stdDeviation="8" floodColor="#7c2df0" floodOpacity="0.18" />
+              <feDropShadow dx="0" dy="6" stdDeviation="8" floodColor="#2547a6" floodOpacity="0.18" />
             </filter>
           </defs>
 
@@ -270,16 +270,16 @@ export function MapaMexico({ creadores }: { creadores: CreadorMapa[] }) {
                 return (
                   <g key={estado.codigo + l.nombre} transform={`translate(${x},${y}) scale(${inv})`} className="pointer-events-none">
                     {l.capital ? (
-                      <text textAnchor="middle" dy="5" fontSize="15" fill="#1d0b36">★</text>
+                      <text textAnchor="middle" dy="5" fontSize="15" fill="#2a1d16">★</text>
                     ) : (
-                      <circle r="3.5" fill="#1d0b36" />
+                      <circle r="3.5" fill="#2a1d16" />
                     )}
                     <text
                       x="9"
                       y="4"
                       fontSize={l.capital ? 14 : 12.5}
                       fontWeight={l.capital ? 700 : 500}
-                      fill="#1d0b36"
+                      fill="#2a1d16"
                       stroke="#ffffff"
                       strokeWidth="3.5"
                       paintOrder="stroke"
@@ -333,12 +333,12 @@ export function MapaMexico({ creadores }: { creadores: CreadorMapa[] }) {
                       />
                     </>
                   ) : (
-                    <text x="0" y="-25.5" textAnchor="middle" fontSize="13" fontWeight="800" fill="#7c2df0">
+                    <text x="0" y="-25.5" textAnchor="middle" fontSize="13" fontWeight="800" fill="#2547a6">
                       {inicial}
                     </text>
                   )}
                   {(elegido || t.k >= 3) && (
-                    <text y="16" textAnchor="middle" fontSize="12" fontWeight="700" fill="#1d0b36" stroke="#ffffff" strokeWidth="3.5" paintOrder="stroke">
+                    <text y="16" textAnchor="middle" fontSize="12" fontWeight="700" fill="#2a1d16" stroke="#ffffff" strokeWidth="3.5" paintOrder="stroke">
                       {creador.taller}
                     </text>
                   )}

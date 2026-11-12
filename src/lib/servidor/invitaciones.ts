@@ -27,7 +27,7 @@ export async function crearInvitacion(datos: Record<string, unknown>) {
     ciudad: recorta(datos.ciudad, 60),
     especialidad: recorta(datos.especialidad, 80),
     historia: recorta(datos.historia, 600),
-    colores: ["#ff2d87", "#7c2df0"],
+    colores: ["#e0364f", "#2547a6"],
     verificado: false,
     top: false,
     calificacion: 0,

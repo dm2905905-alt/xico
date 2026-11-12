@@ -221,7 +221,7 @@ function Reporte({ periodo, r }: { periodo: Periodo; r: Resumen }) {
     if (!v) return;
     const fila = (t: string, n: number) => `<tr><td>${t}</td><td style="text-align:right">${precio(n)}</td></tr>`;
     v.document.write(`<!doctype html><meta charset="utf-8"><title>${archivo}</title>
-      <style>body{font-family:system-ui,sans-serif;padding:24px;color:#1d0b36}table{border-collapse:collapse;width:100%;margin:12px 0}td,th{border-bottom:1px solid #ddd;padding:6px;font-size:13px;text-align:left}h1{font-size:20px}</style>
+      <style>body{font-family:system-ui,sans-serif;padding:24px;color:#2a1d16}table{border-collapse:collapse;width:100%;margin:12px 0}td,th{border-bottom:1px solid #ddd;padding:6px;font-size:13px;text-align:left}h1{font-size:20px}</style>
       <h1>Reporte XICO · ${periodo.nombre}</h1>
       <table>${fila("Total cobrado", r.totalCobrado)}${fila("Ventas de productos", r.ventas)}${fila("Envíos", r.envios)}${fila("Comisiones XICO", r.comisiones)}${fila("Mensualidades", r.suscripciones)}${fila("Premios de eventos", r.premios)}${fila("Ganancia XICO", r.gananciaXico)}${fila("Para las tiendas", r.paraTiendas)}${fila("Pendiente de pagar", r.pendienteTiendas)}</table>
       <table><tr><th>Tienda</th><th>Pedidos</th><th>Ventas</th><th>Comisión</th><th>Envío</th><th>Le toca</th><th>Pendiente</th><th>Mensualidad</th></tr>
