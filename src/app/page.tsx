@@ -1,11 +1,13 @@
 import Link from "next/link";
 import { BadgeCheck, Clock, Gift, MapPin, Play, ShieldCheck, Sparkles, Store, Trophy, Truck } from "lucide-react";
+import { AnuncioEvento } from "@/components/AnuncioEvento";
 import { CreadorDestacado } from "@/components/CreadorDestacado";
 import { Fila } from "@/components/Fila";
 import { IconoCategoria } from "@/components/IconoCategoria";
 import { TarjetaProducto } from "@/components/TarjetaProducto";
 import { consultas, obtenerCatalogo } from "@/lib/catalogo";
 import { categorias, estados } from "@/lib/datos";
+import { detallesPequenos, obtenerAnuncio } from "@/lib/servidor/anuncio";
 
 // Inicio estilo app: categorías como botones, banners que se deslizan y filas de productos
 export default async function Inicio() {
@@ -18,6 +20,9 @@ export default async function Inicio() {
   const listaNuevos = nuevos();
   const listaBaratos = desde99();
   const destacado = creadoresDestacados(1)[0];
+  const anuncio = await obtenerAnuncio();
+  const reales = new Set(creadores.filter((c) => c.uid).map((c) => c.slug));
+  const detalles = detallesPequenos(productos.filter((p) => reales.has(p.creador)));
 
   const banners = [
     { href: "/descubre", titulo: "Descubre: así se hace", texto: "Videos de creadores haciendo sus piezas", icono: Play, fondo: "bg-tinta" },
@@ -61,6 +66,9 @@ export default async function Inicio() {
           </div>
         </div>
       )}
+
+      {/* Evento en curso: "Apoya a nuestros emprendedores" */}
+      {anuncio && <AnuncioEvento anuncio={anuncio} detalles={detalles} />}
 
       {/* Banners */}
       <div className="mx-auto max-w-7xl">
