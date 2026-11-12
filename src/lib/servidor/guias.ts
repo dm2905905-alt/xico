@@ -64,10 +64,19 @@ export async function generarGuiasDePedido(pedidoId: string, soloCreador?: strin
         if (!/QUOTE_ONLY|branch code/i.test((e as Error).message)) throw e;
         await bloquearServicio(envia.paqueteria, envia.servicio);
         const { opciones } = await cotizar(o, d, paquete, g.subtotal);
-        const otra = opciones.find((x) => !(x.paqueteria === envia!.paqueteria && x.servicio === envia!.servicio));
-        if (!otra) throw e;
-        nueva = await generarGuia(o, d, paquete, g.subtotal, otra.paqueteria, otra.servicio, contenido);
-        envia = { paqueteria: otra.paqueteria, servicio: otra.servicio, descripcion: `${otra.descripcion}${otra.dias ? ` (${otra.dias})` : ""}`, costo: otra.precio, cobrado: g.envio };
+        let ultimo = e;
+        for (const otra of opciones.filter((x) => !(x.paqueteria === envia!.paqueteria && x.servicio === envia!.servicio)).slice(0, 4)) {
+          try {
+            nueva = await generarGuia(o, d, paquete, g.subtotal, otra.paqueteria, otra.servicio, contenido);
+            envia = { paqueteria: otra.paqueteria, servicio: otra.servicio, descripcion: `${otra.descripcion}${otra.dias ? ` (${otra.dias})` : ""}`, costo: otra.precio, cobrado: g.envio };
+            break;
+          } catch (e2) {
+            ultimo = e2;
+            if (/QUOTE_ONLY|branch code/i.test((e2 as Error).message)) await bloquearServicio(otra.paqueteria, otra.servicio);
+            else break;
+          }
+        }
+        if (!nueva) throw ultimo;
       }
       cambio = { guia: nueva.guia, etiqueta: nueva.etiqueta, rastreoUrl: nueva.rastreoUrl, paqueteria: paqueteriaXico(envia.paqueteria), guiaError: "", envia };
       resultados.push({ creador: g.creador, ok: true });
