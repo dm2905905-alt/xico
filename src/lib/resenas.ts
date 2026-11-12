@@ -13,6 +13,7 @@ export type Resena = {
   texto: string;
   fecha: number;
   editada?: boolean;
+  respuesta?: { texto: string; fecha: number }; // la tienda responde (una vez; puede cambiarla)
 };
 
 export const MAX_TEXTO_RESENA = 600;

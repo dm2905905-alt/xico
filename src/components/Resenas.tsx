@@ -157,6 +157,7 @@ export function Resenas({ tipo, objetivo, creadorUid, className = "mt-8" }: { ti
               {tipo === "tienda" && r.tipo === "producto" && r.producto && <p className="mt-1 text-xs text-cafe">Sobre: {r.producto}</p>}
               {r.texto && <p className="mt-2 text-sm whitespace-pre-line">{r.texto}</p>}
               <p className="mt-2 text-[11px] font-semibold text-jade">✓ Compra verificada</p>
+              <RespuestaTienda r={r} esDueno={esDueno} />
             </article>
           ))}
           {lista.length > 5 && (
@@ -263,5 +264,88 @@ function Formulario({ tipo, objetivo, mia }: { tipo: TipoResena; objetivo: strin
         )}
       </div>
     </div>
+  );
+}
+
+// Respuesta de la tienda a una opinión (solo la tienda dueña puede escribirla)
+function RespuestaTienda({ r, esDueno }: { r: Resena; esDueno: boolean }) {
+  const { usuario } = useSesion();
+  const [editando, setEditando] = useState(false);
+  const [texto, setTexto] = useState(r.respuesta?.texto ?? "");
+  const [ocupado, setOcupado] = useState(false);
+  const [error, setError] = useState("");
+
+  async function guardar(valor: string) {
+    if (!usuario) return;
+    setOcupado(true);
+    setError("");
+    try {
+      const resp = await fetch("/api/resenas", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${await usuario.getIdToken()}` },
+        body: JSON.stringify({ responder: r.id, texto: valor }),
+      });
+      const datos = await resp.json().catch(() => ({}));
+      if (!resp.ok) throw new Error(datos.error ?? "No se pudo guardar.");
+      setEditando(false);
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setOcupado(false);
+    }
+  }
+
+  if (editando) {
+    return (
+      <div className="mt-3 grid gap-2 rounded-xl bg-arena/60 p-3">
+        <textarea
+          value={texto}
+          onChange={(e) => setTexto(e.target.value)}
+          rows={2}
+          maxLength={MAX_TEXTO_RESENA}
+          placeholder="Agradece o explica con amabilidad…"
+          className="w-full rounded-lg bg-white px-3 py-2 text-sm ring-1 ring-arena-oscura focus:outline-none focus:ring-terracota"
+        />
+        {error && <p className="text-xs text-rosa">{error}</p>}
+        <div className="flex gap-2">
+          <button onClick={() => guardar(texto)} disabled={ocupado || !texto.trim()} className="flex items-center gap-1 rounded-full bg-terracota px-4 py-1.5 text-xs font-semibold text-crema disabled:opacity-60">
+            {ocupado && <Loader2 className="size-3 animate-spin" />} Publicar respuesta
+          </button>
+          <button onClick={() => setEditando(false)} className="rounded-full px-3 py-1.5 text-xs ring-1 ring-arena-oscura">
+            Cancelar
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <>
+      {r.respuesta && (
+        <div className="mt-3 rounded-xl bg-arena/60 p-3 text-sm">
+          <p className="text-xs font-semibold text-terracota">Respuesta de la tienda</p>
+          <p className="mt-1 whitespace-pre-line">{r.respuesta.texto}</p>
+        </div>
+      )}
+      {esDueno && (
+        <div className="mt-2 flex gap-3 text-xs">
+          <button
+            onClick={() => {
+              setTexto(r.respuesta?.texto ?? "");
+              setEditando(true);
+            }}
+            className="font-semibold text-terracota underline"
+          >
+            {r.respuesta ? "Editar respuesta" : "Responder"}
+          </button>
+          {r.respuesta && (
+            <button onClick={() => window.confirm("¿Quitar tu respuesta?") && guardar("")} className="text-rosa underline">
+              Quitar
+            </button>
+          )}
+          {error && <span className="text-rosa">{error}</span>}
+        </div>
+      )}
+    </>
   );
 }

@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { Heart, MessageCircle, ShoppingBag, User } from "lucide-react";
+import { Bell, Heart, MessageCircle, ShoppingBag, User } from "lucide-react";
+import { useAvisos } from "@/lib/avisos-cliente";
 import { sinLeer, useConversaciones } from "@/lib/chat";
 import { useCarrito } from "@/lib/carrito";
 import { useFavoritos } from "@/lib/favoritos";
@@ -22,6 +23,7 @@ export function IconosCuenta() {
   const { usuario } = useSesion();
   const { conversaciones } = useConversaciones(usuario?.uid);
   const hayNuevos = !!usuario && conversaciones.some((c) => sinLeer(c, usuario.uid));
+  const avisosNuevos = useAvisos(usuario?.uid).avisos.filter((a) => !a.leido).length;
   const inicial = usuario?.displayName?.[0] ?? usuario?.phoneNumber?.slice(-2);
 
   return (
@@ -34,6 +36,12 @@ export function IconosCuenta() {
         <Heart className="size-5" />
         <Globo n={favoritos} />
       </Link>
+      {usuario && (
+        <Link href="/avisos" aria-label={`Avisos${avisosNuevos ? ` (${avisosNuevos} nuevos)` : ""}`} className="relative grid size-10 place-items-center rounded-full hover:bg-arena">
+          <Bell className="size-5" />
+          <Globo n={avisosNuevos} />
+        </Link>
+      )}
       {usuario && (
         <Link href="/mensajes" aria-label={`Mensajes${hayNuevos ? " (nuevos)" : ""}`} className="relative grid size-10 place-items-center rounded-full hover:bg-arena">
           <MessageCircle className="size-5" />

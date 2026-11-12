@@ -98,6 +98,7 @@ export default async function PaginaProducto({ params }: PageProps<"/producto/[s
               <>
                 {off > 0 && <span className="rounded-full bg-rosa px-2.5 py-0.5 text-xs font-bold text-white">-{off}%</span>}
                 {producto.nuevo && <span className="rounded-full bg-maiz px-2.5 py-0.5 text-xs font-bold">Nuevo</span>}
+                {producto.unica && <span className="rounded-full bg-terracota/10 px-2.5 py-0.5 text-xs font-bold text-terracota">Pieza única</span>}
               </>
             )}
           </div>

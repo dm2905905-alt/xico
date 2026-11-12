@@ -21,7 +21,7 @@ import { periodos } from "@/lib/finanzas";
 import { mensajeError, obtenerDb } from "@/lib/firebase";
 import { precio } from "@/lib/formato";
 import { nuevoPagadoHasta } from "@/lib/suscripcion";
-import type { DatosAdmin } from "./datos";
+import type { DatosAdmin, Rol } from "./datos";
 
 type Periodo = "semana" | "mes" | "proxima-semana" | "proximo-mes" | "fechas";
 
@@ -72,7 +72,7 @@ const nombreFase: Record<FaseEvento, { texto: string; color: string }> = {
 };
 
 // Eventos y retos para vendedores, con premios
-export function TabEventos({ datos }: { datos: DatosAdmin }) {
+export function TabEventos({ datos, rol }: { datos: DatosAdmin; rol: Rol }) {
   const [ahora] = useState(() => Date.now());
   const [abierto, setAbierto] = useState(false);
   const [error, setError] = useState("");
@@ -162,7 +162,7 @@ export function TabEventos({ datos }: { datos: DatosAdmin }) {
           <section key={titulo} className="grid gap-3">
             <h2 className="font-display text-lg font-semibold">{titulo}</h2>
             {lista.map((e) => (
-              <TarjetaEvento key={e.id} e={e} datos={datos} ahora={ahora} ocupado={ocupado === e.id} premiar={premiar} cancelar={cancelar} borrar={borrar} />
+              <TarjetaEvento key={e.id} e={e} datos={datos} ahora={ahora} ocupado={ocupado === e.id} premiar={rol === "admin" ? premiar : undefined} cancelar={cancelar} borrar={borrar} />
             ))}
           </section>
         ) : null,
@@ -185,7 +185,7 @@ function TarjetaEvento({
   datos: DatosAdmin;
   ahora: number;
   ocupado: boolean;
-  premiar: (e: Evento) => void;
+  premiar?: (e: Evento) => void;
   cancelar: (e: Evento) => void;
   borrar: (e: Evento) => void;
 }) {
@@ -249,7 +249,8 @@ function TarjetaEvento({
       )}
 
       <div className="mt-3 flex flex-wrap gap-2">
-        {fase === "por-premiar" && (
+        {fase === "por-premiar" && !premiar && <p className="text-xs text-cafe">La administración entrega los premios.</p>}
+        {fase === "por-premiar" && premiar && (
           <button onClick={() => premiar(e)} disabled={ocupado} className="flex items-center gap-1.5 rounded-full bg-jade px-4 py-2 text-sm font-semibold text-white disabled:opacity-60">
             {ocupado ? <Loader2 className="size-4 animate-spin" /> : <Gift className="size-4" />} Entregar premios ({ganadores.length})
           </button>

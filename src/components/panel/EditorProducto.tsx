@@ -68,6 +68,7 @@ function Formulario({ creador, existente }: { creador: Creador; existente?: Prod
     subcategoria: existente?.subcategoria,
     precio: existente?.precio ?? 0,
     precioAntes: existente?.precioAntes,
+    unica: existente?.unica ?? false,
     descripcion: existente?.descripcion ?? "",
     materiales: existente?.materiales ?? "",
     diasElaboracion: existente?.diasElaboracion ?? "Listo para enviar",
@@ -219,6 +220,13 @@ function Formulario({ creador, existente }: { creador: Creador; existente?: Prod
             <label className={etiqueta}>
               Precio anterior (opcional)
               <input className={campo} type="number" inputMode="numeric" min={1} value={d.precioAntes || ""} onChange={(e) => poner("precioAntes", Number(e.target.value) || undefined)} placeholder="Para mostrarlo como oferta" />
+            </label>
+            <label className="flex cursor-pointer items-start gap-3 rounded-2xl bg-arena/60 p-3 text-sm sm:col-span-2">
+              <input type="checkbox" className="mt-0.5 size-4 accent-terracota" checked={!!d.unica} onChange={(e) => poner("unica", e.target.checked)} />
+              <span>
+                <strong>Es pieza única (solo hay una)</strong>
+                <span className="block text-cafe">Cuando alguien la pague, se marca como vendida sola y pasa a tus &quot;Trabajos anteriores&quot;.</span>
+              </span>
             </label>
             <label className={etiqueta}>
               Tiempo de elaboración

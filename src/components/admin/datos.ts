@@ -23,21 +23,24 @@ export async function llamar<T = Record<string, unknown>>(usuario: User, ruta: s
   return datos as T;
 }
 
-// ¿Es administradora? Lo decide el servidor (lista ADMIN_EMAILS)
+export type Rol = "admin" | "moderador" | null;
+
+// ¿Es administradora o moderadora? Lo decide el servidor (ADMIN_EMAILS y la lista del equipo)
 export function useEsAdmin(usuario: User | null) {
-  const [estado, setEstado] = useState<{ uid?: string; admin: boolean }>({ admin: false });
+  const [estado, setEstado] = useState<{ uid?: string; rol: Rol }>({ rol: null });
   useEffect(() => {
     if (!usuario) return;
     let activo = true;
-    llamar<{ admin: boolean }>(usuario, "/api/admin/yo", {})
-      .then((r) => activo && setEstado({ uid: usuario.uid, admin: r.admin }))
-      .catch(() => activo && setEstado({ uid: usuario.uid, admin: false }));
+    llamar<{ rol: Rol }>(usuario, "/api/admin/yo", {})
+      .then((r) => activo && setEstado({ uid: usuario.uid, rol: r.rol ?? null }))
+      .catch(() => activo && setEstado({ uid: usuario.uid, rol: null }));
     return () => {
       activo = false;
     };
   }, [usuario]);
-  if (!usuario) return { admin: false, cargando: false };
-  return estado.uid === usuario.uid ? { admin: estado.admin, cargando: false } : { admin: false, cargando: true };
+  if (!usuario) return { admin: false, rol: null as Rol, cargando: false };
+  const rol = estado.uid === usuario.uid ? estado.rol : null;
+  return { admin: rol === "admin", rol, cargando: estado.uid !== usuario.uid };
 }
 
 // privados: cuenta de pago y dirección de cada tienda (por slug)

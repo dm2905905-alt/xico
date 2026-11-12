@@ -31,9 +31,12 @@ const tabs = [
 
 export function PanelAdmin() {
   const { usuario, cargando, configurado } = useSesion();
-  const { admin, cargando: revisando } = useEsAdmin(usuario);
-  const datos = useDatosAdmin(admin);
-  const [tab, setTab] = useState("resumen");
+  const { rol, cargando: revisando } = useEsAdmin(usuario);
+  const datos = useDatosAdmin(!!rol);
+  // Moderación (por ejemplo, una socia): sin dinero, datos privados ni configuración
+  const visibles = rol === "admin" ? tabs : tabs.filter((t) => ["creadores", "eventos", "productos", "videos", "resenas"].includes(t.id));
+  const [elegida, setTab] = useState("resumen");
+  const tab = visibles.some((t) => t.id === elegida) ? elegida : visibles[0].id;
 
   if (!configurado) return <p className="text-cafe">Firebase no está configurado (.env.local).</p>;
   if (cargando || revisando) return <div className="h-48 animate-pulse rounded-3xl bg-arena" />;
@@ -47,7 +50,7 @@ export function PanelAdmin() {
     );
   }
 
-  if (!admin) {
+  if (!rol) {
     return (
       <div className="flex items-start gap-3 rounded-3xl bg-white p-6 ring-1 ring-arena-oscura/60">
         <ShieldAlert className="size-6 shrink-0 text-rosa" />
@@ -62,7 +65,7 @@ export function PanelAdmin() {
   return (
     <div className="grid gap-6">
       <nav className="sin-barra -mx-4 flex gap-2 overflow-x-auto px-4" aria-label="Secciones de administración">
-        {tabs.map((t) => (
+        {visibles.map((t) => (
           <button
             key={t.id}
             onClick={() => setTab(t.id)}
@@ -80,8 +83,8 @@ export function PanelAdmin() {
         <>
           {tab === "resumen" && <TabResumen datos={datos} ir={setTab} />}
           {tab === "finanzas" && <TabFinanzas datos={datos} />}
-          {tab === "creadores" && <TabCreadores datos={datos} />}
-          {tab === "eventos" && <TabEventos datos={datos} />}
+          {tab === "creadores" && <TabCreadores datos={datos} rol={rol} />}
+          {tab === "eventos" && <TabEventos datos={datos} rol={rol} />}
           {tab === "productos" && <TabProductos datos={datos} />}
           {tab === "videos" && <TabVideos />}
           {tab === "resenas" && <TabResenas datos={datos} />}

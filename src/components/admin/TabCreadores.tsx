@@ -10,14 +10,19 @@ import { mensajeError, obtenerDb } from "@/lib/firebase";
 import { precio } from "@/lib/formato";
 import type { DatosPrivados } from "@/lib/panel";
 import { MENSUALIDAD, estadoSuscripcion, nuevoPagadoHasta, type PagoSuscripcion } from "@/lib/suscripcion";
-import { cobrados, type DatosAdmin } from "./datos";
+import { avisarDesdeAdmin } from "@/lib/avisos-cliente";
+import { cobrados, type DatosAdmin, type Rol } from "./datos";
+import { EditarTienda, NuevaTienda } from "./EditarTienda";
 
 type Filtro = "solicitudes" | "todas" | "pendientes" | "suspendidas" | "ejemplo";
 
 const fecha = (ms?: number) => (ms ? new Date(ms).toLocaleDateString("es-MX", { day: "numeric", month: "short", year: "numeric" }) : "—");
 
 // Tiendas: aprobar solicitudes, suspender y otorgar insignias
-export function TabCreadores({ datos }: { datos: DatosAdmin }) {
+export function TabCreadores({ datos, rol }: { datos: DatosAdmin; rol: Rol }) {
+  const esAdmin = rol === "admin";
+  const [editando, setEditando] = useState<Creador | null>(null);
+  const [creando, setCreando] = useState(false);
   const solicitudes = datos.creadores.filter((c) => c.estadoTienda === "revision").length;
   const [error, setError] = useState("");
   const [filtro, setFiltro] = useState<Filtro>(solicitudes ? "solicitudes" : "todas");
@@ -30,14 +35,31 @@ export function TabCreadores({ datos }: { datos: DatosAdmin }) {
 
   async function cambiar(c: Creador, cambios: Partial<Creador>, pregunta?: string) {
     const db = obtenerDb();
-    if (!db) return;
-    if (pregunta && !window.confirm(pregunta)) return;
+    if (!db) return false;
+    if (pregunta && !window.confirm(pregunta)) return false;
     setError("");
     try {
       await updateDoc(doc(db, "creadores", c.slug), cambios);
+      return true;
     } catch (e) {
       setError(mensajeError(e));
+      return false;
     }
+  }
+
+  // Aprobar, rechazar, suspender o reactivar, y avisarle a la tienda
+  async function cambiarEstado(c: Creador, estado: "aprobada" | "suspendida", pregunta: string) {
+    const antes = c.estadoTienda;
+    if (!(await cambiar(c, { estadoTienda: estado }, pregunta)) || !c.uid) return;
+    const aviso =
+      estado === "aprobada"
+        ? antes === "revision"
+          ? { titulo: "¡Tu tienda fue aprobada! 🎉", texto: "Ya puedes subir tus productos y empezar a vender en XICO." }
+          : { titulo: "Tu tienda está activa otra vez", texto: "Tus productos ya se muestran en XICO." }
+        : antes === "revision"
+          ? { titulo: "Tu solicitud no fue aprobada", texto: "Escríbenos por WhatsApp si quieres saber por qué o volver a intentarlo." }
+          : { titulo: "Tu tienda fue suspendida", texto: "Tus productos no se muestran por ahora. Escríbenos por WhatsApp para resolverlo." };
+    await avisarDesdeAdmin({ uid: c.uid, tipo: "tienda", enlace: "/panel", ...aviso }).catch(() => {});
   }
 
   // Mensualidad pagada por otro medio (transferencia o efectivo)
@@ -122,6 +144,13 @@ export function TabCreadores({ datos }: { datos: DatosAdmin }) {
 
   return (
     <div className="grid gap-4">
+      {esAdmin && !creando && (
+        <button onClick={() => setCreando(true)} className="justify-self-start rounded-full bg-terracota px-4 py-2 text-sm font-semibold text-crema">
+          + Crear tienda para alguien
+        </button>
+      )}
+      {creando && <NuevaTienda cerrar={() => setCreando(false)} />}
+      {editando && <EditarTienda c={editando} cerrar={() => setEditando(null)} />}
       <div className="flex flex-wrap gap-2">
         {filtros.map(([id, texto]) => (
           <button
@@ -148,6 +177,9 @@ export function TabCreadores({ datos }: { datos: DatosAdmin }) {
             productos={datos.productos.filter((p) => p.creador === c.slug).length}
             vendido={ventasDe(c.slug)}
             cambiar={cambiar}
+            cambiarEstado={cambiarEstado}
+            esAdmin={esAdmin}
+            editar={setEditando}
             pagoManual={pagoManual}
             exentar={exentar}
             destacar={destacar}
@@ -170,16 +202,22 @@ function Tienda({
   exentar,
   regalarMes,
   destacar,
+  cambiarEstado,
+  esAdmin,
+  editar,
 }: {
   c: Creador;
   privado?: DatosPrivados;
   productos: number;
   vendido: number;
-  cambiar: (c: Creador, cambios: Partial<Creador>, pregunta?: string) => void;
+  cambiar: (c: Creador, cambios: Partial<Creador>, pregunta?: string) => Promise<boolean>;
   pagoManual: (c: Creador) => void;
   exentar: (c: Creador, exenta: boolean) => void;
   regalarMes: (c: Creador) => void;
   destacar: (c: Creador, valor: boolean) => void;
+  cambiarEstado: (c: Creador, estado: "aprobada" | "suspendida", pregunta: string) => void;
+  esAdmin: boolean;
+  editar: (c: Creador) => void;
 }) {
   const [ahora] = useState(() => Date.now());
   const sus = estadoSuscripcion(c, ahora);
@@ -206,6 +244,12 @@ function Tienda({
             {c.nombre || "Sin nombre"} · {estadoPorSlug(c.estado)?.nombre ?? "—"} · {productos} productos · vendió {precio(vendido)}
           </p>
         </div>
+        {esAdmin && (
+          <button onClick={() => editar(c)} className="text-xs text-terracota underline">
+            Editar perfil
+          </button>
+        )}
+        {c.invitada && <span className="rounded-full bg-maiz/30 px-2 py-0.5 text-[11px]">✉️ invitación sin aceptar</span>}
         <Link href={`/creador/${c.slug}`} target="_blank" className="flex items-center gap-1 text-xs text-terracota hover:underline">
           Ver tienda <ExternalLink className="size-3.5" />
         </Link>
@@ -224,6 +268,7 @@ function Tienda({
             <p>Hace: {c.especialidad || "—"}</p>
             {c.historia && <p className="mt-1 line-clamp-4 text-cafe">“{c.historia}”</p>}
           </div>
+          {esAdmin && (<>
           <div>
             <p className="text-xs font-semibold text-cafe uppercase">Cuenta de pago</p>
             {pago ? (
@@ -248,6 +293,7 @@ function Tienda({
               <p className="text-rosa">⚠️ Sin dirección registrada</p>
             )}
           </div>
+          </>)}
         </div>
       )}
 
@@ -255,13 +301,13 @@ function Tienda({
         {enRevision && (
           <>
             <button
-              onClick={() => cambiar(c, { estadoTienda: "aprobada" }, `¿Aprobar "${c.taller}"? Sus productos aparecerán en XICO.`)}
+              onClick={() => cambiarEstado(c, "aprobada", `¿Aprobar "${c.taller}"? Sus productos aparecerán en XICO.`)}
               className="flex items-center gap-1.5 rounded-full bg-jade px-4 py-1.5 text-sm font-semibold text-white"
             >
               <Check className="size-4" /> Aprobar
             </button>
             <button
-              onClick={() => cambiar(c, { estadoTienda: "suspendida" }, `¿Rechazar la solicitud de "${c.taller}"? Su tienda no se mostrará.`)}
+              onClick={() => cambiarEstado(c, "suspendida", `¿Rechazar la solicitud de "${c.taller}"? Su tienda no se mostrará.`)}
               className="rounded-full px-4 py-1.5 text-sm text-rosa ring-1 ring-rosa/40"
             >
               Rechazar
@@ -272,20 +318,20 @@ function Tienda({
           <button
             onClick={() =>
               suspendida
-                ? cambiar(c, { estadoTienda: "aprobada" }, `¿Reactivar "${c.taller}"?`)
-                : cambiar(c, { estadoTienda: "suspendida" }, `¿Suspender "${c.taller}"? Sus productos dejarán de mostrarse.`)
+                ? cambiarEstado(c, "aprobada", `¿Reactivar "${c.taller}"?`)
+                : cambiarEstado(c, "suspendida", `¿Suspender "${c.taller}"? Sus productos dejarán de mostrarse.`)
             }
             className={`rounded-full px-4 py-1.5 text-sm ring-1 ${suspendida ? "text-jade ring-jade" : "text-rosa ring-rosa/40"}`}
           >
             {suspendida ? "Reactivar tienda" : "Suspender"}
           </button>
         )}
-        {c.uid && !enRevision && sus.fase !== "sin-fecha" && (
+        {esAdmin && c.uid && !enRevision && sus.fase !== "sin-fecha" && (
           <span className={`rounded-full px-3 py-1.5 text-xs font-semibold ${sus.fase === "pausada" ? "bg-rosa/10 text-rosa" : sus.fase === "vencida" ? "bg-maiz/30" : sus.fase === "exenta" ? "bg-terracota/10 text-terracota" : "bg-jade/10 text-jade"}`}>
             {sus.fase === "exenta" ? "Sin mensualidad" : sus.fase === "prueba" ? `Gratis hasta ${fechaCorta(sus.finGratis)}` : sus.fase === "activa" ? `Pagada hasta ${fechaCorta(sus.vence)}` : sus.fase === "vencida" ? "Mensualidad vencida" : "Pausada por falta de pago"}
           </span>
         )}
-        {c.uid && !enRevision && sus.fase !== "exenta" && (
+        {esAdmin && c.uid && !enRevision && sus.fase !== "exenta" && (
           <>
             <button onClick={() => pagoManual(c)} className="rounded-full px-3 py-1.5 text-xs ring-1 ring-arena-oscura hover:bg-arena">
               + Registrar pago de 1 mes
@@ -295,7 +341,7 @@ function Tienda({
             </button>
           </>
         )}
-        {c.uid && (
+        {esAdmin && c.uid && (
           <button
             onClick={() => exentar(c, sus.fase !== "exenta")}
             className={`rounded-full px-3 py-1.5 text-xs font-semibold ring-1 ${sus.fase === "exenta" ? "text-cafe ring-arena-oscura hover:bg-arena" : "text-terracota ring-terracota/40 hover:bg-terracota/10"}`}

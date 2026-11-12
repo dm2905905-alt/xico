@@ -126,6 +126,7 @@ export type DatosProducto = Pick<
   | "subcategoria"
   | "precio"
   | "precioAntes"
+  | "unica"
   | "descripcion"
   | "materiales"
   | "diasElaboracion"

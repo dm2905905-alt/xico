@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from "react";
 import type { User } from "firebase/auth";
-import { collection, doc, getDocs, writeBatch } from "firebase/firestore";
-import { Check, Copy, Database, ExternalLink, Loader2, ShieldCheck, Trash2 } from "lucide-react";
+import { collection, doc, getDocs, onSnapshot, setDoc, writeBatch } from "firebase/firestore";
+import { Check, Copy, Database, ExternalLink, Loader2, ShieldCheck, Trash2, Users } from "lucide-react";
 import { catalogoEjemplo } from "@/lib/ejemplo";
 import { mensajeError, obtenerDb } from "@/lib/firebase";
 import { firebaseConfig } from "@/lib/firebase-config";
@@ -158,8 +158,85 @@ export function TabConfiguracion({ usuario }: { usuario: User }) {
         )}
       </section>
 
+      <Equipo />
       <Limpieza usuario={usuario} />
     </div>
+  );
+}
+
+// Moderadores: aprueban tiendas, moderan productos, videos y reseñas y crean eventos.
+// No ven CLABE ni direcciones, ni pagos, finanzas o configuración.
+function Equipo() {
+  const [lista, setLista] = useState<string[] | null>(null);
+  const [correo, setCorreo] = useState("");
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    const db = obtenerDb();
+    if (!db) return;
+    return onSnapshot(
+      doc(db, "config", "equipo"),
+      (d) => setLista((d.data()?.moderadores as string[] | undefined) ?? []),
+      () => setLista([]),
+    );
+  }, []);
+
+  async function guardar(nueva: string[]) {
+    const db = obtenerDb();
+    if (!db) return;
+    setError("");
+    try {
+      await setDoc(doc(db, "config", "equipo"), { moderadores: nueva });
+    } catch (e) {
+      setError(mensajeError(e));
+    }
+  }
+
+  async function agregar() {
+    const c = correo.trim().toLowerCase();
+    if (!/^[^@\s]+@[^@\s]+\.[a-z]{2,}$/.test(c)) return setError("Escribe un correo válido.");
+    if (lista?.includes(c)) return setError("Ese correo ya está en el equipo.");
+    await guardar([...(lista ?? []), c]);
+    setCorreo("");
+  }
+
+  return (
+    <section className="rounded-3xl bg-white p-6 ring-1 ring-arena-oscura/60">
+      <h2 className="flex items-center gap-2 font-display text-xl font-semibold">
+        <Users className="size-5 text-terracota" /> Equipo (moderadores)
+      </h2>
+      <p className="mt-1 text-sm text-cafe">
+        Pueden aprobar o suspender tiendas, ocultar productos y videos, borrar reseñas y crear eventos. <strong>No ven</strong> CLABE, direcciones, pagos,
+        finanzas ni esta configuración. Deben entrar con ese correo de Google; pídeles que activen la verificación en dos pasos.
+      </p>
+      <ul className="mt-3 grid gap-2">
+        {(lista ?? []).map((c) => (
+          <li key={c} className="flex items-center gap-2 rounded-xl bg-arena/60 px-3 py-2 text-sm">
+            <span className="min-w-0 flex-1 truncate">{c}</span>
+            <button
+              onClick={() => window.confirm(`¿Quitar a ${c} del equipo?`) && guardar((lista ?? []).filter((x) => x !== c))}
+              className="text-xs text-rosa underline"
+            >
+              Quitar
+            </button>
+          </li>
+        ))}
+        {lista && !lista.length && <li className="text-sm text-cafe">Todavía no hay moderadores.</li>}
+      </ul>
+      <div className="mt-3 flex flex-wrap gap-2">
+        <input
+          type="email"
+          value={correo}
+          onChange={(e) => setCorreo(e.target.value)}
+          placeholder="correo@gmail.com"
+          className="min-w-0 flex-1 rounded-xl bg-arena/60 px-3 py-2 text-sm ring-1 ring-arena-oscura focus:outline-none focus:ring-terracota"
+        />
+        <button onClick={agregar} className="rounded-full bg-terracota px-4 py-2 text-sm font-semibold text-crema">
+          Agregar
+        </button>
+      </div>
+      {error && <p className="mt-2 text-sm text-rosa">{error}</p>}
+    </section>
   );
 }
 

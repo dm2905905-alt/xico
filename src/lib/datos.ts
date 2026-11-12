@@ -53,7 +53,8 @@ export type Creador = {
   resenas: number;
   verificado: boolean;
   top: boolean;
-  destacado?: boolean; // la administración lo eligió como "Creador destacado" del inicio
+  destacado?: boolean;
+  invitada?: boolean; // la creó la administración y espera a que su dueño acepte la invitación // la administración lo eligió como "Creador destacado" del inicio
   colores: [string, string];
   uid?: string; // cuenta dueña de la tienda (los creadores de ejemplo no tienen)
   foto?: Foto; // foto de perfil
@@ -80,6 +81,7 @@ export type Producto = {
   subcategoria?: string; // slug dentro de su categoría (opcional)
   vendido?: boolean; // pieza ya vendida: sale del catálogo y queda en "Trabajos anteriores"
   vendidoEn?: number;
+  unica?: boolean; // pieza única: solo hay una; al pagarla se marca como vendida sola
   precio: number;
   precioAntes?: number;
   calificacion: number;

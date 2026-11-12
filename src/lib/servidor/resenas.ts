@@ -1,9 +1,12 @@
 // Guardar y borrar reseñas. Solo en el servidor: así nadie puede inventar compras ni mover los promedios.
+import { FieldValue } from "firebase-admin/firestore";
 import type { Creador, Producto } from "../datos";
 import type { Pedido } from "../pedidos";
 import { ocultarContacto } from "../contacto";
 import { MAX_TEXTO_RESENA, idResena, nombreCorto, promedio, type Resena, type TipoResena } from "../resenas";
 import { adminDb, esAdmin, ErrorXico, type UsuarioVerificado } from "./admin";
+import { avisar } from "./avisos";
+import { esModerador } from "./equipo";
 
 const cobrado = (p: Pedido) => ["pagado", "enviado", "entregado"].includes(p.estado);
 
@@ -68,9 +71,23 @@ export async function guardarResena(usuario: UsuarioVerificado, cuerpo: Record<s
     texto,
     fecha: Date.now(),
     ...(anterior.exists ? { editada: true } : {}),
+    // Si la tienda ya había respondido, su respuesta se conserva
+    ...((anterior.data() as Resena | undefined)?.respuesta ? { respuesta: (anterior.data() as Resena).respuesta } : {}),
   };
   await ref.set(resena);
   await recalcular(tipo === "producto" ? objetivo : null, creador);
+  if (!anterior.exists) {
+    const dueno = ((await db.collection("creadores").doc(creador).get()).data() as Creador | undefined)?.uid ?? "";
+    await avisar([
+      {
+        uid: dueno,
+        tipo: "resena",
+        titulo: `Nueva opinión: ${"★".repeat(estrellas)}${"☆".repeat(5 - estrellas)}`,
+        texto: `${resena.nombre} opinó sobre ${nombreProducto ?? "tu tienda"}. Puedes responderle.`,
+        enlace: tipo === "producto" ? `/producto/${objetivo}#resenas` : `/creador/${creador}#resenas`,
+      },
+    ]);
+  }
   return resena;
 }
 
@@ -81,8 +98,38 @@ export async function borrarResena(usuario: UsuarioVerificado, id: string) {
   const snap = await ref.get();
   if (!snap.exists) throw new ErrorXico("Esa reseña ya no existe.", 404);
   const r = snap.data() as Resena;
-  if (r.uid !== usuario.uid && !esAdmin(usuario)) throw new ErrorXico("No puedes borrar esa reseña.", 403);
+  if (r.uid !== usuario.uid && !esAdmin(usuario) && !(await esModerador(usuario))) throw new ErrorXico("No puedes borrar esa reseña.", 403);
   await ref.delete();
   await recalcular(r.tipo === "producto" ? r.objetivo : null, r.creador);
+  return { ok: true };
+}
+
+// La tienda responde una opinión (texto vacío = quitar la respuesta)
+export async function responderResena(usuario: UsuarioVerificado, id: string, textoCrudo: unknown) {
+  const db = adminDb();
+  const ref = db.collection("resenas").doc(String(id));
+  const snap = await ref.get();
+  if (!snap.exists) throw new ErrorXico("Esa opinión ya no existe.", 404);
+  const r = snap.data() as Resena;
+  const tienda = (await db.collection("creadores").doc(r.creador).get()).data() as Creador | undefined;
+  if (!tienda?.uid || tienda.uid !== usuario.uid) throw new ErrorXico("Solo la tienda puede responder esta opinión.", 403);
+  const texto = ocultarContacto(String(textoCrudo ?? "").trim().slice(0, MAX_TEXTO_RESENA)).limpio;
+  if (!texto) {
+    await ref.update({ respuesta: FieldValue.delete() });
+    return { ok: true };
+  }
+  const nueva = !r.respuesta;
+  await ref.update({ respuesta: { texto, fecha: Date.now() } });
+  if (nueva) {
+    await avisar([
+      {
+        uid: r.uid,
+        tipo: "respuesta",
+        titulo: `${tienda.taller} respondió tu opinión`,
+        texto: texto.slice(0, 140),
+        enlace: r.tipo === "producto" ? `/producto/${r.objetivo}#resenas` : `/creador/${r.creador}#resenas`,
+      },
+    ]);
+  }
   return { ok: true };
 }

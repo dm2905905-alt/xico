@@ -2,6 +2,7 @@
 // - "enviar": solo el dueño de la tienda de ese paquete (puede corregir la guía después).
 // - "entregar": el comprador o el dueño de la tienda.
 import type { UsuarioVerificado } from "./admin";
+import { avisarEnvio } from "./avisos";
 import type { Creador } from "../datos";
 import { paqueteriaPorId } from "../envios";
 import type { EstadoPedido, GrupoPedido, Pedido } from "../pedidos";
@@ -21,7 +22,7 @@ export async function actualizarEnvio(usuario: UsuarioVerificado, pedidoId: stri
   const db = adminDb();
   const ref = db.collection("pedidos").doc(String(pedidoId));
 
-  return db.runTransaction(async (tx) => {
+  const resultado = await db.runTransaction(async (tx) => {
     const snap = await tx.get(ref);
     if (!snap.exists) throw new ErrorXico("Pedido no encontrado.", 404);
     const pedido = snap.data() as Pedido;
@@ -59,6 +60,9 @@ export async function actualizarEnvio(usuario: UsuarioVerificado, pedidoId: stri
     const grupos = pedido.grupos.map((g, j) => (j === i ? grupo : g));
     const estado = estadoGeneral(grupos, pedido.estado);
     tx.update(ref, { grupos, estado });
-    return { estado, grupo };
+    return { estado, grupo, pedido: { id: pedido.id, uid: pedido.uid }, taller: grupo.taller, antes: pedido.grupos[i].envioEstado };
   });
+  // Solo la primera vez (corregir la guía no vuelve a avisar)
+  if (resultado.antes !== resultado.grupo.envioEstado) await avisarEnvio(resultado.pedido, creadorSlug, resultado.taller, cambio.accion);
+  return { estado: resultado.estado, grupo: resultado.grupo };
 }

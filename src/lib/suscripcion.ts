@@ -56,5 +56,5 @@ export const diasHasta = (ms: number, ahora: number) => Math.ceil((ms - ahora) /
 
 // ¿Se muestra y puede vender? Aprobada y sin mensualidad vencida de más de 7 días.
 // Las tiendas de ejemplo (sin dueño) no pagan mensualidad.
-export const tiendaVisible = (c: Pick<Creador, "estadoTienda" | "suscripcion" | "solicitada" | "uid">, ahora: number) =>
-  tiendaActiva(c) && (!c.uid || estadoSuscripcion(c, ahora).fase !== "pausada");
+export const tiendaVisible = (c: Pick<Creador, "estadoTienda" | "suscripcion" | "solicitada" | "uid" | "invitada">, ahora: number) =>
+  tiendaActiva(c) && !c.invitada && (!c.uid || estadoSuscripcion(c, ahora).fase !== "pausada");

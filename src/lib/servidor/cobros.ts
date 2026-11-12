@@ -6,6 +6,7 @@ import type { Propuesta } from "../chat";
 import type { Creador, Producto } from "../datos";
 import { tiendaVisible } from "../suscripcion";
 import { confirmarPagoSuscripcion } from "./suscripcion";
+import { avisarPago } from "./avisos";
 import {
   COMISION_XICO,
   problemaDireccion,
@@ -57,6 +58,7 @@ export async function crearPedido(usuario: UsuarioVerificado, solicitados: Artic
     if (p.vendido) throw new ErrorXico(`"${p.nombre}" ya se vendió. Quítalo de tu carrito.`);
     const cantidad = Math.floor(Number(a.cantidad));
     if (!(cantidad >= 1 && cantidad <= 20)) throw new ErrorXico("Cantidad no válida.");
+    if (p.unica && cantidad > 1) throw new ErrorXico(`"${p.nombre}" es pieza única: solo puedes comprar 1.`);
 
     // Extras: se toman sus precios del producto, no del navegador
     const ids = Array.isArray(a.extrasIds) ? a.extrasIds.map(String) : [];
@@ -182,7 +184,9 @@ export async function confirmarPago(pagoId: string, pedidoEsperado?: string) {
   const db = adminDb();
   const ref = db.collection("pedidos").doc(pedidoId);
 
-  return db.runTransaction(async (tx) => {
+  let recienPagado = false;
+  const estado = await db.runTransaction(async (tx) => {
+    recienPagado = false;
     const snap = await tx.get(ref);
     if (!snap.exists) throw new ErrorXico("Pedido no encontrado.", 404);
     const pedido = snap.data() as Pedido;
@@ -209,8 +213,12 @@ export async function confirmarPago(pagoId: string, pedidoEsperado?: string) {
         tx.update(refPropuesta, { estado: "pagada", pedidoId: pedidoId });
       }
       existentes.forEach((d, i) => {
-        if (d.exists) tx.update(refs[i], { vendidos: FieldValue.increment(articulos[i].cantidad) });
+        if (!d.exists) return;
+        // Pieza única: sale del catálogo sola y queda en "Trabajos anteriores"
+        const unica = (d.data() as Producto).unica;
+        tx.update(refs[i], { vendidos: FieldValue.increment(articulos[i].cantidad), ...(unica ? { vendido: true, vendidoEn: Date.now() } : {}) });
       });
+      recienPagado = true;
       return "pagado";
     }
     if (["rejected", "cancelled"].includes(pago.status)) {
@@ -220,6 +228,8 @@ export async function confirmarPago(pagoId: string, pedidoEsperado?: string) {
     tx.update(ref, base); // pendiente (por ejemplo, pago en OXXO aún no realizado)
     return pedido.estado;
   });
+  if (recienPagado) await avisarPago(pedidoId);
+  return estado;
 }
 
 // Sin número de pago: busca en Mercado Pago los pagos de este pedido y usa el mejor

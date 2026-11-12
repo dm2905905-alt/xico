@@ -25,6 +25,15 @@ service cloud.firestore {
       return request.auth != null;
     }
 
+    // Moderadores (lista en config/equipo, la cambia solo la administración): aprueban tiendas
+    // y moderan contenido, pero no ven datos privados ni dinero
+    function esModerador() {
+      return request.auth != null
+        && request.auth.token.email_verified == true
+        && exists(/databases/$(database)/documents/config/equipo)
+        && request.auth.token.email.lower() in get(/databases/$(database)/documents/config/equipo).data.moderadores;
+    }
+
     // ¿La tienda (creador) pertenece a quien hace la petición?
     function esDuenoDe(slugCreador) {
       return get(/databases/$(database)/documents/creadores/$(slugCreador)).data.uid == request.auth.uid;
@@ -56,8 +65,11 @@ service cloud.firestore {
         && request.resource.data.solicitada is int
         && math.abs(request.resource.data.solicitada - request.time.toMillis()) < 600000
         && !('suscripcion' in request.resource.data)
-        && !('destacado' in request.resource.data));
-      allow update: if esAdmin() || (conSesion()
+        && !('destacado' in request.resource.data)
+        && !('invitada' in request.resource.data));
+      allow update: if esAdmin()
+        || (esModerador() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['estadoTienda', 'verificado', 'top', 'destacado']))
+        || (conSesion()
         && resource.data.uid == request.auth.uid
         && textoValido(request.resource.data.taller, 2, 60)
         && request.resource.data.diff(resource.data).affectedKeys()
@@ -75,7 +87,9 @@ service cloud.firestore {
         && request.resource.data.resenas == 0
         && request.resource.data.calificacion == 0
         && !('oculto' in request.resource.data));
-      allow update: if esAdmin() || (conSesion()
+      allow update: if esAdmin()
+        || (esModerador() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['oculto', 'motivoOculto']))
+        || (conSesion()
         && esDuenoDe(resource.data.creador)
         && productoValido(request.resource.data)
         && request.resource.data.creador == resource.data.creador
@@ -104,12 +118,14 @@ service cloud.firestore {
           || (request.resource.data.tipo == 'archivo'
               && request.resource.data.ruta.matches('^videos/' + request.resource.data.creador + '/[A-Za-z0-9-]+$')));
       // La tienda solo puede cambiar el texto; ocultar es de la administración
-      allow update: if esAdmin() || (conSesion()
+      allow update: if esAdmin()
+        || (esModerador() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['oculto']))
+        || (conSesion()
         && resource.data.creadorUid == request.auth.uid
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['titulo'])
         && textoValido(request.resource.data.titulo, 0, 100)
         && sinContacto(request.resource.data.titulo));
-      allow delete: if esAdmin() || (conSesion() && resource.data.creadorUid == request.auth.uid);
+      allow delete: if esAdmin() || esModerador() || (conSesion() && resource.data.creadorUid == request.auth.uid);
     }
 
     match /tiendasPrivado/{creador} {
@@ -139,10 +155,33 @@ service cloud.firestore {
       allow write: if false;
     }
 
-    // Eventos y retos para vendedores: los ve cualquiera con sesión, solo la administración los crea y premia
+    // Avisos (campanita): cada quien ve y marca como leídos solo los suyos; los crea el servidor o la administración
+    match /avisos/{aviso} {
+      allow read, delete: if conSesion() && resource.data.uid == request.auth.uid;
+      allow update: if conSesion() && resource.data.uid == request.auth.uid
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['leido']);
+      allow create: if esAdmin() || (esModerador() && request.resource.data.tipo == 'tienda');
+    }
+
+    // Eventos y retos para vendedores: los ve cualquiera con sesión. La administración los crea y premia;
+    // la moderación puede crearlos, cancelarlos y borrar los que no se premiaron, pero no entregar premios.
     match /eventos/{evento} {
       allow read: if conSesion();
       allow write: if esAdmin();
+      allow create: if esModerador()
+        && request.resource.data.estado == 'activo'
+        && !('ganadores' in request.resource.data)
+        && !('premiado' in request.resource.data);
+      allow update: if esModerador()
+        && resource.data.estado == 'activo'
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['estado'])
+        && request.resource.data.estado == 'cancelado';
+      allow delete: if esModerador() && resource.data.estado != 'premiado';
+    }
+
+    // Lista del equipo: solo la administración
+    match /config/{documento} {
+      allow read, write: if esAdmin();
     }
 
     match /pedidos/{pedido} {
